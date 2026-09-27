@@ -28,6 +28,7 @@ Node.js 26.10.0、pnpm 12.6.0、workerd 1.20260925.1。グローバル環境は�
 | 複製先dev + `pnpm smoke 3000` | 起動・公開ページ・認証・チャット一連・全拡張OFFが成功 |
 | ブラウザ | 登録・固定応答・再読み込み後の履歴復元、承認前は未保存→人間の承認後にメモ保存を確認 |
 | 再設定画面 | ダミーtokenのURLから、既存セッションがあっても再設定フォームを表示しURLからtokenを除去。ブラウザで実パスワード変更はしていない |
+| GitHub Actions（後続確認） | 非公開リポジトリの `main` で、修正後の `verify` が成功。frozen install、`pnpm check`、ローカルD1 migration、build済みWorkerのHTTP smoke、`pnpm audit` を実行 |
 
 クリーン複製は`/private/tmp/cloudflare-starter-clone-sje5xefs`で検証。依存ディレクトリ、build、ローカルDB、生成型、Secretsは持ち込まず、ソース・設定・lockfile・資料だけを複製した。package/Worker名を`cloned-ai-app`、ローカルD1名を`cloned-ai-app-local`へ変更した。これは検証場所の記録であり、実装の絶対パス依存ではない。最終コード・テスト・migrationは元と同一。名称変更後に必要な`pnpm format`をREADMEへ反映した。
 
@@ -49,7 +50,11 @@ Node.js 26.10.0、pnpm 12.6.0、workerd 1.20260925.1。グローバル環境は�
 | fal.ai | 受付/状態/取消・所有権 | API鍵、モデル課金確認、画像1枚の実生成 |
 | Polar | 新旧署名、冪等性、順序逆転、SDK fake | sandbox組織/商品/webhook、実sandbox Checkout/Portal |
 
-実deploy、実メール、DNS変更、有料AI、実決済、GitHub Actions上のCIは未実施。ローカルの成功をこれらの接続成功とは扱わない。
+実deploy、実メール、DNS変更、有料AI、実決済は未実施。GitHub Actions上のCI成功をこれらの接続成功とは扱わない。
+
+## GitHub CIの後続確認（2026-09-27）
+
+`takunagai/cloudflare-ai-starter-kit` を非公開で作成し、ローカル `main` をpushした。初回の[run 36314699076](https://github.com/example/cloudflare-ai-starter-kit) はpnpmのセットアップ前に `actions/setup-node` がpnpmを探して失敗した。セットアップ順を修正し、[run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が2分8秒で成功。GitHub上の実行結果を確認した。pnpm/action-setupのNode.js 20非推奨とubuntu-latestの将来移行について、非致命的なannotationが残る。
 
 ## 既知の非致命的な警告
 

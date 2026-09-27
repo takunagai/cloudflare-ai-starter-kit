@@ -15,7 +15,7 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 - Node.js 26.10.0 / pnpm 12.6.0と依存・lockfileを固定。既存のグローバル環境は変更していない。
 - 認証・モデル切替・チャット・履歴を実装。RAG・承認付きtool・Workflows・fal.ai・Polarはコード・テスト・導入手順を作成し、初期設定は全OFF。認証メールは合意済みCloudflare Email Service。
 - 元プロジェクトと別名のクリーン複製先でlint・型検査・実workerdの157テスト（13ファイル）・buildが成功。空DBへの5 migration適用、複製先devと元previewのHTTP smoke、ブラウザで履歴復元・人間承認を確認。auditで既知の脆弱性の報告なし。
-- GitHub CI・クラウド配備・実メール・実AI・実決済は未実施。結果と留保は [第2段階・最終検証記録](phase2-verification.md)。staging/productionのローカルdry-runは第1段階時点の結果であり、機能追加後の実配備は確認していない。
+- GitHubの非公開リポジトリ `takunagai/cloudflare-ai-starter-kit` を作成・pushし、GitHub CIの `verify` が成功。クラウド配備・実メール・実AI・実決済は未実施。結果と留保は [第2段階・最終検証記録](phase2-verification.md)。staging/productionのローカルdry-runは第1段階時点の結果であり、機能追加後の実配備は確認していない。
 - 第1段階では指示ファイルを先行生成せず草案を用意し、ユーザーの `/init 日本語で` 後に [AGENTS.md](../AGENTS.md) を作成した。秘密情報保護ルール、実装の配置、実際の検証コマンドを反映。第2段階再開後、CLAUDE.mdは公式相対importでAGENTS.mdを参照する形で作成した。
 
 - 追加依頼により秘密保護を全プロジェクト共通のユーザーレベルへ整理。Claude Codeの2ルールを正本として改善し、CodexのグローバルAGENTS.mdから参照。両ツールに共通のPreToolUse保護を登録した。プロジェクトの [rules/secrets.md](../rules/secrets.md) はCloudflare固有の補足のみ。ダミー入力の10組のテストが成功。ユーザーからCodex CLIでの信頼確認完了を受領。新規セッションでの発火は別途未検証。実Secretは扱っていない。
@@ -92,6 +92,10 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 ローカルで使い始めるにはREADMEの手順に従う。実接続へ進む場合は、対象staging・リソース・DNS/公開範囲・モデルと回数/費用上限を具体化して承認を受ける。今回の完了範囲に実接続成功は含めない。
 
+GitHubへの非公開pushとCI確認は完了。staging配備、DNS変更、実メール送信、有料AI呼び出しは今回の範囲から除外する。
+
 ## Git管理の準備
 
-ユーザー依頼により`.gitignore`を実構成に合わせて更新。依存、ビルド、TanStack/Wranglerの生成物、ローカルDB、秘密ファイル、ログを除外し、lockfile・公開設定・migration・資料・共通ルール・秘密を含まないexampleを追跡対象に残した。一時Gitリポジトリの`git check-ignore`で除外39件・保持24件を確認し、不一致なし。その後「Git管理する」の指示を受け、ローカルの`main`ブランチでGitを初期化。検証済みスターターを初期履歴として記録する。リモート作成・外部pushは今回の範囲に含めない。
+ユーザー依頼により`.gitignore`を実構成に合わせて更新。依存、ビルド、TanStack/Wranglerの生成物、ローカルDB、秘密ファイル、ログを除外し、lockfile・公開設定・migration・資料・共通ルール・秘密を含まないexampleを追跡対象に残した。一時Gitリポジトリの`git check-ignore`で除外39件・保持24件を確認し、不一致なし。その後「Git管理する」の指示を受け、ローカルの`main`ブランチでGitを初期化。検証済みスターターを初期履歴として記録した。この時点ではリモート作成・外部pushを行っていない。
+
+2026-09-27に公開先 `takunagai/cloudflare-ai-starter-kit` を確認し、GitHubで非公開リポジトリを作成して `main` をpushした。初回CIは `actions/setup-node` より前にpnpmが用意されておらず失敗。`.github/workflows/ci.yml` のセットアップ順を修正したコミット `ccb9c98` で再実行し、[CI run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が成功した。
