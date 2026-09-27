@@ -54,7 +54,9 @@ Node.js 26.10.0、pnpm 12.6.0、workerd 1.20260925.1。グローバル環境は�
 
 ## GitHub CIの後続確認（2026-09-27）
 
-`takunagai/cloudflare-ai-starter-kit` を非公開で作成し、ローカル `main` をpushした。初回の[run 36314699076](https://github.com/example/cloudflare-ai-starter-kit) はpnpmのセットアップ前に `actions/setup-node` がpnpmを探して失敗した。セットアップ順を修正し、[run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が2分8秒で成功。GitHub上の実行結果を確認した。pnpm/action-setupのNode.js 20非推奨とubuntu-latestの将来移行について、非致命的なannotationが残る。
+`takunagai/cloudflare-ai-starter-kit` を非公開で作成し、ローカル `main` をpushした。初回の[run 36314699076](https://github.com/example/cloudflare-ai-starter-kit) はpnpmのセットアップ前に `actions/setup-node` がpnpmを探して失敗した。セットアップ順を修正し、[run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が2分8秒で成功。GitHub上の実行結果を確認した。
+
+同runに残ったpnpm ActionのNode.js 20非推奨と`ubuntu-latest`の将来移行のannotationへ対応。pnpm 12対応のAction v6.1.0に更新し、runnerを`ubuntu-24.04`へ固定した。[run 36315741871](https://github.com/example/cloudflare-ai-starter-kit)の全ステップが成功し、check runのannotation件数は0件。公式根拠と将来の26.04移行方針は[GitHub Actions調査](../references/github-actions.md)に記録。
 
 ## 既知の非致命的な警告
 

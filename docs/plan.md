@@ -99,3 +99,5 @@ GitHubへの非公開pushとCI確認は完了。staging配備、DNS変更、実�
 ユーザー依頼により`.gitignore`を実構成に合わせて更新。依存、ビルド、TanStack/Wranglerの生成物、ローカルDB、秘密ファイル、ログを除外し、lockfile・公開設定・migration・資料・共通ルール・秘密を含まないexampleを追跡対象に残した。一時Gitリポジトリの`git check-ignore`で除外39件・保持24件を確認し、不一致なし。その後「Git管理する」の指示を受け、ローカルの`main`ブランチでGitを初期化。検証済みスターターを初期履歴として記録した。この時点ではリモート作成・外部pushを行っていない。
 
 2026-09-27に公開先 `takunagai/cloudflare-ai-starter-kit` を確認し、GitHubで非公開リポジトリを作成して `main` をpushした。初回CIは `actions/setup-node` より前にpnpmが用意されておらず失敗。`.github/workflows/ci.yml` のセットアップ順を修正したコミット `ccb9c98` で再実行し、[CI run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が成功した。
+
+同runに残った2件の移行警告に対応した。pnpm ActionをNode.js 24実行・pnpm 12対応のv6.1.0へ更新し、runnerを`ubuntu-24.04`へ固定。採用根拠は[GitHub Actions調査](../references/github-actions.md)。[CI run 36315741871](https://github.com/example/cloudflare-ai-starter-kit)で全ステップ成功、check runのannotation件数は0件。
