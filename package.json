@@ -1,0 +1,61 @@
+{
+  "name": "cloudflare-ai-starter-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=26.10.0 <27",
+    "pnpm": "12.6.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 3000 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "format": "biome check --write .",
+    "lint": "biome check .",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv --include-runtime false worker-configuration.d.ts",
+    "typecheck": "pnpm cf-typegen && tsr generate && tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "smoke": "node scripts/smoke.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "4.0.65",
+    "@ai-sdk/google": "4.0.82",
+    "@ai-sdk/openai": "4.0.78",
+    "@ai-sdk/openai-compatible": "3.0.57",
+    "@ai-sdk/provider": "4.0.18",
+    "@openrouter/ai-sdk-provider": "3.1.0",
+    "@polar-sh/sdk": "0.49.0",
+    "@tanstack/react-router": "1.170.39",
+    "@tanstack/react-start": "1.168.58",
+    "ai": "7.0.118",
+    "better-auth": "1.7.6",
+    "drizzle-orm": "0.45.3",
+    "jose": "6.2.12",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "standardwebhooks": "1.1.1",
+    "workers-ai-provider": "4.0.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@cloudflare/vite-plugin": "1.60.2",
+    "@cloudflare/vitest-plugin": "1.2.8",
+    "@cloudflare/workers-types": "5.20260925.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@tanstack/router-cli": "1.167.38",
+    "@types/node": "26.6.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "vitest": "4.1.11",
+    "wrangler": "4.141.0"
+  }
+}

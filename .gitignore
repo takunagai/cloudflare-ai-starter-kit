@@ -1,0 +1,57 @@
+# 依存・プロジェクト内のローカルtoolchain
+node_modules/
+.pnpm-store/
+/.tools/
+
+# Vite / TanStack Start / Wrangler の生成物・キャッシュ
+# .wranglerにはローカルD1/R2、ログ、配備用の生成設定も含まれる。
+/dist/
+/.output/
+/.tanstack/
+/.wrangler/
+.vite/
+*.tsbuildinfo
+/src/routeTree.gen.ts
+/worker-configuration.d.ts
+
+# テストの生成レポート（docs内の確認画像は追跡する）
+/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+
+# ローカル環境・資格情報（実値を含まないexampleだけ例外）
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+!.env.example
+!.dev.vars.example
+auth.json
+auth.json.*
+/.secrets/
+/.claude/settings.local.json
+/CLAUDE.local.md
+
+# ローカルDB・バックアップ（migration SQLは追跡する）
+/*.sqlite
+/*.sqlite-*
+/*.sqlite3
+/*.sqlite3-*
+/*.db
+/*.db-*
+/backups/
+
+# ログ・OS・エディタの一時ファイル
+*.log
+/logs/
+.DS_Store
+._*
+Thumbs.db
+*.swp
+*.swo
+*~
+/.idea/
+
+# pnpm-lock.yaml、wrangler.jsonc、migrations/、.github/、
+# AGENTS.md、CLAUDE.md、共有エディタ設定は追跡する。

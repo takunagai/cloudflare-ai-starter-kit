@@ -1,0 +1,17 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!!src/routeTree.gen.ts",
+      "!!worker-configuration.d.ts",
+      "!!dist",
+      "!!.wrangler",
+      "!!.tanstack"
+    ]
+  },
+  "formatter": { "enabled": true, "indentStyle": "space" },
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "css": { "parser": { "tailwindDirectives": true } }
+}
