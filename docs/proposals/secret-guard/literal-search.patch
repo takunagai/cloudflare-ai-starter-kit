@@ -1,0 +1,29 @@
+--- a/protect_sensitive.py
++++ b/protect_sensitive.py
+@@ -81,0 +82,23 @@
++
++
++def literal_search(command, cwd, protected_path):
++    # Single quotes keep the pattern literal. Explicit --no-config prevents an
++    # external ripgrep configuration from enabling preprocessing or extra paths.
++    # No wrappers, redirection, shell substitutions, globbing, or option files.
++    match = re.fullmatch(
++        r"rg --no-config(?: -n)?(?: -A [0-9]{1,3})?(?: -B [0-9]{1,3})? -- "
++        r"'[^'\r\n$`\\]*' ([A-Za-z0-9_./~-]+)",
++        command,
++    )
++    if not match:
++        return False
++    target = match[1]
++    if target.startswith("-") or protected_path(target, cwd):
++        return False
++    path = Path(target).expanduser()
++    if not path.is_absolute():
++        path = Path(cwd) / path
++    try:
++        return path.is_file()
++    except (OSError, ValueError):
++        return False
+@@ -122,0 +146,2 @@
++        return None
++    if literal_search(command, cwd, protected_path):

@@ -16,6 +16,8 @@
       "routes": [],
       "vars": {
         "APP_ENV": "staging",
+        "AI_VERIFICATION_ENABLED": "false",
+        "AI_VERIFICATION_START": "",
         "APP_ORIGIN": "https://staging.example.invalid",
         "AUTH_MODE": "access",
         "ACCESS_TEAM_DOMAIN": "example-team1.cloudflareaccess.com",

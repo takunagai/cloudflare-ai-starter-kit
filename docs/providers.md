@@ -4,14 +4,14 @@
 
 ## 初期の許可一覧
 
-2026-09-28追記: 下表は現行コードの一覧です。Workers AIの`@cf/meta/llama-3.1-8b-instruct`は公式の2026-05-30廃止対象であり、実接続候補としてそのまま有効化しません。[最小検証計画](実AI接続-最小検証計画.md)に現行FP8版等の候補・料金・必要な変更案を記載しました。採用とコード変更は未実施です。他providerの提供状況を今回一括再確認したという意味ではありません。
+2026-09-28追記: 廃止対象の旧Workers AIモデルをFP8版へ更新しました。公開IDも変更し、旧IDを別モデルへ転送しません。[最小検証計画](実AI接続-最小検証計画.md)と[制御の実装状況](実AI検証制御-実装状況.md)を参照してください。fakeによるローカル検証済み、実接続は未実施です。他providerの提供状況を今回一括再確認したという意味ではありません。
 
 | 画面に渡すID | 接続先モデル | 必要なサーバー設定 |
 | --- | --- | --- |
 | `openai/gpt-4.1-mini` | `gpt-4.1-mini` / Chat Completions | `OPENAI_API_KEY` |
 | `anthropic/claude-haiku-4-5` | `claude-haiku-4-5` | `ANTHROPIC_API_KEY` |
 | `google/gemini-3.5-flash-lite` | `gemini-3.5-flash-lite` | `GOOGLE_GENERATIVE_AI_API_KEY` |
-| `workers-ai/llama-3.1-8b` | `@cf/meta/llama-3.1-8b-instruct` | Workers AI binding `AI` |
+| `workers-ai/llama-3.1-8b-fp8` | `@cf/meta/llama-3.1-8b-instruct-fp8` | Workers AI binding `AI`。stagingは検証設定・期限も必要 |
 | `openrouter/openai/gpt-4.1-mini` | `openai/gpt-4.1-mini` | `OPENROUTER_API_KEY` |
 | `lm-studio/local` | サーバー側の `LM_STUDIO_MODEL` | ローカル環境と `LM_STUDIO_BASE_URL` |
 | `local/demo` | AIを使わない固定応答 | ローカル環境と `LOCAL_DEMO=true` |
