@@ -2,6 +2,10 @@
 
 # staging作業ログ
 
+## 2026-09-28追記: 実装ドラフトPR #3と初回CI成功
+
+実装commit `65d2bb3`を共通フック経由で通常pushし、文書PR #2のブランチをbaseに[ドラフトPR #3](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3)を作成。PR #2の先端とopen/draftを維持。送信前全23コミット、生成後全24コミットとPR本文の公開可否を本文・メッセージ・作者に分けて検査し未解決候補0件。新規fetchしたhead/仮マージはAPI先端・親と一致し、同じ実装headのブランチCI/PR CIは両方success。結果とrunは[実装状況](実AI検証制御-実装状況.md)へ記録。追加の結果記録pushにも再取得・再検査を適用する。privateを維持し、実AI・実クラウド変更・実メール・mergeは実施していない。
+
 ## 2026-09-28追記: 実装レビューとドラフトPR準備
 
 未コミット25ファイルを保持して引き継ぎ、開始ブランチ・HEAD・空のステージ、GitHub private・PR #1 merge済み・PR #2 draft、共通Gitフック有効と匿名identity一致を再確認。レビューで同一ID並行予約、DB transaction失敗、履歴取得中の失効、失敗履歴拒否の4テストを追加し、checkの197テスト・lint・型検査・buildが成功。公開公式資料のFP8仕様・料金は前回見積りと一致。実クラウド操作・推論・実メールはなし。実装PRと生成情報・CIの確認記録は[実装状況](実AI検証制御-実装状況.md)へ集約する。以下は各作業時点の記録を保持する。

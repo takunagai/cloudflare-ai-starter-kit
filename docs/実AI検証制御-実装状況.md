@@ -54,3 +54,18 @@ Node.js 26.10.0・pnpm 12.6.0で`pnpm check`成功（lint57ファイル・型検
 送信前の変更26ファイル（開始時25件と公式根拠の更新1件）を文脈と機械検査で確認し、未解決候補0件。開始HEADまでの全22コミットについて本文・メッセージと作者情報を別検査し、未解決候補0件。生成作者1件は以前の許可対象に一致。以後のステージ全体・新コミット・PR本文・新しい仮マージはそれぞれ追加検査する。検出0件を未知の非公開情報の不存在保証としない。
 
 ステージ全体の検査で、保存用patchの空行contextが末尾空白として検出された。差分生成をcontextなしの形式へ変更し、提案の内容を維持して再生成。合成114判定と基準/候補の各12テストが成功し、設置済み共通フックのbyte一致・未変更を確認した。これは記録ファイルの整形で、フックの再適用ではない。変更文書の相対リンク106件は欠落0件。
+
+## 実装PRの初回送信と生成情報・CI確認
+
+実装を[65d2bb3](https://github.com/takunagai/cloudflare-ai-starter-kit/commit/65d2bb30f00bb7fe9259e9a879a29df6c095ee30)へcommitし、共通フックを通して通常push。[ドラフトPR #3](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3)を作成した。baseは文書PR #2の`codex/pr1-merge-verification`で、26ファイルの実装・関連記録差分。PR #2は先端`10329cf`・open/draftのまま、アプリ変更を混ぜていない。
+
+| 検査の区分 | 初回headの結果 |
+| --- | --- |
+| ローカル公開可否 | ステージ全体、push前の全23コミットの本文・メッセージ、author/committer、PRタイトル/本文を別検査。未解決候補0件。匿名identityと共通フックを維持 |
+| GitHub生成情報 | base・PR head・仮マージを新規fetchし、API先端と親・treeの一致を確認。仮マージを含む全24コミットの本文・メッセージ・作者情報は未解決候補0件。生成作者2件は既存の許可済みの同じ名前・account/service noreplyに一致 |
+| ブランチCI | [push run](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36426994497)は上記実装headでcompleted・success |
+| PR CI | [pull_request run](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36427029653)は同じheadでcompleted・success |
+
+privateを再確認し、PRはdraft・未merge。実AI・Cloudflare変更・remote migration・実配備・Secret投入・実メールは今回すべて0件。次の承認対象は[最小検証計画の具体的な許可範囲](実AI接続-最小検証計画.md#レビュー完了後に求める実環境の許可範囲)へまとめた。
+
+この結果記録の追加push後もhead/仮マージを取得し直し、同じ検査と最新headのブランチCI・PR CI確認を実施する。上記の件数・runは初回実装headの証拠であり、後続headへ流用しない。最終headの結果はPR Checksと作業完了報告で区別する。
