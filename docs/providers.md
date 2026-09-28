@@ -56,7 +56,7 @@ staging/productionではdemoとLM Studioを無効化する。API入口でも実�
 
 `tests/providers.test.ts` は実workerdでSDKを動かし、外部HTTPをすべてテスト内のfakeへ置き換える。Workers AIもfake bindingだけを渡す。許可一覧、未設定拒否、公開metadata、ローカル制約、各providerのリクエスト/レスポンス変換、固定応答と中断を対象にする。実Secret・有料推論・LM Studio実プロセス・Cloudflare上の実モデル接続はこのテストに含めない。実行結果は統合検証記録を参照する。
 
-担当範囲の確認では32テストがローカルworkerdで成功し、TypeScript型検査も成功した。固定tool呼出し、未知tool・不正引数の実行拒否、SDKのstep上限も確認している。OpenRouterと推移依存のsourcemapに元ソース欠損の警告が出るが、テストの失敗ではない。外部providerのstreaming実レスポンスと実サービスの疎通は未検証。
+担当範囲の確認では32テストがローカルworkerdで成功し、TypeScript型検査も成功した。固定tool呼出し、未知tool・不正引数の実行拒否、SDKのstep上限も確認している。OpenRouterと推移依存のsourcemapに元ソース欠損の警告が出るが、テストの失敗ではない。後続の2026-09-29には、本人限定stagingの指定Workers AI FP8モデルで2回の実応答・SSE終端・完了前UI更新を確認した。終了後はAI bindingを外して無効化済み。他providerやモデルの実疎通は未検証で、今回の成功を流用しない。[実接続の範囲と結果](実AI接続-最小検証計画.md#修正版の実接続結果後処理中2026-09-29)を参照。
 
 ## 公式根拠
 
