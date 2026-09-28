@@ -7,6 +7,8 @@
       "!!worker-configuration.d.ts",
       "!!dist",
       "!!.wrangler",
+      "!!.wrangler.staging.local.jsonc",
+      "!!.publication-recovery",
       "!!.tanstack"
     ]
   },
