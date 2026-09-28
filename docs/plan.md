@@ -211,3 +211,7 @@ GitHub事前確認ではprivate、fork・release・tag・通常Issue・Actions S
 専用モードでのstaging buildは成功。初回の生成D1比較はViteによるパス展開を含むオブジェクト全体の比較のため不一致となった。実D1のbinding・名前・IDとorigin・AUD・team domain・公開経路を項目別に比較して一致を確認し、Wrangler dry-runも成功。実配備は行っていない。秘密保護12テスト・Git公開検査30テストも成功。
 
 汎用commitスキルの補助検査は、ローカル認証テスト内の明示的な固定ダミーへの代入も検出して終了1。新しい共通Git検査では同じインデックスを検査して検出0。対象が架空のテスト値であることとworkerd認証テスト成功を確認したうえで記録した。フックの無効化や公開例外の登録は行っていない。
+
+Git管理外の設定を持たない検証用worktreeで、pnpm install --frozen-lockfileが成功。staging-local buildは専用設定の不在を検出して停止し、公開テンプレートへの暗黙フォールバックがないことを確認した。GitHub削除は現在の認証にdelete_repo権限がなくHTTP 403で失敗し、旧リポジトリは維持されている。追加認可待ち。
+
+ローカル専用ファイルを持たない検証用worktreeでもpnpm checkが成功（13ファイル・157テスト、lint、型検査、build）。文書の相対リンク切れ0件、Git差分の空白エラー0件。GitHubの置換と置換後CIは追加認可待ちで未実施。
