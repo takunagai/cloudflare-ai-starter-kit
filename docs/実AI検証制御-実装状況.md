@@ -2,6 +2,10 @@
 
 ## 2026-09-29の修正・検証結果
 
+修正commit `739d0a497309761cd1c4858de6b686b5477baf90`を通常pushし、既存ドラフトPR #3の本文を実装・ローカル検証・実環境中止の結果に合わせて更新した。送信前にステージ全体・全25コミットの本文/メッセージ/作者を検査し未解決候補0件。送信後はhead・仮マージを新規fetchし、API先端・親・tree・生成作者情報の一致を確認、仮マージを含む26コミットとPR本文の未解決候補0件。生成作者2件は既存許可との一致であり、未知の非公開情報の不存在保証ではない。リポジトリprivate、PR #2のheadとopen/draft、PR #3のbaseとopen/draftを維持している。
+
+同じ修正headの[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36492561011)と[pull_request CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36492566245)は、どちらもcompleted・success。結果記録とREADME・運用資料の追記だけを行う後続commitも、通常push後に新しいhead/仮マージと最新headの両CIを再確認する。上記runは修正commitの結果であり、後続commitのCI成功を代用しない。最終の最新状態は[PR #3のChecks](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3/checks)を参照する。
+
 実配備後に発見した状態APIのdispatch登録漏れを修正した。`src/server/api.ts`から`/api/ai-verification`を既存の認証付き処理へ渡す1経路を追加し、状態処理・推論制限・公開設定は変更していない。
 
 修正前にAPI入口を通る追加2テストで404を再現。修正後は認証済みの残3回・期限・no-store・台帳未消費、未認証401、不正method405、AI無効時のready=false、近似パス404を確認した。ローカルcheckはlint57ファイル・型検査・201テスト/15ファイル・build成功。追加テストの型検査エラーを専用VerificationEnv型で修正してから全checkを再実行した。build済みWorkerのHTTP smokeにも未認証401・ダミー認証後の状態API 200を追加し、SSR・asset・固定応答・保存/復元・replay・削除・logoutを含めて成功。起動したpreviewは終了した。実AI・実メールは使っていない。
