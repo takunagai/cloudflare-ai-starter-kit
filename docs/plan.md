@@ -90,7 +90,7 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 ## 次の作業
 
-ユーザーが指定した順序で、旧OAuth認可の失効（完了）→本人ログイン後のstaging検証（UI・D1レート制限書込みまで確認、会話保存は実AI検証時）→設定・記録のレビューとコミット・push→モデル・回数・費用を具体化した実AI接続へ進む。Wranglerは認可取り消し済みのため、次の配備時に再認証する。ローカルで使い始める場合はREADMEを参照する。
+ユーザーが指定した順序で、旧OAuth認可の失効（完了）→本人ログイン後のstaging検証（UI・D1レート制限書込みまで確認、会話保存は実AI検証時）→設定・記録のレビューとコミット・push（完了、[PR #1](https://github.com/example/cloudflare-ai-starter-kit)）→モデル・回数・費用を具体化した実AI接続へ進む。Wranglerは認可取り消し済みのため、次の配備時に再認証する。ローカルで使い始める場合はREADMEを参照する。
 
 ### 2026-09-27の配備前確認（履歴）
 
@@ -192,3 +192,5 @@ Workers AI料金を公式表で再確認。Workers Paidにもアカウント共�
 - 既存変更11ファイルを保持し、staging設定と運用記録を論理的に分けてコミットする作業ブランチを作成。設定コミットは `5cacea4`。push先は既存の非公開 `takunagai/cloudflare-ai-starter-kit`、既定ブランチmainと再確認した。
 - 今回の `pnpm lint` は54ファイル成功、Git差分チェック成功、更新資料のローカルリンク切れ0件、限定した秘密形式の検査は検出0件。検出0を秘密の完全不存在保証とはしない。アプリ実装は変更しておらず、既に成功した157テスト・build・staging dry-runは再実行しない。
 - GitHub照会はsandboxで通信失敗後、許可されたネットワークで成功。保護設定変更・mainへの直接push・再配備は行わない。push/PR/CIの最終状態は後続の実行結果で確認する。
+
+- 設定 `5cacea4` と記録 `ec48aba` を作業ブランチへpush済み。[ドラフトPR #1](https://github.com/example/cloudflare-ai-starter-kit)を作成。初回のPR CIは[run 36363933190](https://github.com/example/cloudflare-ai-starter-kit)で開始し、記録時点は実行中。最終状態はPRのChecksを参照する。次は実AIの接続先・モデル・回数・費用を合意してから有効化し、会話保存/復元/削除も確認する。

@@ -154,3 +154,10 @@
 - 対象11ファイルの変更を保持し、`codex/staging-access-verification` を作成。設定を `5cacea4` にコミットし、運用資料を別コミットとしてまとめる。Gitの既存ユーザー設定を使用し、資格情報/保護設定を変更しない。
 - `pnpm lint` 54ファイル成功、Git差分チェック成功、文書内のローカルリンク切れ0、限定した秘密形式の検出0。設定変更時に成功済みの157 workerdテスト・build・staging dry-runを参照し、文書更新だけで全体を再実行していない。コミット前スクリプトの機密形式・debug検査も成功。
 - GitHub読み取りはsandboxの通信失敗後、許可されたネットワークで成功。既存の非公開リポジトリとmainを確認。ブランチpushとPRの結果、CIは後続で確認する。
+
+
+### コミット・push・レビュー提出結果
+
+- `5cacea4`（staging設定）と `ec48aba`（運用記録）を非公開リポジトリの `codex/staging-access-verification` へpush成功。直後の作業ツリーはclean。
+- [ドラフトPR #1](https://github.com/example/cloudflare-ai-starter-kit)を作成し、この作業に添付。mainへのmergeはしていない。PR CI `verify` は[run 36363933190](https://github.com/example/cloudflare-ai-starter-kit)で開始、記録時点は実行中。記録更新後の最終CIはPRのChecksで確認する。
+- 実AIの設定/推論は実施せず、次の接続先・モデル・回数・費用の合意を待つ。会話保存・復元・削除、アプリ実メール、実決済は未検証。旧Docker残存・外部キー失効の制約は廃止記録に維持。
