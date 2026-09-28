@@ -13,17 +13,28 @@
   "env": {
     "staging": {
       "name": "cloudflare-ai-starter-kit-staging",
+      "routes": [],
       "vars": {
         "APP_ENV": "staging",
         "APP_ORIGIN": "https://staging.example.invalid",
-        "AUTH_MODE": "better-auth",
+        "AUTH_MODE": "access",
+        "ACCESS_TEAM_DOMAIN": "example-team1.cloudflareaccess.com",
+        "ACCESS_AUD": "",
         "LOCAL_DEMO": "false",
         "ENABLE_RAG": "false",
         "ENABLE_AGENT": "false",
         "ENABLE_WORKFLOWS": "false",
         "ENABLE_IMAGES": "false",
         "ENABLE_BILLING": "false"
-      }
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cloudflare-ai-starter-kit-staging",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
     },
     "production": {
       "name": "cloudflare-ai-starter-kit-production",
