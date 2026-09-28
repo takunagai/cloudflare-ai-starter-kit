@@ -212,3 +212,12 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 仮マージ参照を持つ最初の再作成先も削除し、再び同名の非公開リポジトリを作成。整理済みmainと作業ブランチを原子的にpush成功。今回はPRを作成せず、以前のPR添付も解除した。
 
 再確認でBiomeがGit管理外の復旧用JSONを検査対象にし、整形エラーに非SecretのGitHubリポジトリIDを出力してしまった。値を文書へ転記せず、実配備設定ファイルと復旧フォルダをBiomeの対象から明示除外した。復旧フォルダ内に架空の不正JSONを置いた状態でもlint成功を確認し、退避情報を検査ログへ出さない構成に修正した。
+
+
+### 最終検証とmainへの反映
+
+最終リポジトリをGitHubから新規mirror取得し、参照2件・PR参照0件、到達可能な全コミット本文の検出0件、author/committerが全件匿名設定であることを確認した。リポジトリ自体も作り直した別IDで、private・既定main・PR0件を確認済み。
+
+最新の実装先端でGitHubのverifyが成功。固定依存install、pnpm check、ローカルmigration、HTTP smoke、pnpm auditをクラウドCIでも確認した。その先端をmainへfast-forwardしてpush成功。元の8コミットの順序・日時・説明を保ち、PRや新しいマージコミットは作っていない。この検証記録の追加後も両ブランチを同じ整理版へ揃え、最終CIはGitHub Actionsで確認する。
+
+手元にはGit管理外の実配備設定と所有者限定の復旧用データを維持する。旧clone・復旧データをpush/mergeすると再混入するため共有しない。今回Cloudflareへの再配備、DNS/Access/Secretの変更、実AI、実メール、決済はなし。GitHub Actionsの通常CI利用以外に有料サービスを追加しておらず、stagingの月$5目安は硬い課金上限ではない。GitHub保護設定は変更していない。次にPR運用を再開する前には、本人がGitHubのメール非公開設定を確認する。
