@@ -24,7 +24,7 @@ pnpm未導入なら、Nodeを合わせてからユーザー自身の環境設定
 
 ## 機能と設定
 
-実配備した環境の設定を確認するには、[stagingのアクセス制限と公開設定](docs/staging-アクセス制限と公開設定.md)を参照してください。許可ユーザー、セッション期間、共有ポリシーの注意点、管理画面へのリンクをまとめています。
+実配備した環境の設定方針は、[stagingのアクセス制限と公開設定](docs/staging-アクセス制限と公開設定.md)を参照してください。本人限定・セッション期間・変更時の注意をまとめています。実ID・AUD・個別管理URLは記録しません。公開用と手元の配備設定の分離、履歴整理の結果は[リポジトリの公開情報と履歴管理](docs/リポジトリ-公開情報と履歴管理.md)にあります。
 
 旧プロジェクトの整理結果と残る確認事項は、[retired-project-workerの廃止記録](docs/旧プロジェクト-廃止記録.md)に記録しています。
 
@@ -71,7 +71,7 @@ CIも同じ検証を行い、自動deploy・実メール送信・有料LLM呼び
 3. 固定Node/pnpmで`pnpm install --frozen-lockfile` → `pnpm format`（名称変更後の整形）→ `pnpm db:migrate:local` → `pnpm check` → `pnpm dev`を実行します。
 4. 表示名・meta・画面を目的に合わせて変更します。公開先、必要リソース、費用、Secret投入先、復旧方法を確定してからクラウドへ配備します。
 
-ローカルD1 IDはダミーです。この作業ツリーのstagingには作者の専用D1・Access AUD・Custom Domain設定が入っています。複製先ではstagingの`routes`を外し、D1 ID・origin・Access team domain/AUDを自分の環境へ置き換えてから配備してください。productionは`.invalid`のorigin・公開先無効を維持しています。配備の実施状態は[staging作業ログ](docs/staging-work-log.md)を参照してください。
+Git管理する`wrangler.jsonc`はローカル用・配備用のテンプレートです。D1 IDはダミー、Access AUDは空、originは例示用、公開経路は無効です。実配備には管理対象から除外した`.wrangler.staging.local.jsonc`を用意し、`CLOUDFLARE_ENV=staging pnpm build --mode staging-local`で明示的に選びます。このファイルや`.publication-recovery/`は複製・共有しません。詳細は[公開情報と履歴管理](docs/リポジトリ-公開情報と履歴管理.md)を参照してください。
 
 環境分離、migration、buildとdeployの環境一致、復旧は[運用手順](docs/operations.md)、秘密の人間による投入は[Secrets補足](rules/secrets.md)を参照してください。実Secretをチャット・コマンド引数・ブラウザ変数へ入れません。
 

@@ -40,7 +40,7 @@ assert.match(await app.text(), /noindex/);
 const registered = await call("/api/auth/sign-up/email", {
   name: "HTTP検証",
   email: `smoke-${crypto.randomUUID()}@example.test`,
-  password: "TEST_ONLY_local_password_1",
+  password: "TEST_ONLY_local_signup_password",
 });
 assert.equal(registered.status, 200, "local dummy signup");
 cookie = registered.headers

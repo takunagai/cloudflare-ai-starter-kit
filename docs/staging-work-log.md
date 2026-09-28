@@ -161,3 +161,20 @@
 - `5cacea4`（staging設定）と `ec48aba`（運用記録）を非公開リポジトリの `codex/staging-access-verification` へpush成功。直後の作業ツリーはclean。
 - [ドラフトPR #1](https://github.com/example/cloudflare-ai-starter-kit)を作成し、この作業に添付。mainへのmergeはしていない。PR CI `verify` は[run 36363933190](https://github.com/example/cloudflare-ai-starter-kit)で開始、記録時点は実行中。記録更新後の最終CIはPRのChecksで確認する。
 - 実AIの設定/推論は実施せず、次の接続先・モデル・回数・費用の合意を待つ。会話保存・復元・削除、アプリ実メール、実決済は未検証。旧Docker残存・外部キー失効の制約は廃止記録に維持。
+
+
+## 2026-09-28: 公開情報と履歴の整理（準備・ローカル検証）
+
+ユーザーの指示により、既存8コミットの時刻・順序・説明を保ち、実ID・AUD・個別管理URL・配備先・個人パスを置換した履歴を作成。author/committerも匿名化し、元のハッシュは維持しない。秘密ファイル名の追跡ファイルと画像2件は本文を閲覧せず全履歴から除外し、手元のファイルを維持した。元の履歴は所有者のみアクセスできるGit管理外の復旧用bundleに保全した。
+
+実stagingの非Secret設定は所有者だけが読書きできるGit管理外ファイルに維持し、Viteの専用モードで選択する方式へ変更。Cloudflareのリソース・DNS・Secretsは変更していない。公開用メモは実値を含めない方針・管理場所・注意点に整理し、READMEからリンクした。
+
+初回のpnpm checkはsandboxのlocalhost待受制限でテストを開始できず失敗。許可された環境で再実行し、lint・型検査・workerd 157テスト・buildが成功。ローカルHTTP smokeで登録・固定応答・履歴・再試行・削除・ログアウトが成功。実AI・実メール・決済は呼んでいない。
+
+共通秘密保護フックでheredocをシェル全体として解析する誤検出、およびGitHub Secret件数確認を秘密ファイル閲覧と誤認するケースが発生。ダミーの許可/拒否テストを追加して限定修正し、秘密値の閲覧許可やフック無効化で解決していない。候補文字列へ接頭辞を付けて元の値を残す変更案は自動承認レビューに拒否され、適用せず固定ダミー置換へ変更した。
+
+GitHub事前確認ではprivate、fork・release・tag・通常Issue・Actions Secret・Actions変数・環境・hook・deploy key・artifactは0件。既存PR1件、CI run7件、cache1件を確認。GitHub側の処理は次項で結果を記録する。公開切替・GitHub保護設定変更はしない。追加の有料API利用はなく、既存stagingの月$5目安が硬い上限ではない点も変わらない。
+
+専用モードでのstaging buildは成功。初回の生成D1比較はViteによるパス展開を含むオブジェクト全体の比較のため不一致となった。実D1のbinding・名前・IDとorigin・AUD・team domain・公開経路を項目別に比較して一致を確認し、Wrangler dry-runも成功。実配備は行っていない。秘密保護12テスト・Git公開検査30テストも成功。
+
+汎用commitスキルの補助検査は、ローカル認証テスト内の明示的な固定ダミーへの代入も検出して終了1。新しい共通Git検査では同じインデックスを検査して検出0。対象が架空のテスト値であることとworkerd認証テスト成功を確認したうえで記録した。フックの無効化や公開例外の登録は行っていない。

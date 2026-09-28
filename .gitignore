@@ -55,3 +55,9 @@ Thumbs.db
 
 # pnpm-lock.yaml、wrangler.jsonc、migrations/、.github/、
 # AGENTS.md、CLAUDE.md、共有エディタ設定は追跡する。
+# Local deployment settings and private history recovery (never publish)
+/.wrangler.staging.local.jsonc
+/.publication-recovery/
+/.npmrc
+/docs/phase1-preview.png
+/docs/phase2-preview.png

@@ -10,7 +10,7 @@
 | staging | 承認後の実クラウド検証 | 本番とWorker、Secrets、D1、R2等を分離。必要な任意拡張のみ設定 |
 | production | 本番利用 | stagingで確認した成果物・migrationの手順を適用。権限と公開範囲を明示 |
 
-`wrangler.jsonc` の `env.staging` / `env.production` は別Worker名を持つ。`workers_dev: false`、`preview_urls: false`、`send_metrics: false` を維持する。この作業ツリーのstagingには承認済みの専用Custom Domainを設定した。複製時にはstagingの`routes`・実D1 ID・origin・Access設定を外すか複製先の値へ置き換える。productionは公開先無効。これらはCloudflareアカウント全体の設定を変えるものではない。
+`wrangler.jsonc` の `env.staging` / `env.production` は別Worker名を持つ公開用テンプレート。`workers_dev: false`、`preview_urls: false`、`send_metrics: false` を維持し、実D1 ID・AUD・Custom Domainは含めない。既存stagingの非Secret設定はGit管理外の `.wrangler.staging.local.jsonc` に分離した。実配備用buildは `--mode staging-local` で明示選択する。[公開情報と履歴管理](リポジトリ-公開情報と履歴管理.md)を先に確認し、複製先へ手元の実設定を持ち込まない。これらはCloudflareアカウント全体の設定を変えるものではない。
 
 Workersの環境別bindings・vars・Secretsを暗黙継承すると考えない。D1/R2/AI/Workflows等のbindingsは使用する環境ごとに明示する。環境を選ぶだけで本番の設定やデータを流用しない。ローカルDBはダミーIDを持つDB bindingでエミュレートする。staging/productionへは本物の環境別D1を明示追加する。
 
@@ -61,7 +61,7 @@ Cloudflare Vite pluginを使うため、**buildとdeployの環境を一致させ
 生成設定は `dist/server/wrangler.json`、Worker本体は `dist/server/index.js`、assetsは `dist/client`。第1段階ではstaging/productionのbuildとdry-runを確認済み。第2段階のbinding設定後は同じ手順で改めて確認する。
 
 ```sh
-CLOUDFLARE_ENV=staging pnpm build
+CLOUDFLARE_ENV=staging pnpm build --mode staging-local
 WRANGLER_SEND_METRICS=false pnpm exec wrangler deploy --config dist/server/wrangler.json --dry-run
 ```
 

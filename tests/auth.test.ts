@@ -85,7 +85,7 @@ describe("Better Auth on Workers + D1", () => {
     const rejected = await handleAuth(
       request("sign-in/email", {
         email: signup.email,
-        password: "TEST_ONLY_local_password_2",
+        password: "TEST_ONLY_local_signup_password",
       }),
       local,
     );
