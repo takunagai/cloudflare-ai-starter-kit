@@ -11,6 +11,7 @@
 | [費用・運用](costs-operations.md) | 公開料金、Node/pnpm/UI候補版、環境分離・CI・更新方針 |
 | [GitHub Actions](github-actions.md) | pnpm ActionとUbuntu runnerの固定版、移行警告への対応 |
 | [staging配備](staging-deployment.md) | 環境別build、Custom Domain、D1復旧、費用、GitHubのprivate repo保護条件 |
+| [GitHubメール設定とPR参照](github-email-and-pr-safety.md) | 2026-09-28確認。Webメール非公開、CLI push防止、ローカル作者設定、GitHub仮マージの検査範囲 |
 
 [構成と受け入れ条件](../docs/architecture-proposal.md)で統合する。第1段階の固定版・検証結果は [検証記録](../docs/phase1-verification.md)、正確な依存は `package.json` と `pnpm-lock.yaml` を参照。採用候補の実在、peer dependencies、実行結果は別々に記録し、ドキュメントの記載だけで互換性を確定しない。
 
