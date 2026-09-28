@@ -1,6 +1,6 @@
 # 環境・更新・配備・復旧の運用方針
 
-更新日: 2026-09-27。第2段階を含む運用手順。現時点でアプリ用クラウドリソースの作成・デプロイは行っていない。以下は導入と運用の手順であり、実行済みの証拠ではない。
+更新日: 2026-09-28。第2段階を含む運用手順。専用staging D1・Worker・Access・Custom Domainの配備を実施済み。本人のOTP受信・Accessログイン・認証後UIと実D1レート制限書込みを確認済み。会話保存・実AIは未検証。実行状態は[staging作業ログ](staging-work-log.md)を正本とし、以下の一般手順だけを実行済みの証拠としない。
 
 ## 環境の分離
 
@@ -10,7 +10,7 @@
 | staging | 承認後の実クラウド検証 | 本番とWorker、Secrets、D1、R2等を分離。必要な任意拡張のみ設定 |
 | production | 本番利用 | stagingで確認した成果物・migrationの手順を適用。権限と公開範囲を明示 |
 
-`wrangler.jsonc` の `env.staging` / `env.production` は別Worker名を持つ。`workers_dev: false`、`preview_urls: false`、`send_metrics: false` を初期設定とし、公開ホストやroutesはまだ設定しない。これらはCloudflareアカウント全体の設定を変えるものではない。
+`wrangler.jsonc` の `env.staging` / `env.production` は別Worker名を持つ。`workers_dev: false`、`preview_urls: false`、`send_metrics: false` を維持する。この作業ツリーのstagingには承認済みの専用Custom Domainを設定した。複製時にはstagingの`routes`・実D1 ID・origin・Access設定を外すか複製先の値へ置き換える。productionは公開先無効。これらはCloudflareアカウント全体の設定を変えるものではない。
 
 Workersの環境別bindings・vars・Secretsを暗黙継承すると考えない。D1/R2/AI/Workflows等のbindingsは使用する環境ごとに明示する。環境を選ぶだけで本番の設定やデータを流用しない。ローカルDBはダミーIDを持つDB bindingでエミュレートする。staging/productionへは本物の環境別D1を明示追加する。
 
@@ -65,7 +65,7 @@ CLOUDFLARE_ENV=staging pnpm build
 WRANGLER_SEND_METRICS=false pnpm exec wrangler deploy --config dist/server/wrangler.json --dry-run
 ```
 
-環境選択はbuildコマンドだけに設定する。生成設定には環境が展開済みのため、続くWranglerコマンドに `--env` を重ねない。実配備は公開先・リソース・費用等を承認後、同じ生成設定を使って `--dry-run` を外して行う。初期状態は公開先無効であり、そのままで公開URLが得られるとは扱わない。実配備は未実施。
+環境選択はbuildコマンドだけに設定する。生成設定には環境が展開済みのため、続くWranglerコマンドに `--env` を重ねない。実配備は公開先・リソース・費用等を承認後、同じ生成設定を使って `--dry-run` を外して行う。初回は公開経路なしでWorkerを配備し、専用Worker全体のAccess保護とAUD反映を確認してからCustom Domainを追加する。実施結果とversionは[staging作業ログ](staging-work-log.md)を参照する。
 
 環境別buildの事前生成時に、生成済み設定に環境節がない旨の警告が出る。buildは成功し、生成Worker名が正しいこととdry-runを確認したが、クラウドの環境別binding接続は第2段階以降に検証する。設定確認時もSecretを含むファイルや環境を表示しない。
 

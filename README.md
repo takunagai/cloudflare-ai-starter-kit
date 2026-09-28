@@ -24,6 +24,10 @@ pnpm未導入なら、Nodeを合わせてからユーザー自身の環境設定
 
 ## 機能と設定
 
+実配備した環境の設定を確認するには、[stagingのアクセス制限と公開設定](docs/staging-アクセス制限と公開設定.md)を参照してください。許可ユーザー、セッション期間、共有ポリシーの注意点、管理画面へのリンクをまとめています。
+
+旧プロジェクトの整理結果と残る確認事項は、[retired-project-workerの廃止記録](docs/旧プロジェクト-廃止記録.md)に記録しています。
+
 | 区分 | 内容 | 詳細 |
 | --- | --- | --- |
 | 公開ページ | `/`はSSR、`/help`だけbuild時に事前生成 | `vite.config.ts` |
@@ -67,7 +71,7 @@ CIも同じ検証を行い、自動deploy・実メール送信・有料LLM呼び
 3. 固定Node/pnpmで`pnpm install --frozen-lockfile` → `pnpm format`（名称変更後の整形）→ `pnpm db:migrate:local` → `pnpm check` → `pnpm dev`を実行します。
 4. 表示名・meta・画面を目的に合わせて変更します。公開先、必要リソース、費用、Secret投入先、復旧方法を確定してからクラウドへ配備します。
 
-初期のD1 IDはローカル用ダミーです。staging/productionのoriginは`.invalid`、公開先は無効です。環境ごとの本物のD1・origin・認証設定を追加してから配備します。作者のアカウントや絶対パスに依存しません。
+ローカルD1 IDはダミーです。この作業ツリーのstagingには作者の専用D1・Access AUD・Custom Domain設定が入っています。複製先ではstagingの`routes`を外し、D1 ID・origin・Access team domain/AUDを自分の環境へ置き換えてから配備してください。productionは`.invalid`のorigin・公開先無効を維持しています。配備の実施状態は[staging作業ログ](docs/staging-work-log.md)を参照してください。
 
 環境分離、migration、buildとdeployの環境一致、復旧は[運用手順](docs/operations.md)、秘密の人間による投入は[Secrets補足](rules/secrets.md)を参照してください。実Secretをチャット・コマンド引数・ブラウザ変数へ入れません。
 

@@ -2,7 +2,7 @@
 
 # 開発計画と進捗
 
-更新日: 2026-09-27
+更新日: 2026-09-28
 
 ## 目的
 
@@ -10,12 +10,12 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 ## 現在地
 
-**第2段階の実装と、第3段階の文書整備・ローカル最終検証を完了（2026-09-27）。** クラウド配備・有料API呼び出しは未承認・未実施。
+**第2段階の実装と、第3段階のローカル検証を完了。2026-09-28にstagingの実配備と未認証アクセス遮断を確認。** 専用D1・Worker・Worker全体のAccess保護・Custom Domain/DNSを設定済み。本人操作によるOTP受信・Accessログインと認証後UIを確認済み。実D1のレート制限書込みも確認。会話保存・復元・削除、アプリの実メール・実AI・実決済は未検証。最新の状態は[staging作業ログ](staging-work-log.md)を参照。
 
 - Node.js 26.10.0 / pnpm 12.6.0と依存・lockfileを固定。既存のグローバル環境は変更していない。
 - 認証・モデル切替・チャット・履歴を実装。RAG・承認付きtool・Workflows・fal.ai・Polarはコード・テスト・導入手順を作成し、初期設定は全OFF。認証メールは合意済みCloudflare Email Service。
 - 元プロジェクトと別名のクリーン複製先でlint・型検査・実workerdの157テスト（13ファイル）・buildが成功。空DBへの5 migration適用、複製先devと元previewのHTTP smoke、ブラウザで履歴復元・人間承認を確認。auditで既知の脆弱性の報告なし。
-- GitHubの非公開リポジトリ `takunagai/cloudflare-ai-starter-kit` を作成・pushし、GitHub CIの `verify` が成功。クラウド配備・実メール・実AI・実決済は未実施。結果と留保は [第2段階・最終検証記録](phase2-verification.md)。staging/productionのローカルdry-runは第1段階時点の結果であり、機能追加後の実配備は確認していない。
+- GitHubの非公開リポジトリ `takunagai/cloudflare-ai-starter-kit` の既存mainでCIの `verify` が成功。後続のstaging実配備は成功し、その設定・記録は `codex/staging-access-verification` ブランチで管理する。本人ログインと認証後UIは確認済み。会話保存・実AI・実決済は未完了。ローカル結果は [第2段階・最終検証記録](phase2-verification.md)、実クラウド結果は [staging作業ログ](staging-work-log.md)で区別する。
 - 第1段階では指示ファイルを先行生成せず草案を用意し、ユーザーの `/init 日本語で` 後に [AGENTS.md](../AGENTS.md) を作成した。秘密情報保護ルール、実装の配置、実際の検証コマンドを反映。第2段階再開後、CLAUDE.mdは公式相対importでAGENTS.mdを参照する形で作成した。
 
 - 追加依頼により秘密保護を全プロジェクト共通のユーザーレベルへ整理。Claude Codeの2ルールを正本として改善し、CodexのグローバルAGENTS.mdから参照。両ツールに共通のPreToolUse保護を登録した。プロジェクトの [rules/secrets.md](../rules/secrets.md) はCloudflare固有の補足のみ。ダミー入力の10組のテストが成功。ユーザーからCodex CLIでの信頼確認完了を受領。新規セッションでの発火は別途未検証。実Secretは扱っていない。
@@ -45,8 +45,8 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 - Web基盤はReact + TanStack Startを採用。公開ページのSSRとSSG/prerenderを選べる構成にし、基本的なルーティング・データ取得・サーバー関数から始めて学習負荷を抑える。ExperimentalなReact Server Componentsは導入しない。
 - 認証は公開サービス向けにBetter Auth、社内・個人向けにはCloudflare Accessを選択可能にする。Better Authはメール＋パスワードを標準にし、Googleログインを設定で追加可能にする。Accessで認証しても、会話・ジョブ・契約権限の所有権確認はアプリで行う。公開ページ・Polar webhookを保護範囲で誤って遮断しない設計にする。
 - 公式の注力・継続的な開発が確認できる技術ならOpen Betaも採用候補に含めてよい（ユーザー指定）。TanStack Start（調査時RC）とAI Search（Open Beta）の採用を個別に合意済み。Experimentalの包括承認とは区別する。
-- Cloudflareプラン: ユーザー申告で月額5ドルのWorkers有料プランを利用中。アカウント上の契約確認は未実施。
-- 費用方針: 開発・検証に必要な最低限の追加費用は許容する。月額上限の数値は未指定。有料検証の具体的内容・見積額を示して確認する。個々の課金、公開、外部リソース変更の包括的承認とは扱わない。
+- Cloudflareプラン: ユーザー申告の月額5ドルのWorkers有料プランについて、2026-09-27に対象アカウントのDashboardでWorkers Paid activeを確認。共有枠の将来利用量は未確定。
+- 費用方針: stagingの追加費用目安は既存Workers Paid基本料金を除き月$5。硬い課金上限ではない。有料検証の具体的内容・見積額を示して確認する。個々の課金、公開、外部リソース変更の包括的承認とは扱わない。
 
 ## 進行と相談ポイント
 
@@ -68,7 +68,7 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 - ローカル作業と実クラウド検証を分ける。課金、公開、外部リソース変更は具体的な範囲の承認が必要。
 - 通常のテスト/CIは実LLMへの有料リクエストなしで再現可能にする。
 - 秘密値、環境変数一覧、秘密を含む設定ファイルを表示しない。値をチャットへ要求しない。
-- 第1段階の構築・検証は完了。実行した検証だけを結果に記録し、未実施の検証を成功扱いしない。第2段階の機能実装と第3段階のローカル検証は完了。実デプロイは未実施。
+- 第1段階の構築・検証、第2段階の機能実装、第3段階のローカル検証、staging実配備は完了。本人ログイン後UIまで確認済み。会話保存・実AI等の未実施検証を成功扱いしない。
 
 ## 今回の実装順
 
@@ -90,9 +90,27 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 ## 次の作業
 
-ローカルで使い始めるにはREADMEの手順に従う。実接続へ進む場合は、対象staging・リソース・DNS/公開範囲・モデルと回数/費用上限を具体化して承認を受ける。今回の完了範囲に実接続成功は含めない。
+ユーザーが指定した順序で、旧OAuth認可の失効（完了）→本人ログイン後のstaging検証（UI・D1レート制限書込みまで確認、会話保存は実AI検証時）→設定・記録のレビューとコミット・push→モデル・回数・費用を具体化した実AI接続へ進む。Wranglerは認可取り消し済みのため、次の配備時に再認証する。ローカルで使い始める場合はREADMEを参照する。
 
-GitHubへの非公開pushとCI確認は完了。staging配備、DNS変更、実メール送信、有料AI呼び出しは今回の範囲から除外する。
+### 2026-09-27の配備前確認（履歴）
+
+以下は初回配備前の経緯。現在の配備状態は冒頭と[staging作業ログ](staging-work-log.md)を参照する。[staging初回配備の実行前計画](staging-deployment-plan.md)には当時の対象・手順・復旧を残している。
+
+2026-09-27の再確認: ローカルとリモートの`main`は`0000000000000000000000000000000000000000`で一致し、確認開始時の作業ツリーはクリーン。[CI run 36315931415](https://github.com/example/cloudflare-ai-starter-kit)の`verify`全ステップ成功、check run annotationは0件。GitHubのprivate repoでrulesetとbranch protectionの両APIが「GitHub Proへupgrade、または公開化」と403を返した。privateを維持する設定案は[公式調査](../references/staging-deployment.md#github-main保護の設定案)に記録し、設定変更はしていない。
+
+同日のローカル検証: staging向けbuildとWrangler dry-runは成功。現在のstaging設定にはD1 bindingがなく、`APP_ORIGIN`は`.invalid`の仮値なので、実配備の準備完了とは扱わない。初回sandbox buildはローカルlisten/ログ書込権限で失敗し、`WRANGLER_LOG_PATH=.wrangler/logs`と許可されたローカル実行で再確認した。実クラウド、Access、D1 remote migration、実メール、実AIの成功は未確認。
+
+Cloudflareの読み取りAPIで接続先アカウント `staging.example.invalid` とactiveな同名zone、Access organizationを確認。候補のstaging Worker・D1・Accessアプリ名、`staging.example.invalid` のDNS/Custom Domain/routeは確認時点で未使用。契約情報APIは権限不足だったため、後続でDashboardを確認した。[計画書](staging-deployment-plan.md)はWorkerを公開ルートなしで配備後、Worker単位のAccess保護を付けてからCustom Domainを追加する順序へ更新した。Cloudflareの作成・変更はしていない。
+
+ユーザーは上記アカウントとhostnameをstaging**準備上の候補**として了承し、初回はAccess限定公開、追加費用上限は既存Workers Paid料金を除き月$5と回答。実配備・DNS変更・実メール送信の承認ではない。既存Access IdPはワンタイムPINのみで、実ログインはメール送信を伴うため未実施。Accessの実契約・共有枠、テスターの範囲、実操作の対象と順序は実行前に確認する。
+
+後続の「進めて」を受け、DashboardでWorkers Paid activeと今期の請求可能使用量$0、Workers/D1が含有枠内であることを読み取り確認。Cloudflare Oneはプラン未選択。Zero Trust Freeの最終画面には規約同意と無料枠超過分の毎月請求許可が必要で、月$5の硬い上限は示されない。法的同意・継続請求の最終操作は行わず本人へ引き継ぎ、D1/Worker/Access/Custom Domainの作成と配備は停止。詳細は[実行前計画](staging-deployment-plan.md)。
+
+本人からZero Trust Freeを手動有効化した旨を受領し、Dashboardで同プランの表示を確認。Cloudflareアカウントのactive memberは1名。専用D1 `cloudflare-ai-starter-kit-staging` の新規作成を試みたが、自動承認レビューは初回の明示禁止を後続の「進めて」だけでは解除できないとして拒否した。別経路で再試行していない。migration 5本はローカルで構文上の削除/破棄文がないことを確認した。クラウドリソース作成・remote migration・Worker配備・Accessアプリ・Custom Domain/DNS変更の具体的承認を得るまで、外部変更はしない。
+
+Workers AI料金を公式表で再確認。Workers Paidにもアカウント共通で1日10,000 Neuronsの無料枠があり、枠内の実推論には追加料金がかからない。超過分は$0.011/1,000 Neuronsで従量課金される。初回の配備・認証・D1検証はAI OFFのままとし、後続のAI疎通時に共有使用量とモデル・回数・入出力上限を定める。根拠と費用リスクは[公式調査](../references/staging-deployment.md)と[実行前計画](staging-deployment-plan.md)へ追記した。
+
+ユーザーが専用D1・Worker・Accessアプリ作成、remote migration、Custom Domain/DNS変更を明示許可。専用D1をAPACに作成し、空DBへmigration 5本をremote適用、再listで未適用0本。`pnpm check`は157件のworkerdテストを含め成功し、staging buildとdry-runも成功。Worker実配備はWrangler OAuthの`workers_scripts:write`不足で拒否され、Workerは未作成。権限追加の確認を依頼済み。Accessアプリ・Custom Domain/DNS・実HTTPは未実施。[staging作業ログ](staging-work-log.md)に順序と結果を記録した。
 
 ## Git管理の準備
 
@@ -101,3 +119,76 @@ GitHubへの非公開pushとCI確認は完了。staging配備、DNS変更、実�
 2026-09-27に公開先 `takunagai/cloudflare-ai-starter-kit` を確認し、GitHubで非公開リポジトリを作成して `main` をpushした。初回CIは `actions/setup-node` より前にpnpmが用意されておらず失敗。`.github/workflows/ci.yml` のセットアップ順を修正したコミット `ccb9c98` で再実行し、[CI run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が成功した。
 
 同runに残った2件の移行警告に対応した。pnpm ActionをNode.js 24実行・pnpm 12対応のv6.1.0へ更新し、runnerを`ubuntu-24.04`へ固定。採用根拠は[GitHub Actions調査](../references/github-actions.md)。[CI run 36315741871](https://github.com/example/cloudflare-ai-starter-kit)で全ステップ成功、check runのannotation件数は0件。
+
+## 2026-09-28 staging配備の再開
+
+- 共通秘密保護ルールと指定資料を実読し、既存の未コミット変更7ファイルを保持。開始HEADは `0000000000000000000000000000000000000000`。
+- 実クラウド再照合で専用D1の実ID・APAC・20テーブルと未適用migration 0本を確認。専用Worker・Accessアプリ・Custom Domain・対象DNSは未作成。active memberは1名。
+- ユーザーはWranglerの `workers_scripts:write` 追加を明示許可。対象アカウント限定の最終同意画面を確認し、ブラウザ操作規則が要求する実行時の確認を依頼した。
+- staging build、公開経路なしの生成設定assert、dry-runを再実行してローカル成功。実配備・Access・HTTP検証の成功とは区別する。
+- 契約APIは認証エラー。Dashboardの今期課金使用量は$0.00。追加費用月$5は硬い課金上限ではない。
+- ブラウザ一覧の自動出力に前回OAuthコールバックの認可コードが含まれた。値は再掲せず、以後はURLを出力しない。旧コード/関連grantの失効確認は未完了。新規認証だけでは解決扱いにしない。
+- 操作順・結果と残課題は [staging作業ログ](staging-work-log.md#2026-09-28の再開記録jst)。実メール・AI・Secret投入・本人ログイン検証・GitHub保護変更は未実施。
+- OAuth待機は同意前に終了コード1で終了し、権限追加は未完了。返答後に同じ対象・scopeで再開する。今回のlint・Git差分チェックは成功。実配備以降と本人ログイン検証は未実施のまま。
+
+### 07:00〜07:10 JST 配備完了
+
+- 最終Authorizeの許可後、同一scope・同一アカウントでOAuthを再開して成功。専用Workerを公開経路なしで配備した。
+- Access作成APIは1010で拒否。未作成を再確認しDashboardから専用Worker全体を保護。本人メール完全一致の既存再利用ポリシーを関連付け、1時間session・例外なしをAPIで照合。共有ポリシー本文は未変更。
+- AUDをstaging設定へ反映し、`pnpm check`（157 tests）とローカルpreview/smoke成功。staging build・dry-run・公開経路なしで再配備し、クラウドAUD/DB一致を確認。
+- Access保護を確認後、指定Custom Domain/DNSを配備。最終version `00000000-0000-0000-0000-000000000000`（100%）。通常route 0件・workers.dev/preview無効。
+- 未認証の6経路（ページ・API・静的CSS）は全て302でAccessへ転送。ダミーJWTでも迂回不可、workers.devは404。クラウド設定は本人だけのallow、拡張全OFF、Secret/AI bindingなし。
+- 今期課金使用量表示は$0.00。追加月$5は硬い上限ではない。本人ログイン/OTP・認証後のクラウドD1/画面・実AI・実メールは未実施。次は送信先/回数を承認した本人ログイン検証。旧OAuth認可コード失効確認と共有Accessポリシーへの依存は作業ログの残課題を参照。
+- README/運用手順を現行staging設定に合わせ、複製時に作者の実ID/AUD/domainを流用しない手順を明記。既存変更を保持。コミット・pushなし。
+
+### 参照用設定メモの整備
+
+- ユーザーの依頼により、[stagingのアクセス制限と公開設定](staging-アクセス制限と公開設定.md)へ保護範囲・本人限定・1時間session・共有ポリシー依存・管理場所・検証範囲を集約し、READMEからリンクした。
+- 今後の設定変更も参照用メモへ残す方針をAGENTS.mdに追記。今回の変更は文書のみで、クラウド設定の変更や再検証は行っていない。
+
+### 07:24〜07:29 JST 残課題を順に対応
+
+- 全プロジェクト向けの設定メモ運用はユーザーレベルの共通ルールへ登録済み。Codex/Claude Codeの参照と既存指示の保持を確認した。
+- ユーザーの継続指示に従い、対象1アカウント・5権限のWrangler認可をDashboardで取り消し、一覧からの消失を確認。旧/新は1行に集約されていたため現在のWranglerも再認証が必要。旧コード単体の使用履歴は未検証だが、関連grantの失効確認は完了した。
+- 専用WorkerのAccess/Custom Domain/公開経路はAPIで維持を確認。未認証curlの3経路は302でAccessへ転送。Python HTTPの403は原因未特定として区別した。
+- 本人ログインはChromeで本人操作待ち（OTPはまず本人宛1回、コードを会話へ出さない）。ログイン後のクラウド検証が終わったらコミット・push、その後にモデル・回数・費用を具体化して実AI接続へ進む。手順と制約は[作業ログ](staging-work-log.md)を参照。
+
+### 07:44 JST OTP未着を調査
+
+- 本人がOTPを要求したが未着。迷惑メール・ゴミ箱にも見つからないとの申告。本人ログインは未完了。
+- APIで許可条件と登録本人メールの一致、OTP IdP、専用Workerへの関連付けを再確認。画像の古い `retired-project-worker - Cloudflare Access` はZero Trust組織名で、今回のアプリ名ではない。既存組織・共有ポリシーは未変更。
+- 次は本人が入力メールを照合し、受信サービスの拒否/隔離を確認。必要ならCloudflareへ送信抑止の調査を依頼する。エージェントはOTPを追加送信せず、秘密値を取得しない。調査結果と参照手順は[設定メモ](staging-アクセス制限と公開設定.md)へ追記。
+- 受信サービスはiCloudとの回答。端末同期と配送未着を分けるためWeb版でも確認し、入力アドレスの完全一致とiCloud容量を本人に確認してもらう。Cloudflare側の送信抑止は未確認。
+
+### 08:04〜08:06 JST 正しい宛先でもOTP未着
+
+- 初回入力は別メールだったが、修正後も未着。現在表示される宛先と登録メールの完全一致は本人が確認済み。Web版iCloudでも未着との申告。APIで本人限定Allowを再確認し、既存Access identityも1件一致した。
+- 追加のポリシーテストは認証エラー10000で失敗。ログイン成功・メール配送成功は引き続き未検証。次はCloudflareに配送抑止・バウンス等の確認を依頼する。[設定メモ](staging-アクセス制限と公開設定.md)に問い合わせ下書きと提出先を保存したが、送信はしていない。
+- クラウド設定・許可対象・契約は変更せず、追加OTP・実AI・Secret投入なし。請求使用量の再取得なし。本人ログイン後の検証→コミット/push→実AI接続の順序を維持する。
+
+### 09時台 旧プロジェクトの廃止
+
+- ユーザーの依頼とデータ永久削除の承認により、旧Worker・Secret構成・専用DO・旧Accessアプリ・R2の31オブジェクトとバケットを削除。API再一覧で各0件。ローカルは未コミット8件を保持してゴミ箱へ移動した。
+- 組織表示名を `staging.example.invalid - Cloudflare Access`、本人限定policy名を `cloudflare-ai-starter-kit-staging - Owner only` へ更新。ポリシーの利用アプリはstaging1件のみになった。本人限定・1h・専用Workerの保護・公開経路をAPIで再検証し、未認証3経路の302を確認。
+- [廃止記録](旧プロジェクト-廃止記録.md)を作成しREADMEからリンク。Docker接続失敗により旧イメージ/キャッシュの残存は未確認、外部サービス発行元キーの失効は未実施。GitHubや別プロジェクトの調査記事・知識ノートは未変更。請求総額は未再取得、追加契約なし。
+- Git差分検査とlint成功。OTP未着は表示名変更と別問題で未解決。本人ログイン後の実クラウド検証→コミット/push→範囲合意済みの実AI接続という後続順序は維持する。
+
+### 09:39 JST Accessログイン再試行
+
+- 本人の再試行依頼によりAccess設定を再確認。本人1名・1h・専用Worker保護を維持。許可対象メールのサービスと以前の受信確認先の食い違いを確認し、本人へ案内を訂正した。
+- 空のメール入力画面を本人に引き継ぎ、正しい登録メールでOTPを1回要求する段階。エージェントは送信せず、ログイン成功は未確認。配送抑止を原因と確定せず、実際の再試行結果を待つ。
+
+
+### 2026-09-28 09:50 JST 本人ログイン成功と実クラウド確認
+
+- 本人からOTP受信、続いてアプリ表示成功の報告を受領。途中の「This One-Time Pin has already been used!」表示だけでは失敗とせず、実際の認証後画面で確認した。二重送信が原因かは未確定。
+- 同じ本人のブラウザでワークスペース・ログアウト操作・空の履歴・モデル未設定の表示と、エラー表示0件を確認。コード上のセッション取得→認証済みモデル/履歴取得の経路と整合する。APIを検証タブで直接開く試みはブラウザの ERR_BLOCKED_BY_CLIENT で失敗し、HTTPステータスやレスポンス本文の独立確認は未実施。
+- 専用の実D1を集計のみで照会し、会話0件、レート制限行1件・カウント2を確認。認証後APIによるD1書込みの証拠であり、会話保存の検証とは区別する。UIはモデルOFF時に送信できず、会話保存・復元・削除は具体的に合意した最初の実AI検証へ繰り越す。
+- OTP値・Cookie・メールアドレス値は取得/記録せず、エージェントによるメール送信・実AI・Secret投入なし。クラウド設定と契約は変更せず、費用目安月$5（硬い上限ではない）を維持。請求総額は未再取得。送信抑止の仮説は未確定で、問い合わせは不要になった。
+
+
+### 2026-09-28 09:55 JST 差分レビューとGit記録
+
+- 既存変更11ファイルを保持し、staging設定と運用記録を論理的に分けてコミットする作業ブランチを作成。設定コミットは `5cacea4`。push先は既存の非公開 `takunagai/cloudflare-ai-starter-kit`、既定ブランチmainと再確認した。
+- 今回の `pnpm lint` は54ファイル成功、Git差分チェック成功、更新資料のローカルリンク切れ0件、限定した秘密形式の検査は検出0件。検出0を秘密の完全不存在保証とはしない。アプリ実装は変更しておらず、既に成功した157テスト・build・staging dry-runは再実行しない。
+- GitHub照会はsandboxで通信失敗後、許可されたネットワークで成功。保護設定変更・mainへの直接push・再配備は行わない。push/PR/CIの最終状態は後続の実行結果で確認する。
