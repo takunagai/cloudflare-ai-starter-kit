@@ -279,3 +279,12 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 - 公式カタログ・廃止告知・料金を再確認。既存allowlistのWorkers AIモデルは2026-05-30廃止対象で、料金表には残る。現行FP8版を第一候補とする計画にし、採用未決定・allowlist変更と検証専用制御は未実装と明記した。モデルを無断変更していない。
 - [最小検証計画](実AI接続-最小検証計画.md)はstaging本人限定・1モデル・最大3回、固定system/履歴を含む入力、出力1,024 tokens、60秒中断、retry 0、失敗/結果不明も枠消費、会話の復元/削除と終了後AI OFFまでを定義。無料枠なしのAI約$0.016、基盤を含む条件付き約$0.0353、追加利用申請目安$0.05。硬い課金上限とは扱わない。
 - README・設定メモ・plan・provider/運用/検証記録・参照索引を整合。lintは54ファイル成功、差分の空白検査成功。新規アプリテスト・実build・実AI・Cloudflare変更・実メール・Secret投入は行っていない。送信前の全差分・全履歴・作者・PR本文を別検査し、送信後のhead/仮マージ・最新CIを確認する。
+
+### 計画コミットの送信・PR生成後の検査
+
+- 既存未送信記録`2bae26e`を保持し、計画の`b615f82`を作成。Gitのindexへのsandbox書込制限は許可された実行で対処し、フックの迂回なし。ステージ全体・全21コミットの本文とメッセージ・作者・PRタイトルと本文を別々に確認。匿名作者各20件と許可済みGitHub生成作者1件、未解決候補0件。差分は12文書、相対リンク101件に切れなし。
+- 共通フックを通して通常push、[ドラフトPR #2](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/2)を作成。main・以前の作業ブランチは変更せず、新しい検証用repoも作っていない。今回のPRはopen・draft・未merge。
+- GitHubからbase・PR head・仮マージの3参照を新規fetch。対象参照から到達する全22コミットを検査した。仮マージ先端はAPIと一致、親はbase/headに一致、仮マージのtreeはheadと一致。本文候補0件、メッセージ候補0件、PRタイトル/本文候補0件。
+- 作者は匿名の名前/メールがauthor・committer各20件。過去の実mergeと新しい仮マージの生成author名計2件は同じ許可済みの名前に一致し、生成committer名も既存のサービス表記に一致。生成authorメール2件はアカウントnoreply、生成committerメール2件はサービスnoreply。未解決候補0件、値は出力・転記していない。
+- 計画コミットと一致する[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386329626)と[pull_request CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386349306)は両方completed・success。ローカル文書検査、GitHub生成情報検査、CIを区別した。
+- この記録の追加commit・通常push後も更新されたhead/仮マージを取得し直し、本文/メッセージ・作者・API先端/親を検査し、最新の両CIを確認する。上記22件とCI runは計画コミット時点の記録。追加送信に問題が出た場合は停止し、未知の情報の不存在まで保証しない。

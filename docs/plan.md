@@ -288,3 +288,9 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 - [計画書](実AI接続-最小検証計画.md)と[公式調査](../references/workers-ai-minimal-verification.md)を作成。既存Workers AIモデルの廃止を確認し、FP8候補と3B比較候補、入力/出力・総回数・停止・費用・後処理を具体化。必要なコード変更は案だけで未実装。
 - READMEと設定メモ・provider/運用資料へリンクし、検証記録の未実施一覧に後続のAccess成功を明示。共有履歴から除外済みの画像へのリンクも整理した。文書のみのため新規アプリテストは追加せず、lint・空白・共有対象相対リンクを確認した。
 - 実AI試行0回、Cloudflare変更・配備・Secret投入・実メールなし。実設定ファイルと復旧フォルダは内容を扱わずGit管理外を維持。今回のPRはdraftのまま、mergeしない。送信後の生成参照と最新CIは次の結果記録で別途確認する。
+
+### 文書PR作成後の確認
+
+既存merge記録コミットと計画コミットを共通フック経由で通常pushし、[ドラフトPR #2](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/2)を作成した。計画コミット`b615f82`時点の12文書差分で、アプリコード変更はない。送信前の全21コミットとステージ全体・PRタイトル/本文を別検査し、未解決候補0件。生成後のhead・base・仮マージを新規fetchし、全22コミットの本文/メッセージと作者を別検査して未解決候補0件、API先端・親・treeも一致。新しい生成author名1件は以前の許可済みの名前と一致した。
+
+同じheadの[ブランチCI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386329626)と[PR CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386349306)がそれぞれcompleted・success。この結果記録の追加push後も新しい生成参照と最新headの両CIを再確認する。上記件数・runは計画コミット時点の証拠であり、後続headの検査済み証拠には流用しない。次の実作業は計画書のモデル採用・制限実装の承認からで、実クラウド操作は未承認。
