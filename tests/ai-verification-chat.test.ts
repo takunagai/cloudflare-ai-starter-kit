@@ -10,6 +10,7 @@ import {
   verificationModelId,
   verificationStatus,
 } from "../src/server/ai-verification";
+import api from "../src/server/api";
 import { handleApp } from "../src/server/app-api";
 import * as auth from "../src/server/auth";
 import { handleChat } from "../src/server/chat";
@@ -127,6 +128,66 @@ async function attempts() {
 }
 
 describe("staging verification admission and upstream boundary", () => {
+  it("routes authenticated status through the API entry without spending a slot", async () => {
+    vi.spyOn(auth, "getIdentity").mockResolvedValue(owner);
+    const ctx = createExecutionContext();
+    const response = await api.fetch(
+      request("/api/ai-verification"),
+      config,
+      ctx,
+    );
+    await waitOnExecutionContext(ctx);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(await response.json()).toEqual({
+      ready: true,
+      remaining: 3,
+      expiresAt: startedAt + 30 * 60000,
+    });
+    expect(
+      await config.DB.prepare(
+        "SELECT count(*) AS count FROM ai_verification",
+      ).first(),
+    ).toEqual({ count: 0 });
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("keeps authentication, method and disabled checks on the status entry", async () => {
+    const identity = vi.spyOn(auth, "getIdentity").mockResolvedValue(null);
+    const ctx = createExecutionContext();
+    const unauthenticated = await api.fetch(
+      request("/api/ai-verification"),
+      config,
+      ctx,
+    );
+    expect(unauthenticated.status).toBe(401);
+    expect(await unauthenticated.json()).toEqual({
+      error: "authentication_required",
+    });
+    identity.mockResolvedValue(owner);
+    const wrongMethod = await api.fetch(
+      request("/api/ai-verification", {}),
+      config,
+      ctx,
+    );
+    expect(wrongMethod.status).toBe(405);
+    const disabledConfig: VerificationEnv = {
+      ...config,
+      AI_VERIFICATION_ENABLED: "false",
+      AI_VERIFICATION_START: "",
+      AI: undefined,
+    };
+    const disabled = await api.fetch(
+      request("/api/ai-verification"),
+      disabledConfig,
+      ctx,
+    );
+    expect(disabled.status).toBe(200);
+    expect(await disabled.json()).toEqual({ ready: false, remaining: 0 });
+    await waitOnExecutionContext(ctx);
+    expect(run).not.toHaveBeenCalled();
+  });
+
   it("limits the whole database to three attempts across midnight and deletion", async () => {
     for (let i = 0; i < 3; i++) {
       const value = await input();

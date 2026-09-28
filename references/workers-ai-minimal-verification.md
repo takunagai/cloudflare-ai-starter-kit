@@ -1,5 +1,7 @@
 # Workers AI最小検証の公式根拠
 
+2026-09-29再開時: [FP8個別ページ](https://developers.cloudflare.com/workers-ai/models/llama-3.1-8b-instruct-fp8/)と[Workers AI料金表](https://developers.cloudflare.com/workers-ai/platform/pricing/)を再確認。指定モデルの掲載、context 32,000、入力$0.152・出力$0.287/100万tokens、13,778・26,128 Neurons/100万tokens、Paid超過$0.011/1,000 Neuronsに変更なし。既存見積りを維持する。これは公開資料の確認で、共有使用量・個別アカウントでの推論成功は未再確認。
+
 確認日: 2026-09-28。実装レビュー時にもFP8個別ページとWorkers AI・Workers・D1料金の公式資料を再確認し、下記の単価・contextに変更なし。実アカウント・残量・認証情報・推論APIは照会していない。FP8採用と制御のローカル実装は完了し、実接続は未実施。[実装状況](../docs/実AI検証制御-実装状況.md)を現在の正本とする。以下の候補段階・未実装の記述は計画作成時の調査記録。
 
 | 公式資料 | 確認した事実 | 採用判断・制約 |
@@ -14,6 +16,16 @@
 | [D1料金](https://developers.cloudflare.com/d1/platform/pricing/) | Paid超過は読取$0.001/100万行、書込$1/100万行、保存$0.75/GB-month。indexの更新も計上 | SQLの結果件数とスキャン行数を区別し、実DB規模で見積りを再確認 |
 
 ## 見積りの再計算
+
+### 有効化前の提供条件再確認（2026-09-28）
+
+FP8個別ページとWorkers AI料金表を再取得し、指定IDの掲載、context 32,000、入力$0.152・出力$0.287/100万tokens、13,778・26,128 Neurons/100万tokensを再確認した。見積りは据え置く。公式掲載は個別アカウントの実行成功を保証しない。
+
+モデルページから参照される[MetaのLlama 3.1 Community License](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE)と[Acceptable Use Policy](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/USE_POLICY.md)、[Cloudflareのデータ利用条件](https://developers.cloudflare.com/workers-ai/platform/data-usage/)を確認した。今回の用途は本人限定の架空の計算・番号列挙で、モデル本体の配布や学習は含めない。利用ポリシーへの抵触は確認しなかった。モデルや派生成果を製品として提供・再配布する場合のライセンス添付・表示義務などは、将来の公開前に改めて確認する。製品資料上のモデル表示: **Built with Llama**。今回の準備で新規契約や追加規約への同意操作は行っていない。アカウント側で新たな契約・権限・課金条件を要求された場合は停止して本人へ確認する。
+
+Cloudflareの上記資料ではモデル固有条件の確認を利用者へ求め、明示同意なしでWorkers AIの入力・出力をモデル学習やサービス改善へ使わないと説明している。アプリ側のD1への保存・削除は別途今回の検証対象とする。
+
+2026-09-28の実行準備で[WorkersのCPU制限](https://developers.cloudflare.com/workers/platform/limits/#cpu-time)も再確認。PaidのHTTPリクエストは既定30秒、設定可能な最大値は5分。DashboardのCPU欄が空であることと、対象の実効上限を30秒と確認したことを区別する。本人が配備前の実設定・生成設定を照合し、30秒より大きければ下記のCPU数量前提を再評価する。実CPU使用量を計測した結果ではなく、設定変更も行っていない。
 
 無料枠を一切控除しない。FP8候補へ最大3回、各回のinputを全context 32,000、outputを現行コードの1,024 tokensと仮定する。実入力をtoken計測した値ではない。
 
