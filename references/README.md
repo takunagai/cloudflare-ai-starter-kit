@@ -13,6 +13,7 @@
 | [staging配備](staging-deployment.md) | 環境別build、Custom Domain、D1復旧、費用、GitHubのprivate repo保護条件 |
 | [GitHubメール設定とPR参照](github-email-and-pr-safety.md) | 2026-09-28確認。Webメール非公開、CLI push防止、ローカル作者設定、GitHub仮マージの検査範囲 |
 | [Workers AI最小検証](workers-ai-minimal-verification.md) | 2026-09-28再確認。既存モデルの廃止、候補の提供状況、無料枠なしの料金見積りと制約 |
+| [undici限定更新](undici-security-20260929.md) | 2026-09-29。2つの依存元だけ7.29.1へoverrideした根拠・検証範囲・解除条件 |
 
 [構成と受け入れ条件](../docs/architecture-proposal.md)で統合する。第1段階の固定版・検証結果は [検証記録](../docs/phase1-verification.md)、正確な依存は `package.json` と `pnpm-lock.yaml` を参照。採用候補の実在、peer dependencies、実行結果は別々に記録し、ドキュメントの記載だけで互換性を確定しない。
 
