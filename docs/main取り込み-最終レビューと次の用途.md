@@ -4,9 +4,24 @@
 
 ## 取り込みの実行記録
 
-PR #2はhead `10329cfd3e81af38b578f6ae549e75d43e472c17`を保ったままreadyにし、実merge `9b175082537438b96dac5401e7bce0d7a842beed`でmainへ取り込みました。実mainの全到達23コミットの検査は未解決候補0件。親は旧mainと確認済みheadに一致し、全履歴・レビューした仮マージのtree・許可済み生成作者を保持しています。[実main CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36505841198)は最後のauditで失敗し、install・check・local migration・HTTP smokeは成功しました。CI生ログは取得せず、具体的な指摘は未確認です。この版は後続のundici限定修正を含まないため、PR #3の新base CIと取り込み後main CIが成功するまで完了扱いにしません。
+**取り込み完了（2026-09-29）:** PR #2/#3を通常mergeし、PR #3のbaseをmainへ変更、手元mainをfast-forwardで同期・検査しました。現在はmain確定後、費用再照合と最初の用途選択の段階です。
 
-PR #3はbaseをmainへ調整し、この文書追記のheadで両CI・新しい仮マージ・生成情報を再確認してから通常mergeします。merge後の実main CI・履歴・tree・生成作者・手元main同期の最終結果は[PR #3本文](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3)に記録します。この文書を含むPR #3がmainに取り込まれ、同記録で完了を確認した後は、費用再照合と用途選択が残作業です。以下の対象表と「未実行」の手順見出しは取り込み前のレビュー時点の記録です。
+| 対象 | 確定結果 |
+| --- | --- |
+| PR #2 | head `10329cfd3e81af38b578f6ae549e75d43e472c17`の一致条件付きで通常merge。実merge `9b175082537438b96dac5401e7bce0d7a842beed` |
+| PR #3 | baseをmainへ変更。head `24fcc7be4e824ff74c062c6c13cfce45454469f1`の一致条件付きで通常merge。実merge `061b0ba20d2f00091b32627fe2e49eae2023b898` |
+| 取り込み完了時のmain | `061b0ba20d2f00091b32627fe2e49eae2023b898`。親はPR #2実mainとPR #3確認済みhead。全履歴とレビュー済み仮マージのtreeを保持 |
+| 手元同期 | HEAD/main・origin/main・GitHub先端の一致、作業ツリーcleanを確認 |
+
+- 最終PR headの[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36506469827): completed・success。
+- mainをbaseとする同じheadの[PR CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36506474162): completed・success。
+- 実merge先端の[main CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36506852047): completed・success。上記SHAとCIは取り込み完了時の版の証拠で、後続の文書更新headのCIは別確認します。
+
+実mainの全32コミット・本文/メッセージ・PRタイトル/本文・生成情報の検査は未解決候補0件、生成情報3コミットは既存許可に一致。API先端・親・tree・生成作者、匿名ローカルidentity、全index・保護フック有効、相対リンク235件/アンカー44件の欠落0件も確認しました。private・両既存ブランチを保持しています。これは検査対象の結果で、未知の非公開情報の不存在保証ではありません。
+
+PR #2だけを取り込んだ中間mainの[CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36505841198)は最後のauditで失敗し、install・check・local migration・HTTP smokeは成功しました。CI生ログは取得せず、具体的な指摘は未確認です。中間lockfileのundiciは7.29.0、PR #3には2依存元だけの7.29.1修正が含まれます。中間の失敗は保持し、取り込み完了は新baseのPR CIと最終main CIの成功を根拠にしています。
+
+追加配備・実AI再開は行っていません。費用内訳・確定請求は未確定のまま、用途別の接続は未選択です。以下の対象表と「未実行」の手順見出しは取り込み前のレビュー時点の記録で、現在状態ではありません。
 
 ## レビュー対象と結論
 

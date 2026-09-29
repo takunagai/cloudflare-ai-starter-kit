@@ -4,7 +4,9 @@ Cloudflare WorkersとTanStack Startで、公開ページ・ログイン後のAI�
 
 標準機能は **認証、モデル切替、ストリームチャット、D1への履歴保存**。RAG、承認付きツール、Workflows、fal.ai、Polarはコード・テスト・導入手順を持つ任意拡張です。初期状態は全OFF。クラウドアカウントや実Secretなしで、ローカルの固定応答を使って一連の流れを確認できます。固定応答は実AIではありません。
 
-**2026-09-29の取り込み記録:** 開発基盤・標準/任意機能のローカル検証、当時のクリーン複製、本人限定stagingでのFP8実接続2回と終了処理まで完了。本人がPR #2/#3の通常merge・必要なbase変更・main同期/検査を承認し、PR #2を取り込みました。この文書を含むPR #3のmain取り込みと実main CIの成功を確認した後は、**main確定後、費用再照合と最初の用途選択の段階**です。確定した取り込み結果は[PR #3](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3)本文から確認できます。[全工程・現在地・次の作業](docs/plan.md)、[使用量・請求確認](docs/実AI検証-使用量と請求確認.md)、[最終レビュー・取り込み記録・用途別の次ステップ](docs/main取り込み-最終レビューと次の用途.md)も参照してください。実AI検証ソースは`7abc1696`、後続のundici限定修正版`f2f7847c`はローカル/CI検証済み・未配備です。main取り込みは追加配備・実AI再開を含みません。
+**2026-09-29現在: main確定後、費用再照合と最初の用途選択の段階です。** PR #2/#3の通常merge、PR #3のbase変更、main同期・検査は完了しました。取り込み完了時のmainは`061b0ba20d2f00091b32627fe2e49eae2023b898`で、[そのmain CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36506852047)はcompleted・success。手元main・origin/main・GitHub先端の一致とclean、全32コミットの履歴・tree・生成作者検査も確認済みです。このSHAとCIはPR取り込み完了時の証拠で、以後の文書更新headのCIは別に確認します。
+
+[全工程・現在地・次の作業](docs/plan.md)、[使用量・請求確認](docs/実AI検証-使用量と請求確認.md)、[最終レビュー・取り込み完了結果・用途別の次ステップ](docs/main取り込み-最終レビューと次の用途.md)から、PR本文を開かずに確認できます。実AI検証ソースは`7abc1696`、後続のundici限定修正版`f2f7847c`はローカル/CI検証済み・未配備です。追加配備・実AI再開は行っていません。
 
 ## 最短の起動
 
