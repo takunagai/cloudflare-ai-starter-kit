@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { decideNote } from "./agent-tools";
 import { listModels } from "./ai/providers";
+import { verificationScope, verificationStatus } from "./ai-verification";
 import { getIdentity, handleAuth } from "./auth";
 import { handleBilling } from "./billing";
 import { handleChat } from "./chat";
@@ -29,6 +30,16 @@ export async function handleApp(
   try {
     const path = new URL(request.url).pathname;
     guardRequestEnvironment(request, env);
+    const verification = verificationScope(env);
+    if (
+      verification &&
+      (path.startsWith("/api/billing/") ||
+        path.startsWith("/api/extensions/") ||
+        path === "/api/approvals" ||
+        path.startsWith("/api/approvals/") ||
+        path === "/api/notes")
+    )
+      throw new ApiError(404, "feature_disabled");
     if (path === "/api/billing/webhook")
       return (
         (await handleBilling(request, env, null)) ??
@@ -47,16 +58,20 @@ export async function handleApp(
         ),
         localDemo: isLocalDevelopment(env) && env.LOCAL_DEMO === "true",
         features: {
-          rag: isEnabled(env.ENABLE_RAG),
-          agent: isEnabled(env.ENABLE_AGENT),
-          workflows: isEnabled(env.ENABLE_WORKFLOWS),
-          images: isEnabled(env.ENABLE_IMAGES),
-          billing: isEnabled(env.ENABLE_BILLING),
+          rag: !verification && isEnabled(env.ENABLE_RAG),
+          agent: !verification && isEnabled(env.ENABLE_AGENT),
+          workflows: !verification && isEnabled(env.ENABLE_WORKFLOWS),
+          images: !verification && isEnabled(env.ENABLE_IMAGES),
+          billing: !verification && isEnabled(env.ENABLE_BILLING),
         },
       });
     }
     if (!identity) throw new ApiError(401, "authentication_required");
     await rateLimit(env, identity.id, "api", 120);
+    if (path === "/api/ai-verification") {
+      method(request, ["GET"]);
+      return json(await verificationStatus(env, identity.id));
+    }
     const billing = await handleBilling(request, env, identity);
     if (billing) return billing;
     if (path === "/api/models") {

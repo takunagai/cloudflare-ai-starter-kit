@@ -4,6 +4,8 @@ Cloudflare WorkersとTanStack Startで、公開ページ・ログイン後のAI�
 
 標準機能は **認証、モデル切替、ストリームチャット、D1への履歴保存**。RAG、承認付きツール、Workflows、fal.ai、Polarはコード・テスト・導入手順を持つ任意拡張です。初期状態は全OFF。クラウドアカウントや実Secretなしで、ローカルの固定応答を使って一連の流れを確認できます。固定応答は実AIではありません。
 
+**2026-09-29の取り込み記録:** 開発基盤・標準/任意機能のローカル検証、当時のクリーン複製、本人限定stagingでのFP8実接続2回と終了処理まで完了。本人がPR #2/#3の通常merge・必要なbase変更・main同期/検査を承認し、PR #2を取り込みました。この文書を含むPR #3のmain取り込みと実main CIの成功を確認した後は、**main確定後、費用再照合と最初の用途選択の段階**です。確定した取り込み結果は[PR #3](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3)本文から確認できます。[全工程・現在地・次の作業](docs/plan.md)、[使用量・請求確認](docs/実AI検証-使用量と請求確認.md)、[最終レビュー・取り込み記録・用途別の次ステップ](docs/main取り込み-最終レビューと次の用途.md)も参照してください。実AI検証ソースは`7abc1696`、後続のundici限定修正版`f2f7847c`はローカル/CI検証済み・未配備です。main取り込みは追加配備・実AI再開を含みません。
+
 ## 最短の起動
 
 前提: **Node.js 26.10.0 / pnpm 12.6.0**。Nodeは26系Currentで、LTSではありません。`.node-version`と`package.json`を正本に、利用中のバージョン管理ツールで合わせてください。グローバル環境は自動変更しません。
@@ -26,7 +28,11 @@ pnpm未導入なら、Nodeを合わせてからユーザー自身の環境設定
 
 実配備した環境の設定方針は、[stagingのアクセス制限と公開設定](docs/staging-アクセス制限と公開設定.md)を参照してください。本人限定・セッション期間・変更時の注意をまとめています。実ID・AUD・個別管理URLは記録しません。公開用と手元の配備設定の分離、履歴整理の結果、GitHubメール設定とPR送信前後の検査手順は[リポジトリの公開情報と履歴管理](docs/リポジトリ-公開情報と履歴管理.md)にあります。
 
-[実AI接続の最小検証計画](docs/実AI接続-最小検証計画.md)は、本人限定staging・Workers AIの1モデル・最大3回の案です。既存allowlistのWorkers AIモデルは公式廃止対象のため、候補の選定と制限実装を別途承認・検証してから進めます。現在は計画のみで、実AI接続は未実施です。
+[実AI接続の最小検証計画](docs/実AI接続-最小検証計画.md)は、本人限定staging・Workers AIのFP8モデル・固定30分・最大3回です。2026-09-29に修正版で2回の実AI応答・逐次表示・履歴保存/復元・試験会話削除を確認しました。終了後はAI bindingを除去して無効化配備し、期限前のAI OFFとログアウト後のAccess遮断を確認済みです。消費台帳は保持し、再有効化や残枠の使用を自動では行いません。
+
+[実装状況と設定](docs/実AI検証制御-実装状況.md)に、入口修正後の201テストを含むcheck・HTTP smokeと、限定した実接続結果・無効化の確認根拠・制約を分けて記録しています。他モデル・任意拡張・アプリの実メール/決済は未検証です。
+
+[保護フックの原因調査・限定修正](docs/保護フック誤検出-調査と修正案.md)は、個別承認後に適用・検証しました。秘密ファイル判定やGit保護は維持しています。
 
 旧プロジェクトの整理結果と残る確認事項は、[retired-project-workerの廃止記録](docs/旧プロジェクト-廃止記録.md)に記録しています。
 
@@ -43,6 +49,8 @@ pnpm未導入なら、Nodeを合わせてからユーザー自身の環境設定
 | 決済（任意） | Polar sandboxのCheckout・署名付きWebhook・Portal | [決済](docs/billing.md) |
 
 任意拡張は`wrangler.jsonc`の対応`ENABLE_*`を`"true"`にし、必要なbindingやSecretを構成したものだけ使います。OFFの拡張にはアカウントを要求しません。LM Studioと固定応答・簡易ローカル認証はループバック専用です。公開ホストへローカル設定を持ち出すとAPIが拒否します。
+
+現在のstagingは固定窓・指定FP8・総3回の検証専用で、他providerと任意拡張を常に遮断します。検証フラグをfalseにしても通常運用へ解除されません。複製先で通常のstaging検証が必要なら、[新しい検証方針を先に設計・レビュー](docs/main取り込み-最終レビューと次の用途.md#複製手順への影響)してください。
 
 AI SearchはOpen Beta、Email ServiceはPublic Betaの採用を合意済みです。実サービスのモデル提供状況、費用、送信ドメイン、Cloudflareのbindings接続はローカルテストだけでは確認できません。実接続の範囲は[検証記録](docs/phase2-verification.md)を参照してください。
 
@@ -68,7 +76,7 @@ CIも同じ検証を行い、自動deploy・実メール送信・有料LLM呼び
 
 ## 別プロジェクトとして使う
 
-1. ソース・設定・lockfile・docsを新しいディレクトリへ複製します。`node_modules`、`dist`、`.wrangler`、`.tanstack`、Secrets、生成型、既存Git履歴は持ち込みません。
+1. ソース・公開設定・`pnpm-workspace.yaml`・lockfile・migration 0001〜0006・docsを新しいディレクトリへ複製します。2つのundici限定overrideも維持します。`node_modules`、`dist`、`.wrangler`、`.tanstack`、Secrets、生成型、既存Git履歴は持ち込みません。
 2. `package.json`の`name`、`wrangler.jsonc`の基本名とstaging/production名、ローカルD1名を変更します。
 3. 固定Node/pnpmで`pnpm install --frozen-lockfile` → `pnpm format`（名称変更後の整形）→ `pnpm db:migrate:local` → `pnpm check` → `pnpm dev`を実行します。
 4. 表示名・meta・画面を目的に合わせて変更します。公開先、必要リソース、費用、Secret投入先、復旧方法を確定してからクラウドへ配備します。

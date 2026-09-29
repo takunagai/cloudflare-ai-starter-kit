@@ -32,6 +32,12 @@ assert.equal(
   true,
   "core smoke requires every optional feature OFF",
 );
+const anonymousVerification = await call("/api/ai-verification");
+assert.equal(
+  anonymousVerification.status,
+  401,
+  "verification requires authentication through the Worker entry",
+);
 const app = await call("/app");
 assert.equal(app.status, 200);
 assert.equal(app.headers.get("Referrer-Policy"), "no-referrer");
@@ -48,6 +54,13 @@ cookie = registered.headers
   .map((value) => value.split(";")[0])
   .join("; ");
 assert.equal(Boolean(cookie), true, "session created");
+const verification = await call("/api/ai-verification");
+assert.equal(
+  verification.status,
+  200,
+  "verification status reachable through the built Worker",
+);
+assert.deepEqual(await verification.json(), { ready: false, remaining: 0 });
 const created = await call("/api/conversations", { title: "HTTP smoke" });
 assert.equal(created.status, 201);
 const { conversation } = await created.json();

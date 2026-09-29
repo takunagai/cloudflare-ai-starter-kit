@@ -4,14 +4,18 @@
 
 ## 初期の許可一覧
 
-2026-09-28追記: 下表は現行コードの一覧です。Workers AIの`@cf/meta/llama-3.1-8b-instruct`は公式の2026-05-30廃止対象であり、実接続候補としてそのまま有効化しません。[最小検証計画](実AI接続-最小検証計画.md)に現行FP8版等の候補・料金・必要な変更案を記載しました。採用とコード変更は未実施です。他providerの提供状況を今回一括再確認したという意味ではありません。
+2026-09-29の現在状態: 指定FP8は`7abc1696`で実接続2回・逐次表示を確認し、終了後はAI OFF・binding除去済み。後続依存修正版は未配備です。他provider・LM Studioは実接続未検証で、必要な用途だけ次に選びます。stagingは検証フラグOFFでも指定FP8/固定窓/総枠の制約を解除しません。[最終レビューと次の用途](main取り込み-最終レビューと次の用途.md)を参照してください。
+
+以下の2026-09-28追記はモデル変更時点の履歴です。
+
+2026-09-28追記: 廃止対象の旧Workers AIモデルをFP8版へ更新しました。公開IDも変更し、旧IDを別モデルへ転送しません。[最小検証計画](実AI接続-最小検証計画.md)と[制御の実装状況](実AI検証制御-実装状況.md)を参照してください。fakeによるローカル検証済み、実接続は未実施です。他providerの提供状況を今回一括再確認したという意味ではありません。
 
 | 画面に渡すID | 接続先モデル | 必要なサーバー設定 |
 | --- | --- | --- |
 | `openai/gpt-4.1-mini` | `gpt-4.1-mini` / Chat Completions | `OPENAI_API_KEY` |
 | `anthropic/claude-haiku-4-5` | `claude-haiku-4-5` | `ANTHROPIC_API_KEY` |
 | `google/gemini-3.5-flash-lite` | `gemini-3.5-flash-lite` | `GOOGLE_GENERATIVE_AI_API_KEY` |
-| `workers-ai/llama-3.1-8b` | `@cf/meta/llama-3.1-8b-instruct` | Workers AI binding `AI` |
+| `workers-ai/llama-3.1-8b-fp8` | `@cf/meta/llama-3.1-8b-instruct-fp8` | Workers AI binding `AI`。stagingは検証設定・期限も必要 |
 | `openrouter/openai/gpt-4.1-mini` | `openai/gpt-4.1-mini` | `OPENROUTER_API_KEY` |
 | `lm-studio/local` | サーバー側の `LM_STUDIO_MODEL` | ローカル環境と `LM_STUDIO_BASE_URL` |
 | `local/demo` | AIを使わない固定応答 | ローカル環境と `LOCAL_DEMO=true` |
@@ -56,7 +60,7 @@ staging/productionではdemoとLM Studioを無効化する。API入口でも実�
 
 `tests/providers.test.ts` は実workerdでSDKを動かし、外部HTTPをすべてテスト内のfakeへ置き換える。Workers AIもfake bindingだけを渡す。許可一覧、未設定拒否、公開metadata、ローカル制約、各providerのリクエスト/レスポンス変換、固定応答と中断を対象にする。実Secret・有料推論・LM Studio実プロセス・Cloudflare上の実モデル接続はこのテストに含めない。実行結果は統合検証記録を参照する。
 
-担当範囲の確認では32テストがローカルworkerdで成功し、TypeScript型検査も成功した。固定tool呼出し、未知tool・不正引数の実行拒否、SDKのstep上限も確認している。OpenRouterと推移依存のsourcemapに元ソース欠損の警告が出るが、テストの失敗ではない。外部providerのstreaming実レスポンスと実サービスの疎通は未検証。
+担当範囲の確認では32テストがローカルworkerdで成功し、TypeScript型検査も成功した。固定tool呼出し、未知tool・不正引数の実行拒否、SDKのstep上限も確認している。OpenRouterと推移依存のsourcemapに元ソース欠損の警告が出るが、テストの失敗ではない。後続の2026-09-29には、本人限定stagingの指定Workers AI FP8モデルで2回の実応答・SSE終端・完了前UI更新を確認した。終了後はAI bindingを外して無効化済み。他providerやモデルの実疎通は未検証で、今回の成功を流用しない。[実接続の範囲と結果](実AI接続-最小検証計画.md#修正版の実接続結果後処理中2026-09-29)を参照。
 
 ## 公式根拠
 

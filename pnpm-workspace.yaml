@@ -10,3 +10,6 @@ minimumReleaseAgeExclude:
 # Keep its transform API on a patched version; see docs/operations.md.
 overrides:
   '@esbuild-kit/core-utils>esbuild': '0.28.1'
+  # GHSA-3wwx-pv8p-q78v; keep the two existing consumers on the patched 7.x release.
+  '@ai-sdk/provider-utils@5.0.49>undici': '7.29.1'
+  'miniflare@5.20260925.0-alpha>undici': '7.29.1'

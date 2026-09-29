@@ -66,6 +66,7 @@ describe("server-owned model selection", () => {
   it.each([
     "",
     "gpt-4.1-mini",
+    "workers-ai/llama-3.1-8b",
     "openai/unknown",
     "https://example.test/model",
     "__proto__",
@@ -284,7 +285,7 @@ describe("AI SDK adapters inside workerd, external boundaries mocked", () => {
     }));
     const result = await generateText({
       model: getModel(
-        "workers-ai/llama-3.1-8b",
+        "workers-ai/llama-3.1-8b-fp8",
         settings({ AI: { run } as unknown as Ai }),
       ),
       prompt: "dummy",
@@ -292,6 +293,11 @@ describe("AI SDK adapters inside workerd, external boundaries mocked", () => {
     });
     expect(result.text).toBe("mock workers");
     expect(run.mock.calls.length).toBe(1);
+    expect(run).toHaveBeenCalledWith(
+      "@cf/meta/llama-3.1-8b-instruct-fp8",
+      expect.anything(),
+      expect.anything(),
+    );
     expect(fetch).not.toHaveBeenCalled();
   });
 

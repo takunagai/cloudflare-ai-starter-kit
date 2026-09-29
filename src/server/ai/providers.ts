@@ -5,6 +5,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModel } from "ai";
 import { createWorkersAI } from "workers-ai-provider";
+import { verificationModelId, verificationSettings } from "../ai-verification";
 import { type AppEnv, isLocalDevelopment, type PublicModel } from "../env";
 import { createLocalDemoModel } from "./local-demo";
 
@@ -24,8 +25,8 @@ const catalog = [
     provider: "google",
   },
   {
-    id: "workers-ai/llama-3.1-8b",
-    label: "Llama 3.1 8B · Workers AI",
+    id: verificationModelId,
+    label: "Llama 3.1 8B FP8 · Workers AI",
     provider: "workers-ai",
   },
   {
@@ -85,6 +86,11 @@ function available(
   provider: (typeof catalog)[number]["provider"],
   env: AppEnv,
 ): boolean {
+  try {
+    if (verificationSettings(env) && provider !== "workers-ai") return false;
+  } catch {
+    return false;
+  }
   switch (provider) {
     case "openai":
       return configured(env.OPENAI_API_KEY);
@@ -132,7 +138,7 @@ export function getModel(modelId: string, env: AppEnv): LanguageModel {
     case "workers-ai": {
       if (!env.AI) throw new ModelUnavailableError();
       return createWorkersAI({ binding: env.AI })(
-        "@cf/meta/llama-3.1-8b-instruct",
+        "@cf/meta/llama-3.1-8b-instruct-fp8",
       );
     }
     case "lm-studio": {

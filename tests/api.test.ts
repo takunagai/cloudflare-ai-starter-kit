@@ -34,14 +34,17 @@ describe("Worker API boundary", () => {
     expect(response.headers.get("Allow")).toBe(allow);
   });
 
-  it.each(["/api", "/api/missing", "/api/health/other"])(
-    "returns JSON 404 for %s",
-    async (path) => {
-      const response = await exports.default.fetch(`${origin}${path}`);
-      expect(response.status).toBe(404);
-      expect(await response.json()).toEqual({ error: "not_found" });
-    },
-  );
+  it.each([
+    "/api",
+    "/api/missing",
+    "/api/health/other",
+    "/api/ai-verification/other",
+    "/api/ai-verification-extra",
+  ])("returns JSON 404 for %s", async (path) => {
+    const response = await exports.default.fetch(`${origin}${path}`);
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "not_found" });
+  });
 
   it("validates JSON and does not echo input", async () => {
     const response = await post(JSON.stringify({ message: "  確認  " }));
