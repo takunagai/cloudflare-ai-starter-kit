@@ -258,3 +258,33 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 - 更新後のGitHubを新規mirror取得し、最新PR headと新しい仮マージを明示取得した。参照5件・PR参照2件・全18コミット。本文・メッセージ・PR本文・メール・その他の名前は未解決候補0件。許可した生成author表示名1件は承認対象の既存の名前に一致し、仮マージ先端と親コミットも一致した。
 - 同じ更新後headに対するpush CIとPR CIはcompleted・success。private・既定main・PR open・draft・未merge、ローカルとPR先端一致、作業ツリーclean、共通フック有効、実効匿名author／committerを確認した。mainと以前の作業ブランチは開始時から変更なし。Git管理外の実配備設定と復旧フォルダの未追跡・ignore対象を維持し、内容は表示・送信していない。
 - 本人設定確認・ローカルの検査・GitHub生成メタデータの検査・CIを区別して確認し、PR運用の再開を完了した。ここでの18件は結果記録の追加push後の検証時点の件数であり、この完了記録を含む各push後も、新しい仮マージと最新headの両CIを同じ手順で確認する。今回merge・公開切替・削除／再作成・force-push・履歴書換え・GitHub保護設定変更・Cloudflare操作・実AI・実メールは行っていない。
+
+## 2026-09-28: PR #1のレビュー・mergeとmain再検査
+
+- 本人からPR #1のレビュー・merge・main再検査を明示依頼された。AGENTS.mdと共通ルールの正本を再読し、private・作業ツリーclean・共通フック有効・PRのhead／baseとローカルの一致を確認。既存のGit管理外設定と復旧フォルダは未追跡・ignore対象のまま保持し、内容を取得していない。
+- 変更は6文書のみ。実差分と公式根拠をレビューし、取り込みを妨げる問題なし。最新headに対するpush CIとPR CIはcompleted・success。GitHubの仮マージを含む参照5件・PR参照2件・全19コミットを新規取得し、本文・メッセージ・PR本文・メール・作者情報の未解決候補0件。生成author表示名1件は本人が許可した既存の名前に一致した。
+- PRをreadyへ変更し、head／base／仮マージの先端が不変と確認。再取得した仮マージの同じ検査も合格。確認済みheadに一致条件を付け、通常のmerge commitで取り込んだ。PRはclosed・merged。元の18コミットを保持し、ブランチ削除・保護設定変更・履歴再書換え・force-pushは行っていない。
+- merge後の新規mirrorは参照4件・PR head参照1件・main全19コミット。仮マージ参照はなく、実mergeの先端はAPIとmainに一致、親はレビュー済みbase／headに一致した。mainのtreeはレビュー済みheadと一致し、既存の全履歴を保持した。
+- 本文・メッセージ・PR本文の候補は各0件。作者情報を別検査し、匿名author／committerが各18件、生成authorのメールはアカウントnoreply、生成committerはサービスnoreply。生成author表示名1件は本人が許可した同じ名前に一致、その他の未解決候補0件。値は表示・転記していない。
+- 手元mainを検査済みorigin/mainへ通常のfast-forwardで同期。全到達履歴19件の本文・メッセージと作者分類、インデックス検査に未解決候補0件。記録追記前はclean、今後のauthor／committerは匿名設定に一致、共通フック有効。以前の作業ブランチと未追跡・ignore対象を保持した。global作者設定は変更していない。
+- 実merge先端と一致するmainのpush CIがcompleted・success。過去のPR CI成功と混同していない。今回のレビュー・merge・再検査に失敗や新しい未解決候補はなし。アカウント設定は先の本人確認に基づき、設定画面や個人メールを取得していない。
+- 設定メモ・進捗・作業ログへ実値なしで追記し、新しく確認したmerge仕様の公式根拠を更新。結果記録は同期済みmainから作ったローカル`codex/pr1-merge-verification`に保存し、GitHubへ追加送信していない。公開切替・削除／再作成・Cloudflare変更・Secret投入・実AI・実メールはなし。検出0件やCI成功は未知の非公開情報の不存在保証ではない。
+- 追記した文書差分の形式検査は候補0件、差分の空白検査とlint（54ファイル）は成功。READMEを含む確認対象の相対ファイルリンク49件は切れ0件で、設定メモへ到達可能。文書のみの追記として新しいアプリテストを追加していない。
+
+## 2026-09-28: 実AI最小検証計画とmerge検査記録の文書PR
+
+- 指定の正本・共通ルール・履歴整理以降の文書を実読。開始時ブランチは`codex/pr1-merge-verification`、mainより1コミット先行・未push・clean。既存の4文書コミットを保持した。Git管理外の実設定と復旧フォルダは存在・非追跡・ignoreの判定だけ行い、内容を閲覧・複製していない。
+- GitHubのprivate・既定main・PR #1のMERGED・open PR 0件、merge前の最新push/PR CIとmerge後main CIのsuccessを現在のAPIで再確認。mainをfetchしてローカルと一致。sandbox内GitHub照会は通信失敗、その後の許可された読み取り実行は成功した。
+- 共通Gitフックの実効接続・ファイル・エンジンが有効。実効author/committerは既存匿名コミットに一致し、設定変更なし。開始時全20コミットを現行の共通検査実装で本文・メッセージ検査し候補0件。作者は匿名各19件、過去の許可済み生成author名1件、account/service noreplyを値非表示で分類、未解決候補0件。
+- 公式カタログ・廃止告知・料金を再確認。既存allowlistのWorkers AIモデルは2026-05-30廃止対象で、料金表には残る。現行FP8版を第一候補とする計画にし、採用未決定・allowlist変更と検証専用制御は未実装と明記した。モデルを無断変更していない。
+- [最小検証計画](実AI接続-最小検証計画.md)はstaging本人限定・1モデル・最大3回、固定system/履歴を含む入力、出力1,024 tokens、60秒中断、retry 0、失敗/結果不明も枠消費、会話の復元/削除と終了後AI OFFまでを定義。無料枠なしのAI約$0.016、基盤を含む条件付き約$0.0353、追加利用申請目安$0.05。硬い課金上限とは扱わない。
+- README・設定メモ・plan・provider/運用/検証記録・参照索引を整合。lintは54ファイル成功、差分の空白検査成功。新規アプリテスト・実build・実AI・Cloudflare変更・実メール・Secret投入は行っていない。送信前の全差分・全履歴・作者・PR本文を別検査し、送信後のhead/仮マージ・最新CIを確認する。
+
+### 計画コミットの送信・PR生成後の検査
+
+- 既存未送信記録`2bae26e`を保持し、計画の`b615f82`を作成。Gitのindexへのsandbox書込制限は許可された実行で対処し、フックの迂回なし。ステージ全体・全21コミットの本文とメッセージ・作者・PRタイトルと本文を別々に確認。匿名作者各20件と許可済みGitHub生成作者1件、未解決候補0件。差分は12文書、相対リンク101件に切れなし。
+- 共通フックを通して通常push、[ドラフトPR #2](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/2)を作成。main・以前の作業ブランチは変更せず、新しい検証用repoも作っていない。今回のPRはopen・draft・未merge。
+- GitHubからbase・PR head・仮マージの3参照を新規fetch。対象参照から到達する全22コミットを検査した。仮マージ先端はAPIと一致、親はbase/headに一致、仮マージのtreeはheadと一致。本文候補0件、メッセージ候補0件、PRタイトル/本文候補0件。
+- 作者は匿名の名前/メールがauthor・committer各20件。過去の実mergeと新しい仮マージの生成author名計2件は同じ許可済みの名前に一致し、生成committer名も既存のサービス表記に一致。生成authorメール2件はアカウントnoreply、生成committerメール2件はサービスnoreply。未解決候補0件、値は出力・転記していない。
+- 計画コミットと一致する[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386329626)と[pull_request CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386349306)は両方completed・success。ローカル文書検査、GitHub生成情報検査、CIを区別した。
+- この記録の追加commit・通常push後も更新されたhead/仮マージを取得し直し、本文/メッセージ・作者・API先端/親を検査し、最新の両CIを確認する。上記22件とCI runは計画コミット時点の記録。追加送信に問題が出た場合は停止し、未知の情報の不存在まで保証しない。
