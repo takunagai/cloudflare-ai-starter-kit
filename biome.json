@@ -8,6 +8,8 @@
       "!!dist",
       "!!.wrangler",
       "!!.wrangler.staging.local.jsonc",
+      "!!.wrangler.standard-staging.local.jsonc",
+      "!!.wrangler.production.local.jsonc",
       "!!.publication-recovery",
       "!!.tanstack"
     ]

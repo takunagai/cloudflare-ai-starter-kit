@@ -18,6 +18,7 @@
         "APP_ENV": "staging",
         "AI_VERIFICATION_ENABLED": "false",
         "AI_VERIFICATION_START": "",
+        "JEV_MODE": "off",
         "APP_ORIGIN": "https://staging.example.invalid",
         "AUTH_MODE": "access",
         "ACCESS_TEAM_DOMAIN": "example-team1.cloudflareaccess.com",
@@ -45,12 +46,22 @@
         "APP_ORIGIN": "https://production.example.invalid",
         "AUTH_MODE": "better-auth",
         "LOCAL_DEMO": "false",
+        "AI_MODE": "off",
+        "JEV_MODE": "off",
         "ENABLE_RAG": "false",
         "ENABLE_AGENT": "false",
         "ENABLE_WORKFLOWS": "false",
         "ENABLE_IMAGES": "false",
         "ENABLE_BILLING": "false"
-      }
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "starter-production",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
     }
   },
   "vars": {
@@ -58,6 +69,7 @@
     "APP_ORIGIN": "http://127.0.0.1:3000",
     "AUTH_MODE": "better-auth",
     "LOCAL_DEMO": "true",
+    "JEV_MODE": "off",
     "ENABLE_RAG": "false",
     "ENABLE_AGENT": "false",
     "ENABLE_WORKFLOWS": "false",

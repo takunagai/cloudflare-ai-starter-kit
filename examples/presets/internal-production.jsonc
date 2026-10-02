@@ -1,0 +1,35 @@
+// 公開断片: 新しい管理外設定のenv.productionへ適用。単独deploy不可。
+// production専用Worker/DB。Accessの実設定は未投入。
+{
+  "env": {
+    "production": {
+      "name": "example-internal-production",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": {
+        "APP_ENV": "production",
+        "APP_ORIGIN": "https://internal-production.example.invalid",
+        "AUTH_MODE": "access",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": "",
+        "LOCAL_DEMO": "false",
+        "AI_MODE": "off",
+        "JEV_MODE": "off",
+        "ENABLE_RAG": "false",
+        "ENABLE_AGENT": "false",
+        "ENABLE_WORKFLOWS": "false",
+        "ENABLE_IMAGES": "false",
+        "ENABLE_BILLING": "false"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "example-internal-production",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
+}

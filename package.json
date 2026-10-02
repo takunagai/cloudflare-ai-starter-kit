@@ -16,7 +16,8 @@
     "lint": "biome check .",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv --include-runtime false worker-configuration.d.ts",
     "typecheck": "pnpm cf-typegen && tsr generate && tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run && pnpm test:build",
+    "test:build": "node --test tests/build-fixtures.test.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "smoke": "node scripts/smoke.mjs",
     "db:migrate:local": "wrangler d1 migrations apply DB --local"

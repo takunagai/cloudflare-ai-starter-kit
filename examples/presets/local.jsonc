@@ -1,0 +1,28 @@
+// 公開断片: wrangler.jsoncのtop-levelへ適用。単独deploy不可。
+// 外部アカウント/Secret不要。DB IDはローカル専用ダミー。
+{
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": {
+    "APP_ENV": "local",
+    "APP_ORIGIN": "http://127.0.0.1:3000",
+    "AUTH_MODE": "better-auth",
+    "LOCAL_DEMO": "true",
+    "AI_MODE": "local-demo",
+    "JEV_MODE": "off",
+    "ENABLE_RAG": "false",
+    "ENABLE_AGENT": "false",
+    "ENABLE_WORKFLOWS": "false",
+    "ENABLE_IMAGES": "false",
+    "ENABLE_BILLING": "false"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "example-local",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

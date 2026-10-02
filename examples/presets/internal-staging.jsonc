@@ -1,0 +1,36 @@
+// 公開断片: 新しい管理外設定のenv.stagingへ適用。単独deploy不可。
+// 旧検証とは別Worker/別DB。Accessの実設定は未投入。
+{
+  "env": {
+    "staging": {
+      "name": "example-internal-staging",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": {
+        "APP_ENV": "staging",
+        "STAGING_POLICY": "standard",
+        "APP_ORIGIN": "https://internal-staging.example.invalid",
+        "AUTH_MODE": "access",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": "",
+        "LOCAL_DEMO": "false",
+        "AI_MODE": "off",
+        "JEV_MODE": "off",
+        "ENABLE_RAG": "false",
+        "ENABLE_AGENT": "false",
+        "ENABLE_WORKFLOWS": "false",
+        "ENABLE_IMAGES": "false",
+        "ENABLE_BILLING": "false"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "example-internal-staging",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
+}
