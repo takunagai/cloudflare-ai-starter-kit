@@ -4,6 +4,7 @@
 
 | 資料 | 内容・状態 |
 | --- | --- |
+| [B-4の公開設定とbuild境界](preset-build-boundary-20261002.md) | 2026-10-02。固定版Vite plugin/Wranglerと公式情報を照合。公開5例・mode/env/解決後境界・flatten/previewの合成検証。実設定/実接続なし |
 | [製品・最近の更新](platform-landscape.md) | 公式一覧、関連する新機能、採否の初期分類 |
 | [Workers・テスト・MCP](workers-tooling.md) | 配布元バージョン、Vitest互換性、開発支援MCPの導入候補 |
 | [AI・モデル接続](ai-models.md) | AI SDK、Agents、Thinkの提供状況、モデル切替の候補 |
@@ -14,8 +15,12 @@
 | [GitHubメール設定とPR参照](github-email-and-pr-safety.md) | 2026-09-28確認。Webメール非公開、CLI push防止、ローカル作者設定、GitHub仮マージの検査範囲 |
 | [Workers AI最小検証](workers-ai-minimal-verification.md) | 2026-09-28再確認。既存モデルの廃止、候補の提供状況、無料枠なしの料金見積りと制約 |
 | [undici限定更新](undici-security-20260929.md) | 2026-09-29。2つの依存元だけ7.29.1へoverrideした根拠・検証範囲・解除条件 |
-| [TypeSafe AI Jev](typesafe-jev-20261002.md) | 2026-10-02。共通スターターの標準判断基盤として採用。B〜Dに実装・ローカル検証を含め、実接続は既定OFF。Workers互換性・実接続は未検証 |
+| [TypeSafe AI Jev](typesafe-jev-20261002.md) | 2026-10-02。共通標準判断基盤。B-1固定版設定とB-3J固定fetch/3型service/API/0007を実装しworkerd/D1＋fakeで検証。SDK/依存追加・実接続なし |
+| [B-3JのJev APIと実装根拠](jev-service-contract-20261002.md) | 2026-10-02。API/3型を実装時再照合。固定版/料金/Legal・Confidence/既知の限界・Telemetry/backup/自動補充の調査履歴を保持。独自枠/本文なし台帳/90日/unknown停止は採用どおりローカル実装。上流実保持/unknown修復・料金・権限/品質は工程E前の未確認 |
 | [fal画像・動画・音声の複数モデル対応](fal-multimodel-feasibility-20261002.md) | 2026-10-02。対象12 endpointの公式仕様、参照画像アップロードを含む初版設計へのリンクとモデル選定前の概算。追加機能は未実装・実接続なし |
+| [fal M-0の入力・保存・取得契約](fal-media-contract-20261002.md) | 2026-10-02。詳細schema、マスク、queue/retry、CDN ACL/期限、R2/Access/Rangeの根拠。アプリ側推奨値と未検証を区別 |
+| [B-2のD1台帳存在検査](runtime-boundary-20261002.md) | 2026-10-02。firstのnull/例外の扱い、内容を読まない固定SQL、ローカル検証と別Worker/DB前提 |
+| [B-3の実行入口とWorkflow再開](runtime-entry-guards-20261002.md) | 2026-10-02。durable stepの所有者/状態、保存stepの再確認、AI SDK各step hook。直接adapter/署名webhookを含むローカル342テスト・最終build HTTP smoke |
 
 [構成と受け入れ条件](../docs/architecture-proposal.md)で統合する。第1段階の固定版・検証結果は [検証記録](../docs/phase1-verification.md)、正確な依存は `package.json` と `pnpm-lock.yaml` を参照。採用候補の実在、peer dependencies、実行結果は別々に記録し、ドキュメントの記載だけで互換性を確定しない。
 

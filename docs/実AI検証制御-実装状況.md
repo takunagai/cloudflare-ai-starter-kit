@@ -1,5 +1,53 @@
 # 実AI検証制御の実装状況
 
+## 2026-10-02 B-4完了の参照
+
+[公開5設定例とbuild境界](公開プリセットとbuild境界.md)はB-4として実装/ローカル検証済み。全例Jev/任意拡張OFF、旧検証staging閉鎖・通常staging別Worker/別DBを保持し、実設定/旧台帳を変更していない。[B-4の証拠と次セッション](B4完了-次セッション開始プロンプト.md)を参照。以下のB-3J/B-3/B-2の未実装欄は各時点の履歴。C以降/メディア/実接続/配備は未実施で、M-0未回答と工程E前の未確定条件は残る。
+
+## 2026-10-02 B-3Jの独立判断API
+
+確認日: 2026-10-02。採用済み[Jev契約](Jev-B3J-実装前契約.md)の固定fetch/3型service・分類POSTと本人metadata GETを実装しました。共有境界/旧台帳存在検査を各guardで再確認し、Jev設定はチャットAI_MODEから独立。OFF/旧検証は新規分類404、remoteの認証/入力後に設定不備503。状態GETはJev OFF/設定不備/旧台帳不適合でも回復し、要求状態を更新せず利用制限counterだけを更新します。
+
+`decision_requests`を0007で追加し、予約・1claim・終端保存を原子的に検証。所有者20/UTC日・5/直近60秒・同時1、環境200/UTC日・同時3、終端90日・結果非保存、unknownの同時枠保持を維持します。管理場所と変更時の影響・保持/復元停止は契約書、最終検証は[B-3J引き継ぎ](B3J完了-次セッション開始プロンプト.md)が正本。実接続・SDK導入・実配備設定は未変更で、M-0未回答も維持。以下はB-3までの履歴です。
+
+## 2026-10-02 B-3のモデル選択と別入口統合
+
+確認日: 2026-10-02。B-2の境界を保持し、B-3の実装・ローカル検証・文書更新だけを行った。実環境の設定・認証・費用条件・配備・旧台帳は変更していない。[入口契約](用途別プリセット-開発計画.md#判定順と台帳の扱い)、[検証と引き継ぎ](B3完了-次セッション開始プロンプト.md)を併読する。
+
+| 対象 | 動作と理由 | 管理場所・変更時の影響 |
+| --- | --- | --- |
+| catalog/直接provider | `ai/catalog.ts`の6選択ID＋別modeのdemoを設定判定とadapterで共有。同期一覧/取得は選択と資格情報を確認し、DBは読まない。SecretだけではONにしない | `runtime-policy.ts`、`ai/providers.ts`。一覧と取得の一致、選択外/OFFで呼出し0を検証。非同期台帳guardは認証済み入口/実行直前に明示 |
+| 通常staging拡張 | B-2の一括404を撤去。OFFは認証前404、ONは認証→method/input/所有権/状態→境界/台帳→必須設定。独立RAG/画像/決済は不正なAI_MODE/JEV_MODEだけで止めない | `app-api.ts`、`extensions/routes.ts`、各adapter、`agent-tools.ts`。全拡張OFFは不要なSecret/bindingを要求しない。sessionの表示は設定/flagであり、台帳や実資格情報の稼働証明ではない |
+| チャット/ツール | RAG/agent付き通常stagingを各guardへ接続。チャットはSDKの各モデルstep前にも再確認。承認ツールの検索/下書き/人間承認も台帳検査後に実行 | `chat.ts`、`agent-tools.ts`。次stepの拒否は既存requestをfailedにし、消費を残してlock解放。認証/logout/所有者の会話CRUDはAI設定不備でも継続 |
+| Workflow受付/再開 | 新受付はownerIdを固定。旧jobId-onlyもSQL所有者を永続stepで確定し、各stepでその所有者/状態を再確認。推論前は選択モデル/充足も検査。承認待機後の保存も台帳を再検査 | `extensions/workflows.ts`。既存step名と冪等保存を保持。拒否で推論/保存を開始せず、予約後は失敗/消費を保持。新migrationなし。外部推論成功後のstep retryによる重複課金可能性は従来どおり残る |
+| 決済webhook/直接transport | session不要でmethod/body/署名を先に検査し、その後と各更新直前にguard。台帳不適合なら既知の重複イベントにも503、受領行/契約権限を更新しない | `billing.ts`。checkout/portalの直接transportにもguard。送信前拒否は予約をexpired、送信後の不明はuncertain。生成や決済を自動で再送しない |
+| RAG/既存画像の予約後拒否 | 検索枠は返却しない。送信前の画像拒否はfailedとし予約/日次消費を保持、送信後の不明はsubmission_unknown。状態/結果/取消の間にもguard | `extensions/rag.ts`、`extensions/images.ts`。既存FLUX契約の境界統合のみ。新メディア12件・素材保管・UI・追加SQLは未実装 |
+
+旧検証stagingの省略/verification/フラグfalseは拡張を404で閉じる。指定FP8・固定窓・単一所有者・総3回・失敗消費は保持。通常stagingは別Worker/別DB・0006のtableあり/行なしが前提で、guardだけで共有DBの同時運用を認めない。台帳本文の取得/書換え、設定修復のための削除、行なしcacheは行わない。
+
+検証結果は[進捗](plan.md)と[B-3引き継ぎ](B3完了-次セッション開始プロンプト.md)を参照。HTTP/直接adapter/実ローカルWorkflowと、再開・故障注入のstep fakeを区別する。Jev service（B-3J）、公開例/build（B-4）、新メディア、別名複製、最新CI、audit再照会、実接続・配備は未実施。M-0の採用済み条件・回答未受領・上流検証待ちは変更していない。
+
+以下のB-2節は当時の検証済み境界と段階制限の履歴として保持する。
+
+## 2026-10-02 B-2の設定境界と統合範囲
+
+確認日: 2026-10-02。B-1の純粋判定をHTTPモデル一覧と標準チャットへ接続した。これはローカル成果物の設定メモで、既存stagingの設定・配備・消費台帳は変更していない。[設定/入口契約の正本](用途別プリセット-開発計画.md#判定順と台帳の扱い)と[進捗](plan.md)を併読する。
+
+| 設定・対象 | 採用済み動作と理由 | 管理場所・変更時の影響 |
+| --- | --- | --- |
+| 旧検証staging | STAGING_POLICY省略/verificationは旧経路。enabled=falseでも通常へ解除しない。指定FP8・Access・固定窓・総3回・失敗消費を維持 | `runtime-policy.ts`、`ai-verification.ts`、`chat-store.ts`、0006。台帳削除/上書き/開始時刻変更で枠を増やさない |
+| 通常staging | STAGING_POLICY=standard。別Worker/別DB、0006のtableあり・行なし。認証後に`SELECT 1 AS present FROM ai_verification LIMIT 1`だけを照会。行ありは503 `legacy_verification_ledger`、照会失敗/未適用は503 `verification_ledger_unavailable` | `checkRuntimeBoundary`。行の内容取得・更新・削除はしない。「行なし」はcacheせず受付/予約/実行直前で再検査。実リソースは未作成 |
+| 通常チャットのAI選択 | AI_MODE/AI_ALLOWED_MODELSを適用。省略は既存loopback demo互換以外OFF。資格情報/bindingの存在だけでは有効にしない | `app-api.ts`、`chat.ts`、`chat-store.ts`。従来の資格情報だけの有効化から互換性が変わる。直接adapter整合はB-3 |
+| 一覧/状態API | `/api/models`は認証・methodの後、ポリシー/台帳不適合なら全件available:false。`/api/ai-verification`の通常応答はready:false/remaining:0で、通常枠の表示ではない | いずれも推論なし・no-store。未認証401、不正method405を維持 |
+| 認証/履歴回復 | AI設定不備・旧台帳・台帳照会不能でも認証/session/logoutと所有者の会話CRUDを継続。通常チャットはbody/所有権の後にポリシー判定 | 認証方式/ID/session期間は未変更。別所有者は404、メール一致の自動統合なし |
+| B-3までの通常staging拡張 | 拡張API/決済webhook/承認/メモ/RAG・agent付きチャットはONでも404、session拡張表示は全OFF | 未統合の入口を開かないための段階制限。B-3で各認証/所有権/台帳/外部処理/関連更新guardを接続して置き換える |
+
+検証済み: 実workerd/D1、Better Authの実認証処理（fakeメール）、Accessの合成署名/fake JWKS、fake Workers AIで両方式の通常チャット・所有者分離・再送・通常上限を確認した。旧行あり/照会失敗/table未適用、受付後/予約後の台帳出現、値やSQL例外の非反射、OFF/不正設定、未認証/不正method/body/所有権の優先順、旧検証の既存回帰テストも対象にした。予約成立後の拒否は上流0回でもfailedとして記録し、枠は返さずlockを解放する。
+
+未統合/未検証: provider catalogの正本共有と直接adapter・local/productionを含む拡張/Workflow/決済のB-1整合（B-3）、Jev service（B-3J）、公開例/新buildモード（B-4）、別名クリーン複製、最新CI、実Access/メール/AI、新環境配備。画面コードは未変更で、今回のHTTP smokeはhydration/クリックを保証しない。台帳検査と他リクエストの書込みを単一transactionとは扱わず、旧/通常Workerの別DB運用分離を前提とする。既存0001〜0006・依存・lockfile・配備設定は未変更。
+
+以下は各記録時点の履歴であり、現在の許可やB-2の成功証拠には読み替えない。
+
 2026-09-29の引き継ぎ再確認: undici修正head `f2f7847c`のpush/PR CIは両方completed・success。実AI配備ソースは`7abc1696`のままで、後続依存更新は未配備です。現在は[費用確認](実AI検証-使用量と請求確認.md)と[main取り込み前の最終レビュー](main取り込み-最終レビューと次の用途.md)を進める段階です。以下の各見出し・未配備・次の許可は、その記録時点の経緯として保持します。
 
 ## 2026-09-29の限定した実接続結果
