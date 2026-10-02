@@ -1,5 +1,6 @@
+import { requireExtensionEnabled } from "../ai-verification";
 import type { AppEnv, Identity } from "../env";
-import { ApiError, json, readJson } from "../http";
+import { json, readJson } from "../http";
 import {
   cancelImage,
   getImage,
@@ -43,7 +44,7 @@ export async function handleExtensions(
       : feature === "images"
         ? env.ENABLE_IMAGES
         : env.ENABLE_WORKFLOWS;
-  if (enabled !== "true") throw new ApiError(404, "FEATURE_DISABLED");
+  requireExtensionEnabled(env, enabled, "FEATURE_DISABLED");
   const method = request.method;
   if (feature === "rag") {
     if (rest === "documents") {

@@ -1,4 +1,6 @@
 import {
+  chatModelAllowed,
+  checkChatRuntimePolicy,
   checkVerificationInput,
   type VerificationEnv,
   verificationModelId,
@@ -60,13 +62,22 @@ export async function reserveChat(
   identity: Identity,
   input: ChatInput,
 ) {
+  const legacy =
+    env.APP_ENV === "staging" &&
+    (env.STAGING_POLICY === undefined || env.STAGING_POLICY === "verification");
+  if (!legacy) {
+    await ownedConversation(env, identity.id, input.conversationId);
+    const policy = await checkChatRuntimePolicy(env);
+    if (!chatModelAllowed(policy, input.modelId))
+      throw new ApiError(503, "model_unavailable");
+  }
   const verification = verificationSettings(env);
   if (verification) {
     if (input.modelId !== verificationModelId || input.rag || input.agent)
       throw new ApiError(400, "verification_model_or_feature");
     checkVerificationInput(input.message, []);
   }
-  await ownedConversation(env, identity.id, input.conversationId);
+  if (legacy) await ownedConversation(env, identity.id, input.conversationId);
   const hash = Array.from(
     new Uint8Array(
       await crypto.subtle.digest(

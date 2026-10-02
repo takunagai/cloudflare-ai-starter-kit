@@ -2,21 +2,27 @@ import type { LanguageModelV4CallOptions } from "@ai-sdk/provider";
 import { generateText, stepCountIs, streamText, tool } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { selectableChatModelIds } from "../src/server/ai/catalog";
 import { createLocalDemoModel } from "../src/server/ai/local-demo";
 import {
   getModel,
   listModels,
   ModelUnavailableError,
 } from "../src/server/ai/providers";
-import type { AppEnv } from "../src/server/env";
+import type { VerificationEnv } from "../src/server/ai-verification";
 
-function settings(extra: Partial<AppEnv> = {}): AppEnv {
+function settings(extra: Partial<VerificationEnv> = {}): VerificationEnv {
   // 実Secrets・cloudflare:workers.envには触れない。
   return {
     APP_ENV: "local",
     APP_ORIGIN: "http://127.0.0.1:3000",
+    LOCAL_DEMO: "false",
+    AI_MODE: extra.LOCAL_DEMO === "true" ? "local-demo" : "selected",
+    AI_ALLOWED_MODELS: JSON.stringify(
+      extra.LOCAL_DEMO === "true" ? [] : selectableChatModelIds,
+    ),
     ...extra,
-  } as AppEnv;
+  } as VerificationEnv;
 }
 
 beforeEach(() => {

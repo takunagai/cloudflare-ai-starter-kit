@@ -2,7 +2,11 @@ import { Buffer } from "node:buffer";
 import { Polar } from "@polar-sh/sdk";
 import { Webhook } from "standardwebhooks";
 import { z } from "zod";
-import { type AppEnv, type Identity, isEnabled } from "./env";
+import {
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "./ai-verification";
+import type { AppEnv, Identity } from "./env";
 import {
   ApiError,
   errorResponse,
@@ -26,6 +30,7 @@ export interface BillingProvider {
 }
 
 export function createPolarProvider(env: AppEnv): BillingProvider {
+  requireExtensionEnabled(env, env.ENABLE_BILLING);
   if (!env.POLAR_ACCESS_TOKEN)
     throw new ApiError(503, "billing_not_configured");
   const polar = new Polar({
@@ -36,6 +41,8 @@ export function createPolarProvider(env: AppEnv): BillingProvider {
   });
   return {
     async checkout(input) {
+      requireExtensionEnabled(env, env.ENABLE_BILLING);
+      await checkExtensionRuntimePolicy(env);
       const result = await polar.checkouts.create({
         products: [input.productId],
         externalCustomerId: input.ownerId,
@@ -47,6 +54,8 @@ export function createPolarProvider(env: AppEnv): BillingProvider {
       return { id: result.id, url: result.url, expiresAt: result.expiresAt };
     },
     async portal(input) {
+      requireExtensionEnabled(env, env.ENABLE_BILLING);
+      await checkExtensionRuntimePolicy(env);
       const result = await polar.customerSessions.create({
         externalCustomerId: input.ownerId,
         returnUrl: input.returnUrl,
@@ -191,6 +200,23 @@ async function webhook(request: Request, env: AppEnv): Promise<Response> {
     throw new ApiError(400, "invalid_webhook");
   const type = envelope.safeParse(parsed);
   if (!type.success) throw new ApiError(400, "invalid_webhook");
+  const customerEvent =
+    type.data.type === "customer.state_changed"
+      ? stateEvent.safeParse(parsed)
+      : null;
+  const checkoutNotification = [
+    "checkout.created",
+    "checkout.updated",
+    "checkout.expired",
+  ].includes(type.data.type)
+    ? checkoutEvent.safeParse(parsed)
+    : null;
+  if (
+    (customerEvent && !customerEvent.success) ||
+    (checkoutNotification && !checkoutNotification.success)
+  )
+    throw new ApiError(400, "invalid_webhook");
+  await checkExtensionRuntimePolicy(env);
   const hash = await digest(body);
   const existing = await env.DB.prepare(
     "SELECT body_hash FROM billing_events WHERE event_id = ? AND server = ?",
@@ -200,16 +226,17 @@ async function webhook(request: Request, env: AppEnv): Promise<Response> {
   if (existing) {
     if (existing.body_hash !== hash)
       throw new ApiError(409, "webhook_id_conflict");
+    await checkExtensionRuntimePolicy(env);
     return json({ received: true, duplicate: true });
   }
   const saveEvent = env.DB.prepare(
     "INSERT INTO billing_events(event_id, server, body_hash, received_at) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING",
   ).bind(eventId, server, hash, Date.now());
-  if (type.data.type === "customer.state_changed") {
-    const event = stateEvent.safeParse(parsed);
-    if (!event.success) throw new ApiError(400, "invalid_webhook");
+  if (customerEvent?.success) {
+    const event = customerEvent;
     const data = event.data.data;
     if (!data.external_id) {
+      await checkExtensionRuntimePolicy(env);
       await saveEvent.run();
       return json({ received: true, ignored: true });
     }
@@ -221,6 +248,7 @@ async function webhook(request: Request, env: AppEnv): Promise<Response> {
     // 事前に認証済みcheckoutで登録したowner以外へ権限を作らない。
     if (!customer) {
       // 同じPolar organizationの別アプリ顧客。権限を作らず受領して再送嵐を避ける。
+      await checkExtensionRuntimePolicy(env);
       await saveEvent.run();
       return json({ received: true, ignored: true });
     }
@@ -243,6 +271,7 @@ async function webhook(request: Request, env: AppEnv): Promise<Response> {
         active?.cancel_at_period_end ?? false,
       ]),
     );
+    await checkExtensionRuntimePolicy(env);
     await env.DB.batch([
       saveEvent,
       env.DB.prepare(
@@ -272,13 +301,8 @@ async function webhook(request: Request, env: AppEnv): Promise<Response> {
         hash,
       ),
     ]);
-  } else if (
-    ["checkout.created", "checkout.updated", "checkout.expired"].includes(
-      type.data.type,
-    )
-  ) {
-    const event = checkoutEvent.safeParse(parsed);
-    if (!event.success) throw new ApiError(400, "invalid_webhook");
+  } else if (checkoutNotification?.success) {
+    const event = checkoutNotification;
     const data = event.data.data;
     if (
       data.metadata.owner_id !== data.external_customer_id ||
@@ -291,6 +315,7 @@ async function webhook(request: Request, env: AppEnv): Promise<Response> {
         ? "completed"
         : "ready";
     const url = safePolarUrl(data.url, server);
+    await checkExtensionRuntimePolicy(env);
     await env.DB.batch([
       saveEvent,
       env.DB.prepare(`UPDATE billing_checkouts SET checkout_id = ?, url = ?, expires_at = ?, state = ?, event_time = ?, completed_at = ?
@@ -316,6 +341,7 @@ async function webhook(request: Request, env: AppEnv): Promise<Response> {
     ]);
   } else {
     // 未使用イベントも署名を検証した上で永続受領。権限は変えない。
+    await checkExtensionRuntimePolicy(env);
     await saveEvent.run();
   }
   const stored = await env.DB.prepare(
@@ -347,6 +373,7 @@ async function createCheckout(
     .bind(identity.id, server, product, Date.now())
     .first();
   if (entitled) throw new ApiError(409, "subscription_already_purchased");
+  await checkExtensionRuntimePolicy(env);
   const operation = crypto.randomUUID();
   await env.DB.batch([
     env.DB.prepare(
@@ -381,7 +408,10 @@ async function createCheckout(
         : "checkout_pending_reconciliation",
     );
   }
+  let dispatched = false;
   try {
+    await checkExtensionRuntimePolicy(env);
+    dispatched = true;
     const result = await provider.checkout({
       ownerId: identity.id,
       productId: product,
@@ -394,18 +424,20 @@ async function createCheckout(
       result.expiresAt.getTime() <= Date.now()
     )
       throw new ApiError(502, "invalid_billing_response");
+    await checkExtensionRuntimePolicy(env);
     await env.DB.prepare(
       "UPDATE billing_checkouts SET checkout_id = ?, url = ?, expires_at = ?, state = 'ready' WHERE operation_id = ? AND state = 'pending'",
     )
       .bind(result.id, url, result.expiresAt.getTime(), operation)
       .run();
     return json({ url });
-  } catch {
+  } catch (error) {
     await env.DB.prepare(
-      "UPDATE billing_checkouts SET state = 'uncertain' WHERE operation_id = ? AND state = 'pending'",
+      "UPDATE billing_checkouts SET state = ? WHERE operation_id = ? AND state = 'pending'",
     )
-      .bind(operation)
+      .bind(dispatched ? "uncertain" : "expired", operation)
       .run();
+    if (error instanceof ApiError && error.status === 503) throw error;
     throw new ApiError(502, "checkout_pending_reconciliation");
   }
 }
@@ -444,18 +476,17 @@ export function createBillingHandler(
     const path = new URL(request.url).pathname;
     if (!path.startsWith("/api/billing/")) return null;
     try {
-      if (!isEnabled(env.ENABLE_BILLING)) throw new ApiError(404, "not_found");
+      requireExtensionEnabled(env, env.ENABLE_BILLING);
       if (path === "/api/billing/webhook") {
         if (request.method !== "POST")
           return json({ error: "method_not_allowed" }, 405, { Allow: "POST" });
         return await webhook(request, env);
       }
       if (!identity) throw new ApiError(401, "unauthorized");
-      const server = serverFor(env);
-      productFor(env);
       if (["/api/billing/status", "/api/billing/member"].includes(path)) {
         if (request.method !== "GET")
           return json({ error: "method_not_allowed" }, 405, { Allow: "GET" });
+        await checkExtensionRuntimePolicy(env);
         const subscription = await subscriptionFor(env, identity);
         if (path === "/api/billing/member") {
           if (
@@ -476,9 +507,11 @@ export function createBillingHandler(
         return json({ error: "method_not_allowed" }, 405, { Allow: "POST" });
       requireSameOrigin(request);
       await readJson(request, emptyBody, 1024);
-      const provider = makeProvider(env);
-      if (path === "/api/billing/checkout")
-        return await createCheckout(env, identity, provider);
+      if (path === "/api/billing/checkout") {
+        await checkExtensionRuntimePolicy(env);
+        return await createCheckout(env, identity, makeProvider(env));
+      }
+      const server = serverFor(env);
       const customer = await env.DB.prepare(
         "SELECT customer_id FROM billing_customers WHERE owner_id = ? AND server = ?",
       )
@@ -486,6 +519,9 @@ export function createBillingHandler(
         .first<{ customer_id: string | null }>();
       if (!customer?.customer_id)
         throw new ApiError(409, "billing_customer_unavailable");
+      await checkExtensionRuntimePolicy(env);
+      productFor(env);
+      const provider = makeProvider(env);
       const session = await provider.portal({
         ownerId: identity.id,
         returnUrl: `${env.APP_ORIGIN}/app`,

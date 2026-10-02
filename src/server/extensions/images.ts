@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "../ai-verification";
 import type { AppEnv, Identity } from "../env";
 import { ApiError } from "../http";
 import { digest } from "./rag";
@@ -28,7 +32,7 @@ interface ProviderUrls {
 const terminalStates = ["completed", "failed", "submission_unknown"];
 
 function imageKey(env: AppEnv) {
-  if (env.ENABLE_IMAGES !== "true") throw new ApiError(404, "FEATURE_DISABLED");
+  requireExtensionEnabled(env, env.ENABLE_IMAGES);
   if (!env.FAL_KEY) throw new ApiError(503, "IMAGES_NOT_CONFIGURED");
   return env.FAL_KEY;
 }
@@ -119,7 +123,7 @@ export async function submitImage(
   input: ImageInput,
   fetcher: typeof fetch = fetch,
 ) {
-  const key = imageKey(env);
+  requireExtensionEnabled(env, env.ENABLE_IMAGES);
   const parsed = imageInputSchema.safeParse(input);
   if (!parsed.success) throw new ApiError(400, "INVALID_INPUT");
   input = parsed.data;
@@ -138,8 +142,11 @@ export async function submitImage(
   if (existing) {
     if (existing.input_hash !== hash)
       throw new ApiError(409, "IDEMPOTENCY_CONFLICT");
+    await checkExtensionRuntimePolicy(env);
     return present(existing);
   }
+  await checkExtensionRuntimePolicy(env);
+  const key = imageKey(env);
   const id = crypto.randomUUID();
   const now = Date.now();
   // The quota check and reservation share one SQL statement. Concurrent clients
@@ -176,7 +183,10 @@ export async function submitImage(
     }
     throw new ApiError(429, "IMAGE_LIMIT_REACHED");
   }
+  let dispatched = false;
   try {
+    await checkExtensionRuntimePolicy(env);
+    dispatched = true;
     const response = await providerRequest(
       `https://queue.fal.run/${input.model}`,
       key,
@@ -217,6 +227,7 @@ export async function submitImage(
       result: endpoint(data.response_url, data.request_id, "result"),
       cancel: endpoint(data.cancel_url, data.request_id, "cancel"),
     };
+    await checkExtensionRuntimePolicy(env);
     await env.DB.prepare(
       "UPDATE image_jobs SET provider_id = ?, provider_urls_json = ?, state = 'queued', updated_at = ? WHERE id = ?",
     )
@@ -224,9 +235,9 @@ export async function submitImage(
       .run();
   } catch (error) {
     await env.DB.prepare(
-      "UPDATE image_jobs SET state = 'submission_unknown', updated_at = ? WHERE id = ? AND state = 'submitting'",
+      "UPDATE image_jobs SET state = ?, updated_at = ? WHERE id = ? AND state = 'submitting'",
     )
-      .bind(Date.now(), id)
+      .bind(dispatched ? "submission_unknown" : "failed", Date.now(), id)
       .run();
     if (error instanceof ApiError) throw error;
     throw new ApiError(502, "IMAGE_SUBMISSION_UNKNOWN");
@@ -245,6 +256,8 @@ async function findJob(env: AppEnv, identity: Identity, id: string) {
 }
 
 export async function listImages(env: AppEnv, identity: Identity) {
+  requireExtensionEnabled(env, env.ENABLE_IMAGES);
+  await checkExtensionRuntimePolicy(env);
   imageKey(env);
   const rows = await env.DB.prepare(
     "SELECT * FROM image_jobs WHERE owner_id = ? ORDER BY created_at DESC LIMIT 50",
@@ -260,8 +273,10 @@ export async function getImage(
   id: string,
   fetcher: typeof fetch = fetch,
 ) {
-  const key = imageKey(env);
+  requireExtensionEnabled(env, env.ENABLE_IMAGES);
   const job = await findJob(env, identity, id);
+  await checkExtensionRuntimePolicy(env);
+  const key = imageKey(env);
   if (
     terminalStates.includes(job.state) ||
     !job.provider_id ||
@@ -289,6 +304,7 @@ export async function getImage(
   if (parsed.data.status === "COMPLETED") {
     if (parsed.data.error) next = "failed";
     else {
+      await checkExtensionRuntimePolicy(env);
       const result = await providerRequest(
         endpoint(urls.result, job.provider_id, "result"),
         key,
@@ -333,6 +349,7 @@ export async function getImage(
     }
   } else if (job.state === "cancel_requested") next = "cancel_requested";
   else if (Date.now() - job.created_at > 600_000) next = "timed_out";
+  await checkExtensionRuntimePolicy(env);
   await env.DB.prepare(
     `UPDATE image_jobs SET state = CASE
        WHEN state = 'cancel_requested' AND ? IN ('queued','running','timed_out') THEN state
@@ -350,12 +367,14 @@ export async function cancelImage(
   id: string,
   fetcher: typeof fetch = fetch,
 ) {
-  const key = imageKey(env);
+  requireExtensionEnabled(env, env.ENABLE_IMAGES);
   const job = await findJob(env, identity, id);
   if (terminalStates.includes(job.state))
     throw new ApiError(409, "IMAGE_NOT_CANCELLABLE");
   if (!job.provider_id || !job.provider_urls_json)
     throw new ApiError(409, "IMAGE_SUBMISSION_PENDING");
+  await checkExtensionRuntimePolicy(env);
+  const key = imageKey(env);
   if (job.state === "cancel_requested") return present(job);
   const urls = JSON.parse(job.provider_urls_json) as ProviderUrls;
   const response = await providerRequest(
@@ -366,6 +385,7 @@ export async function cancelImage(
   );
   if (response.status === 400) return getImage(env, identity, id, fetcher);
   if (response.status !== 202) throw new ApiError(502, "IMAGE_CANCEL_FAILED");
+  await checkExtensionRuntimePolicy(env);
   await env.DB.prepare(
     "UPDATE image_jobs SET state = 'cancel_requested', updated_at = ? WHERE id = ? AND state NOT IN ('completed','failed')",
   )

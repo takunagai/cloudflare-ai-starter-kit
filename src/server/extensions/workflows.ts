@@ -6,6 +6,12 @@ import {
 import { generateText } from "ai";
 import { z } from "zod";
 import { getModel } from "../ai/providers";
+import {
+  chatModelAllowed,
+  checkChatRuntimePolicy,
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "../ai-verification";
 import type { AppEnv, Identity } from "../env";
 import { ApiError } from "../http";
 import { digest } from "./rag";
@@ -20,6 +26,8 @@ export const approvalSchema = z.strictObject({
 });
 export interface SummaryParams {
   jobId: string;
+  // 旧jobId-only instanceはSQL所有者を使う。新規受付は所有者を固定する。
+  ownerId?: string;
 }
 interface SummaryJob {
   id: string;
@@ -40,8 +48,7 @@ type Summarizer = (
 ) => Promise<string>;
 
 function binding(env: AppEnv) {
-  if (env.ENABLE_WORKFLOWS !== "true")
-    throw new ApiError(404, "FEATURE_DISABLED");
+  requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
   if (!env.SUMMARY_WORKFLOW)
     throw new ApiError(503, "WORKFLOWS_NOT_CONFIGURED");
   return env.SUMMARY_WORKFLOW;
@@ -74,16 +81,12 @@ export async function startSummary(
   identity: Identity,
   input: z.infer<typeof summaryInputSchema>,
 ) {
-  const workflow = binding(env);
+  requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
   const checked = summaryInputSchema.safeParse(input);
   if (!checked.success) throw new ApiError(400, "INVALID_INPUT");
   input = checked.data;
-  // Resolve the server's allowlist before accepting work; no inference yet.
-  try {
-    getModel(input.model, env);
-  } catch {
-    throw new ApiError(400, "MODEL_UNAVAILABLE");
-  }
+  await checkSummaryPolicy(env, input.model);
+  const workflow = binding(env);
   const hash = await digest(
     JSON.stringify({ model: input.model, input: input.input }),
   );
@@ -118,11 +121,25 @@ export async function startSummary(
     try {
       // Explicit stable IDs make retrying an uncertain create safe. If it exists,
       // observe that same instance instead of creating another summary job.
-      await workflow.create({ id, params: { jobId: id } });
-    } catch {
+      await checkSummaryPolicy(env, input.model);
+      await workflow.create({
+        id,
+        params: { jobId: id, ownerId: identity.id },
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        await env.DB.prepare(
+          "UPDATE summary_jobs SET state='failed', updated_at=? WHERE id=? AND owner_id=? AND state='starting'",
+        )
+          .bind(Date.now(), id, identity.id)
+          .run();
+        throw error;
+      }
       try {
+        await checkSummaryPolicy(env, input.model);
         await (await workflow.get(id)).status();
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiError) throw error;
         throw new ApiError(502, "WORKFLOW_START_PENDING");
       }
     }
@@ -131,6 +148,8 @@ export async function startSummary(
 }
 
 export async function listSummaries(env: AppEnv, identity: Identity) {
+  requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
+  await checkExtensionRuntimePolicy(env);
   binding(env);
   const rows = await env.DB.prepare(
     "SELECT * FROM summary_jobs WHERE owner_id = ? ORDER BY created_at DESC LIMIT 50",
@@ -141,8 +160,10 @@ export async function listSummaries(env: AppEnv, identity: Identity) {
 }
 
 export async function getSummary(env: AppEnv, identity: Identity, id: string) {
-  const workflow = binding(env);
+  requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
   const job = await findJob(env, identity, id);
+  await checkExtensionRuntimePolicy(env);
+  const workflow = binding(env);
   // Keep raw runtime error/output fields out of API responses.
   let runtimeState = "unavailable";
   try {
@@ -159,19 +180,23 @@ export async function decideSummary(
   id: string,
   decision: "approve" | "reject",
 ) {
-  const workflow = binding(env);
+  requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
   const job = await findJob(env, identity, id);
   if (job.decision && job.decision !== decision)
     throw new ApiError(409, "DECISION_CONFLICT");
   if (
     ["completed", "rejected"].includes(job.state) &&
     job.decision === decision
-  )
+  ) {
+    await checkExtensionRuntimePolicy(env);
     return present(job);
+  }
   if (job.state !== "awaiting_approval")
     throw new ApiError(409, "NOT_AWAITING_APPROVAL");
   if (!job.approval_expires_at || job.approval_expires_at <= Date.now())
     throw new ApiError(409, "APPROVAL_EXPIRED");
+  await checkExtensionRuntimePolicy(env);
+  const workflow = binding(env);
   const updated = await env.DB.prepare(
     `UPDATE summary_jobs SET decision = ?, updated_at = ? WHERE id = ? AND owner_id = ?
      AND state = 'awaiting_approval' AND approval_expires_at > ? AND (decision IS NULL OR decision = ?)`,
@@ -180,11 +205,13 @@ export async function decideSummary(
     .run();
   if (!updated.meta.changes) throw new ApiError(409, "DECISION_CONFLICT");
   try {
+    await checkExtensionRuntimePolicy(env);
     await (await workflow.get(id)).sendEvent({
       type: "approval",
       payload: { ownerId: identity.id, decision },
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
     // The decision is durably recorded. Repeating this exact action retries
     // delivery; an opposite decision can never replace it.
     throw new ApiError(502, "APPROVAL_DELIVERY_PENDING");
@@ -193,6 +220,8 @@ export async function decideSummary(
 }
 
 export const summarizeText: Summarizer = async (env, modelId, input) => {
+  requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
+  await checkSummaryPolicy(env, modelId);
   const result = await generateText({
     model: getModel(modelId, env),
     system:
@@ -206,6 +235,19 @@ export const summarizeText: Summarizer = async (env, modelId, input) => {
   return result.text.slice(0, 8_000);
 };
 
+async function checkSummaryPolicy(env: AppEnv, model: string) {
+  await checkExtensionRuntimePolicy(env);
+  const policy = await checkChatRuntimePolicy(env);
+  if (!chatModelAllowed(policy, model))
+    throw new ApiError(503, "model_unavailable");
+  // 同期adapterはDBを読まない。ここで充足も外部呼出し前に確認する。
+  try {
+    getModel(model, env);
+  } catch {
+    throw new ApiError(400, "MODEL_UNAVAILABLE");
+  }
+}
+
 // This orchestrator is exported to exercise SQL/idempotency with fake step and
 // inference boundaries. Those tests do not substitute for the native runtime.
 export async function runSummaryJob(
@@ -216,7 +258,26 @@ export async function runSummaryJob(
 ) {
   const id = event.payload.jobId;
   if (id !== event.instanceId) throw new Error("WORKFLOW_ID_MISMATCH");
+  let owner: string | undefined;
   try {
+    owner = await step.do(
+      "verify job owner",
+      { timeout: "30 seconds", sensitive: "output" },
+      async () => {
+        const initial = await env.DB.prepare(
+          "SELECT owner_id FROM summary_jobs WHERE id = ?",
+        )
+          .bind(id)
+          .first<{ owner_id: string }>();
+        if (
+          !initial?.owner_id ||
+          (event.payload.ownerId !== undefined &&
+            event.payload.ownerId !== initial.owner_id)
+        )
+          throw new Error("JOB_OWNER_MISMATCH");
+        return initial.owner_id;
+      },
+    );
     await step.do(
       "summarize",
       {
@@ -225,21 +286,31 @@ export async function runSummaryJob(
         sensitive: "output",
       },
       async () => {
-        if (env.ENABLE_WORKFLOWS !== "true")
-          throw new Error("FEATURE_DISABLED");
+        requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
         const row = await env.DB.prepare(
-          "SELECT * FROM summary_jobs WHERE id = ?",
+          "SELECT * FROM summary_jobs WHERE id = ? AND owner_id = ?",
         )
-          .bind(id)
+          .bind(id, owner)
           .first<SummaryJob>();
         if (!row) throw new Error("JOB_NOT_FOUND");
-        if (row.summary) return { summarized: true };
+        if (
+          row.summary &&
+          ["awaiting_approval", "completed", "rejected", "expired"].includes(
+            row.state,
+          )
+        )
+          return { summarized: true };
+        if (!["starting", "running"].includes(row.state))
+          throw new Error("JOB_STATE_INVALID");
+        await checkSummaryPolicy(env, row.model);
         await env.DB.prepare(
           "UPDATE summary_jobs SET state = 'running', updated_at = ? WHERE id = ?",
         )
           .bind(Date.now(), id)
           .run();
+        await checkSummaryPolicy(env, row.model);
         const summary = await summarize(env, row.model, row.input);
+        await checkExtensionRuntimePolicy(env);
         await env.DB.prepare(
           "UPDATE summary_jobs SET summary = ?, state = 'awaiting_approval', approval_expires_at = ?, updated_at = ? WHERE id = ?",
         )
@@ -264,12 +335,18 @@ export async function runSummaryJob(
         timeout: "30 seconds",
       },
       async () => {
+        requireExtensionEnabled(env, env.ENABLE_WORKFLOWS);
         const job = await env.DB.prepare(
-          "SELECT * FROM summary_jobs WHERE id = ?",
+          "SELECT * FROM summary_jobs WHERE id = ? AND owner_id = ?",
         )
-          .bind(id)
+          .bind(id, owner)
           .first<SummaryJob>();
         if (!job?.summary) throw new Error("JOB_NOT_READY");
+        if (["completed", "rejected", "expired"].includes(job.state))
+          return { id, state: job.state };
+        if (job.state !== "awaiting_approval")
+          throw new Error("JOB_STATE_INVALID");
+        await checkExtensionRuntimePolicy(env);
         if (!job.decision) {
           await env.DB.prepare(
             "UPDATE summary_jobs SET state = 'expired', updated_at = ? WHERE id = ?",
@@ -298,11 +375,12 @@ export async function runSummaryJob(
       },
     );
   } catch {
-    await env.DB.prepare(
-      "UPDATE summary_jobs SET state = 'failed', updated_at = ? WHERE id = ? AND state NOT IN ('completed','rejected','expired')",
-    )
-      .bind(Date.now(), id)
-      .run();
+    if (owner)
+      await env.DB.prepare(
+        "UPDATE summary_jobs SET state = 'failed', updated_at = ? WHERE id = ? AND owner_id = ? AND state NOT IN ('completed','rejected','expired')",
+      )
+        .bind(Date.now(), id, owner)
+        .run();
     // Only a fixed error reaches workflow observability, never model/body/key.
     throw new Error("SUMMARY_WORKFLOW_FAILED");
   }

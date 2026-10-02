@@ -7,7 +7,7 @@ import {
 } from "../src/server/agent-tools";
 import type { AppEnv, Identity } from "../src/server/env";
 
-const local = env as unknown as AppEnv;
+const local = { ...env, ENABLE_AGENT: "true" } as unknown as AppEnv;
 const alice: Identity = {
   id: "test:alice",
   email: "alice@example.test",

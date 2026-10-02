@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "../ai-verification";
 import type { AppEnv, Identity } from "../env";
 import { ApiError } from "../http";
 
@@ -40,13 +44,15 @@ export async function digest(value: string): Promise<string> {
 }
 
 function bindings(env: AppEnv) {
-  if (env.ENABLE_RAG !== "true") throw new ApiError(404, "FEATURE_DISABLED");
+  requireExtensionEnabled(env, env.ENABLE_RAG);
   if (!env.RAG_BUCKET || !env.AI_SEARCH)
     throw new ApiError(503, "RAG_NOT_CONFIGURED");
   return { bucket: env.RAG_BUCKET, search: env.AI_SEARCH };
 }
 
 export async function listDocuments(env: AppEnv, identity: Identity) {
+  requireExtensionEnabled(env, env.ENABLE_RAG);
+  await checkExtensionRuntimePolicy(env);
   bindings(env);
   const result = await env.DB.prepare(
     "SELECT id, title, state, created_at FROM rag_documents WHERE owner_id = ? AND state != 'deleted' ORDER BY created_at DESC LIMIT 100",
@@ -61,6 +67,11 @@ export async function uploadDocument(
   identity: Identity,
   input: z.infer<typeof ragUploadSchema>,
 ) {
+  requireExtensionEnabled(env, env.ENABLE_RAG);
+  const checked = ragUploadSchema.safeParse(input);
+  if (!checked.success) throw new ApiError(400, "INVALID_INPUT");
+  input = checked.data;
+  await checkExtensionRuntimePolicy(env);
   const { bucket } = bindings(env);
   const ownerKey = await digest(identity.id);
   const id = crypto.randomUUID();
@@ -76,16 +87,18 @@ export async function uploadDocument(
   if (!reserved.meta.changes) throw new ApiError(429, "DOCUMENT_LIMIT_REACHED");
   let published: D1Result;
   try {
+    await checkExtensionRuntimePolicy(env);
     await bucket.put(key, input.text, {
       httpMetadata: { contentType: "text/markdown; charset=utf-8" },
       customMetadata: { owner_key: ownerKey, document_id: id },
     });
+    await checkExtensionRuntimePolicy(env);
     published = await env.DB.prepare(
       "UPDATE rag_documents SET state = 'pending_index' WHERE id = ? AND state = 'uploading'",
     )
       .bind(id)
       .run();
-  } catch {
+  } catch (error) {
     const failed = await env.DB.prepare(
       "UPDATE rag_documents SET state = 'failed' WHERE id = ? AND state = 'uploading'",
     )
@@ -99,6 +112,7 @@ export async function uploadDocument(
         .first<{ state: string }>();
       if (row?.state === "deleted") await removeDeletedUpload(bucket, key);
     }
+    if (error instanceof ApiError) throw error;
     throw new ApiError(502, "RAG_UPLOAD_FAILED");
   }
   if (!published.meta.changes) {
@@ -129,8 +143,10 @@ async function documentFor(env: AppEnv, identity: Identity, id: string) {
 }
 
 export async function getDocument(env: AppEnv, identity: Identity, id: string) {
-  const { bucket } = bindings(env);
+  requireExtensionEnabled(env, env.ENABLE_RAG);
   const row = await documentFor(env, identity, id);
+  await checkExtensionRuntimePolicy(env);
+  const { bucket } = bindings(env);
   const object = await bucket.get(row.object_key);
   if (!object) throw new ApiError(404, "NOT_FOUND");
   return {
@@ -146,7 +162,7 @@ export async function deleteDocument(
   identity: Identity,
   id: string,
 ) {
-  const { bucket } = bindings(env);
+  requireExtensionEnabled(env, env.ENABLE_RAG);
   // Also allow repeating deletion if R2 deletion failed after the SQL tombstone.
   const row = await env.DB.prepare(
     "SELECT * FROM rag_documents WHERE id = ? AND owner_id = ?",
@@ -154,14 +170,18 @@ export async function deleteDocument(
     .bind(id, identity.id)
     .first<DocumentRow>();
   if (!row) throw new ApiError(404, "NOT_FOUND");
+  await checkExtensionRuntimePolicy(env);
+  const { bucket } = bindings(env);
   await env.DB.prepare(
     "UPDATE rag_documents SET state = 'deleted', deleted_at = ? WHERE id = ? AND owner_id = ?",
   )
     .bind(Date.now(), id, identity.id)
     .run();
   try {
+    await checkExtensionRuntimePolicy(env);
     await bucket.delete(row.object_key);
-  } catch {
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
     throw new ApiError(502, "RAG_DELETE_PENDING");
   }
   return { id, state: "deleted", indexDeletion: "pending" };
@@ -176,9 +196,11 @@ export async function retrieveRag(
   sources: RagSource[];
   indexState: "ready" | "empty_or_indexing";
 }> {
-  const { search, bucket } = bindings(env);
+  requireExtensionEnabled(env, env.ENABLE_RAG);
   const checked = ragQuerySchema.safeParse({ query });
   if (!checked.success) throw new ApiError(400, "INVALID_INPUT");
+  await checkExtensionRuntimePolicy(env);
+  const { search, bucket } = bindings(env);
   const ownerKey = await digest(identity.id);
   const folder = `${ownerKey.slice(0, 32)}/`;
   const day = Math.floor(Date.now() / 86_400_000);
@@ -192,6 +214,7 @@ export async function retrieveRag(
   let result: AiSearchSearchResponse;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
+    await checkExtensionRuntimePolicy(env);
     const pending = search.search({
       query: checked.data.query,
       ai_search_options: {
@@ -232,6 +255,7 @@ export async function retrieveRag(
     // SQL tombstones reject stale index hits immediately. R2 metadata is checked
     // independently, before any retrieved text reaches the chat provider.
     if (!row || chunk.item.metadata?.document_id !== row.id) continue;
+    await checkExtensionRuntimePolicy(env);
     const object = await bucket.head(key);
     if (
       object?.customMetadata?.owner_key !== ownerKey ||
@@ -245,6 +269,7 @@ export async function retrieveRag(
       text: chunk.text.slice(0, 4_000),
       url: `/api/extensions/rag/documents/${row.id}`,
     });
+    await checkExtensionRuntimePolicy(env);
     await env.DB.prepare(
       "UPDATE rag_documents SET state = 'indexed' WHERE id = ? AND state = 'pending_index'",
     )

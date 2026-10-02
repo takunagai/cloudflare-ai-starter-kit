@@ -1,5 +1,9 @@
 import { tool } from "ai";
 import { z } from "zod";
+import {
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "./ai-verification";
 import type { AppEnv, Identity } from "./env";
 import { ApiError } from "./http";
 
@@ -27,7 +31,9 @@ export function noteTools(
         .object({ query: z.string().trim().min(1).max(100) })
         .strict(),
       execute: async ({ query }) => {
+        requireExtensionEnabled(env, env.ENABLE_AGENT);
         budget();
+        await checkExtensionRuntimePolicy(env);
         const { results } = await env.DB.prepare(
           "SELECT id,title,substr(content,1,1000) AS content FROM notes WHERE owner_id=? AND instr(lower(title || ' ' || content),lower(?))>0 ORDER BY created_at DESC LIMIT 5",
         )
@@ -46,7 +52,9 @@ export function noteTools(
         })
         .strict(),
       execute: async ({ title, content }) => {
+        requireExtensionEnabled(env, env.ENABLE_AGENT);
         budget();
+        await checkExtensionRuntimePolicy(env);
         const id = crypto.randomUUID();
         await env.DB.prepare(
           "INSERT INTO tool_approvals(id,owner_id,title,content,status,expires_at,created_at) VALUES (?,?,?,?,'pending',?,?)",
@@ -73,6 +81,7 @@ export async function decideNote(
   id: string,
   decision: "approve" | "reject",
 ) {
+  requireExtensionEnabled(env, env.ENABLE_AGENT);
   const now = Date.now();
   const row = await env.DB.prepare(
     "SELECT status,expires_at FROM tool_approvals WHERE id=? AND owner_id=?",
@@ -81,9 +90,13 @@ export async function decideNote(
     .first<{ status: string; expires_at: number }>();
   if (!row) throw new ApiError(404, "approval_not_found");
   const desired = decision === "approve" ? "approved" : "rejected";
-  if (row.status === desired) return { status: desired };
+  if (row.status === desired) {
+    await checkExtensionRuntimePolicy(env);
+    return { status: desired };
+  }
   if (row.status !== "pending" || row.expires_at < now)
     throw new ApiError(409, "approval_not_pending");
+  await checkExtensionRuntimePolicy(env);
   await env.DB.batch([
     env.DB.prepare(`INSERT OR IGNORE INTO notes(id,owner_id,title,content,created_at)
       SELECT id,owner_id,title,content,? FROM tool_approvals WHERE id=? AND owner_id=? AND status='pending' AND expires_at>=? AND ?='approve'`).bind(

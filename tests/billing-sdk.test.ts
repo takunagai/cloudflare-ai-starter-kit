@@ -23,6 +23,10 @@ describe("Installed Polar SDK transport boundary", () => {
           throw new DOMException("fixture-timeout", "TimeoutError");
         });
       const provider = createPolarProvider({
+        APP_ENV: "local",
+        APP_ORIGIN: "http://127.0.0.1:3000",
+        LOCAL_DEMO: "false",
+        ENABLE_BILLING: "true",
         POLAR_ACCESS_TOKEN: "fixture-only-api-token",
         POLAR_SERVER: server,
       } as AppEnv);

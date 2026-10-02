@@ -3,12 +3,21 @@ import { z } from "zod";
 import { noteTools } from "./agent-tools";
 import { getModel, listModels } from "./ai/providers";
 import {
+  chatModelAllowed,
   chatSystemPrompt,
+  checkChatRuntimePolicy,
   checkVerificationInput,
+  type VerificationEnv,
   verificationSettings,
 } from "./ai-verification";
-import { chatHistory, finishChat, rateLimit, reserveChat } from "./chat-store";
-import { type AppEnv, type Identity, isEnabled } from "./env";
+import {
+  chatHistory,
+  finishChat,
+  ownedConversation,
+  rateLimit,
+  reserveChat,
+} from "./chat-store";
+import { type Identity, isEnabled } from "./env";
 import { retrieveRag } from "./extensions/rag";
 import { ApiError, json, readJson } from "./http";
 
@@ -25,15 +34,21 @@ const chatSchema = z
 
 export async function handleChat(
   request: Request,
-  env: AppEnv,
+  env: VerificationEnv,
   identity: Identity,
   ctx: ExecutionContext,
 ) {
   const input = await readJson(request, chatSchema, 40000);
+  const legacy =
+    env.APP_ENV === "staging" &&
+    (env.STAGING_POLICY === undefined || env.STAGING_POLICY === "verification");
+  if (!legacy) await ownedConversation(env, identity.id, input.conversationId);
+  const policy = legacy ? null : await checkChatRuntimePolicy(env);
   const verification = verificationSettings(env);
   const model = listModels(env).find((entry) => entry.id === input.modelId);
   if (!model) throw new ApiError(400, "unknown_model");
-  if (!model.available) throw new ApiError(503, "model_unavailable");
+  if (!model.available || (policy && !chatModelAllowed(policy, input.modelId)))
+    throw new ApiError(503, "model_unavailable");
   if (
     (input.rag && !isEnabled(env.ENABLE_RAG)) ||
     (input.agent && !isEnabled(env.ENABLE_AGENT))
@@ -79,6 +94,11 @@ export async function handleChat(
             input.requestId,
             Boolean(verification),
           );
+          if (!verification) {
+            const current = await checkChatRuntimePolicy(env);
+            if (!chatModelAllowed(current, input.modelId))
+              throw new ApiError(503, "model_unavailable");
+          }
           const sources = input.rag
             ? await retrieveRag(env, identity, input.message.slice(0, 2000))
             : null;
@@ -93,11 +113,26 @@ export async function handleChat(
           if (verification) {
             checkVerificationInput(input.message, history);
             verificationSettings(env);
+          } else {
+            const current = await checkChatRuntimePolicy(env);
+            if (!chatModelAllowed(current, input.modelId))
+              throw new ApiError(503, "model_unavailable");
           }
           if (abort.signal.aborted) throw new Error("generation_cancelled");
           let streamFailed = false;
           const result = streamText({
             model: getModel(input.modelId, env),
+            // agentは複数のモデルstepを持つ。各呼出し直前にも再確認する。
+            prepareStep: async () => {
+              if (verification) verificationSettings(env);
+              else {
+                const current = await checkChatRuntimePolicy(env);
+                if (!chatModelAllowed(current, input.modelId))
+                  throw new ApiError(503, "model_unavailable");
+                // 資格情報/選択の変化も既存modelオブジェクトの再利用で迂回しない。
+                getModel(input.modelId, env);
+              }
+            },
             system: chatSystemPrompt,
             messages: [
               ...history,

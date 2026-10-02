@@ -5,46 +5,17 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModel } from "ai";
 import { createWorkersAI } from "workers-ai-provider";
-import { verificationModelId, verificationSettings } from "../ai-verification";
+import {
+  chatModelAllowed,
+  type VerificationEnv,
+  verificationSettings,
+} from "../ai-verification";
 import { type AppEnv, isLocalDevelopment, type PublicModel } from "../env";
+import { resolveRuntimePolicy } from "../runtime-policy";
+import { chatModelCatalog as catalog } from "./catalog";
 import { createLocalDemoModel } from "./local-demo";
 
 export type { PublicModel } from "../env";
-
-// クライアントからmodel名・endpoint・keyを受け取らない。追加はコードレビューを伴う。
-const catalog = [
-  { id: "openai/gpt-4.1-mini", label: "GPT-4.1 mini", provider: "openai" },
-  {
-    id: "anthropic/claude-haiku-4-5",
-    label: "Claude Haiku 4.5",
-    provider: "anthropic",
-  },
-  {
-    id: "google/gemini-3.5-flash-lite",
-    label: "Gemini 3.5 Flash-Lite",
-    provider: "google",
-  },
-  {
-    id: verificationModelId,
-    label: "Llama 3.1 8B FP8 · Workers AI",
-    provider: "workers-ai",
-  },
-  {
-    id: "openrouter/openai/gpt-4.1-mini",
-    label: "GPT-4.1 mini · OpenRouter",
-    provider: "openrouter",
-  },
-  {
-    id: "lm-studio/local",
-    label: "LM Studio · ローカルモデル",
-    provider: "lm-studio",
-  },
-  {
-    id: "local/demo",
-    label: "動作確認用の固定応答（AI未使用）",
-    provider: "local-demo",
-  },
-] as const;
 
 export class ModelUnavailableError extends Error {
   constructor() {
@@ -83,15 +54,22 @@ function localEndpoint(env: AppEnv): string | undefined {
 }
 
 function available(
-  provider: (typeof catalog)[number]["provider"],
-  env: AppEnv,
+  entry: (typeof catalog)[number],
+  env: VerificationEnv,
 ): boolean {
+  const policy = resolveRuntimePolicy(env);
+  if (
+    !policy.boundary.ok ||
+    !policy.chat.ok ||
+    !chatModelAllowed(policy.chat.value, entry.id)
+  )
+    return false;
   try {
-    if (verificationSettings(env) && provider !== "workers-ai") return false;
+    verificationSettings(env);
   } catch {
     return false;
   }
-  switch (provider) {
+  switch (entry.provider) {
     case "openai":
       return configured(env.OPENAI_API_KEY);
     case "anthropic":
@@ -109,17 +87,16 @@ function available(
   }
 }
 
-export function listModels(env: AppEnv): PublicModel[] {
+export function listModels(env: VerificationEnv): PublicModel[] {
   return catalog.map((entry) => ({
     ...entry,
-    available: available(entry.provider, env),
+    available: available(entry, env),
   }));
 }
 
-export function getModel(modelId: string, env: AppEnv): LanguageModel {
+export function getModel(modelId: string, env: VerificationEnv): LanguageModel {
   const entry = catalog.find((item) => item.id === modelId);
-  if (!entry || !available(entry.provider, env))
-    throw new ModelUnavailableError();
+  if (!entry || !available(entry, env)) throw new ModelUnavailableError();
   switch (entry.provider) {
     case "openai":
       return createOpenAI({ apiKey: env.OPENAI_API_KEY }).chat("gpt-4.1-mini");
