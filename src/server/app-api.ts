@@ -13,6 +13,7 @@ import { getIdentity, handleAuth } from "./auth";
 import { handleBilling } from "./billing";
 import { handleChat } from "./chat";
 import { ownedConversation, rateLimit } from "./chat-store";
+import { handleDecisions } from "./decisions/routes";
 import { isEnabled, isLocalDevelopment } from "./env";
 import { handleExtensions } from "./extensions/routes";
 import {
@@ -35,6 +36,7 @@ export async function handleApp(
   env: VerificationEnv,
   ctx: ExecutionContext,
 ): Promise<Response> {
+  const receivedAt = Date.now();
   try {
     const path = new URL(request.url).pathname;
     guardRequestEnvironment(request, env);
@@ -78,6 +80,8 @@ export async function handleApp(
         json({ error: "not_found" }, 404)
       );
     if (path.startsWith("/api/auth/")) return await handleAuth(request, env);
+    if (path === "/api/decisions" || path.startsWith("/api/decisions/"))
+      return await handleDecisions(request, env, receivedAt);
     requireSameOrigin(request);
     const identity = await getIdentity(request, env);
     if (path === "/api/session") {
@@ -220,6 +224,10 @@ export async function handleApp(
     if (extension) return extension;
     return json({ error: "not_found" }, 404);
   } catch (error) {
-    return errorResponse(error);
+    const response = errorResponse(error);
+    const path = new URL(request.url).pathname;
+    if (path === "/api/decisions" || path.startsWith("/api/decisions/"))
+      response.headers.set("Cache-Control", "private, no-store");
+    return response;
   }
 }

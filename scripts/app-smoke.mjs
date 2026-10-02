@@ -22,6 +22,11 @@ const session = await call("/api/session");
 assert.equal(session.status, 200, "local session endpoint");
 const config = await session.json();
 assert.equal(config.localDemo, true, "refuse non-demo environment");
+const anonymousDecision = await call("/api/decisions/classify", {});
+assert.equal(anonymousDecision.status, 404, "Jev is OFF before authentication");
+assert.deepEqual(await anonymousDecision.json(), {
+  error: "decision_disabled",
+});
 assert.equal(
   config.authMode,
   "better-auth",
@@ -54,6 +59,23 @@ cookie = registered.headers
   .map((value) => value.split(";")[0])
   .join("; ");
 assert.equal(Boolean(cookie), true, "session created");
+const decisionKey = `${new Date().toISOString().slice(0, 10)}:${crypto.randomUUID()}`;
+const decisionStatus = await call(`/api/decisions/requests/${decisionKey}`);
+assert.equal(
+  decisionStatus.status,
+  404,
+  "Jev metadata route reachable while OFF",
+);
+assert.equal(decisionStatus.headers.get("Cache-Control"), "private, no-store");
+const listedModels = await call("/api/models");
+assert.equal(listedModels.status, 200, "authenticated model catalog");
+assert.equal(listedModels.headers.get("Cache-Control"), "no-store");
+const { models } = await listedModels.json();
+assert.deepEqual(
+  models.filter((model) => model.available).map((model) => model.id),
+  ["local/demo"],
+  "B-2 local compatibility allows only the fixed demo model",
+);
 const verification = await call("/api/ai-verification");
 assert.equal(
   verification.status,
@@ -101,5 +123,5 @@ assert.equal((await call("/api/auth/sign-out", {})).status, 200);
 assert.equal((await call("/api/models")).status, 401, "revoked session");
 cookie = "";
 console.log(
-  "PASS: local app smoke, all extensions OFF / signup / chat / history / replay / delete / logout",
+  "PASS: local app smoke, Jev OFF and metadata route / all extensions OFF / signup / chat / history / replay / delete / logout",
 );
