@@ -24,6 +24,8 @@ import {
   readJson,
   requireSameOrigin,
 } from "./http";
+import { type MediaEnv, requireMediaEnabled } from "./media/policy";
+import { handleMedia, isMediaCreationPath } from "./media/routes";
 import { resolveRuntimePolicy } from "./runtime-policy";
 
 function method(request: Request, allowed: string[]) {
@@ -33,7 +35,7 @@ function method(request: Request, allowed: string[]) {
 
 export async function handleApp(
   request: Request,
-  env: VerificationEnv,
+  env: VerificationEnv & MediaEnv,
   ctx: ExecutionContext,
 ): Promise<Response> {
   const receivedAt = Date.now();
@@ -48,11 +50,14 @@ export async function handleApp(
       extensionsBlocked &&
       (path.startsWith("/api/billing/") ||
         path.startsWith("/api/extensions/") ||
+        path === "/api/media" ||
+        path.startsWith("/api/media/") ||
         path === "/api/approvals" ||
         path.startsWith("/api/approvals/") ||
         path === "/api/notes")
     )
       throw new ApiError(404, "feature_disabled");
+    if (isMediaCreationPath(path, request.method)) requireMediaEnabled(env);
     // OFFは認証前に404。ONのmethod/input/所有権は各handlerで先に確認。
     if (path.startsWith("/api/billing/"))
       requireExtensionEnabled(env, env.ENABLE_BILLING);
@@ -107,6 +112,14 @@ export async function handleApp(
     }
     if (!identity) throw new ApiError(401, "authentication_required");
     await rateLimit(env, identity.id, "api", 120);
+    if (path === "/api/media" || path.startsWith("/api/media/")) {
+      return (
+        (await handleMedia(request, env, identity)) ??
+        json({ error: "not_found" }, 404, {
+          "Cache-Control": "private, no-store",
+        })
+      );
+    }
     if (path === "/api/ai-verification") {
       method(request, ["GET"]);
       return json(await verificationStatus(env, identity.id));
@@ -226,7 +239,12 @@ export async function handleApp(
   } catch (error) {
     const response = errorResponse(error);
     const path = new URL(request.url).pathname;
-    if (path === "/api/decisions" || path.startsWith("/api/decisions/"))
+    if (
+      path === "/api/decisions" ||
+      path.startsWith("/api/decisions/") ||
+      path === "/api/media" ||
+      path.startsWith("/api/media/")
+    )
       response.headers.set("Cache-Control", "private, no-store");
     return response;
   }

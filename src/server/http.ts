@@ -25,6 +25,7 @@ export async function readJson<T>(
   request: Request,
   schema: ZodType<T>,
   maxBytes = 32768,
+  hasStrictUtf8 = false,
 ): Promise<T> {
   if (
     request.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !==
@@ -36,7 +37,7 @@ export async function readJson<T>(
   if (!reader) throw new ApiError(400, "invalid_json");
   let bytes = 0;
   let text = "";
-  const decoder = new TextDecoder();
+  const decoder = new TextDecoder("utf-8", { fatal: hasStrictUtf8 });
   try {
     for (;;) {
       const part = await reader.read();
@@ -49,6 +50,11 @@ export async function readJson<T>(
       text += decoder.decode(part.value, { stream: true });
     }
     text += decoder.decode();
+  } catch (error) {
+    if (hasStrictUtf8) await reader.cancel().catch(() => {});
+    if (hasStrictUtf8 && !(error instanceof ApiError))
+      throw new ApiError(400, "invalid_json");
+    throw error;
   } finally {
     reader.releaseLock();
   }

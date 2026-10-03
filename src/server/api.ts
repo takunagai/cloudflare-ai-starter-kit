@@ -77,7 +77,7 @@ export default {
       return json({ valid: true, length: result.data.message.length });
     }
     if (
-      /^\/api\/(auth\/|session$|models$|ai-verification$|conversations(?:\/|$)|chat$|approvals(?:\/|$)|notes$|decisions(?:\/|$)|extensions\/|billing\/)/.test(
+      /^\/api\/(auth\/|session$|models$|ai-verification$|conversations(?:\/|$)|chat$|approvals(?:\/|$)|notes$|decisions(?:\/|$)|media(?:\/|$)|extensions\/|billing\/)/.test(
         path,
       )
     ) {

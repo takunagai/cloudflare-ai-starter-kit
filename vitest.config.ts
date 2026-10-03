@@ -14,7 +14,13 @@ export default defineConfig({
           ENABLE_WORKFLOWS: "true",
         },
         r2Buckets: ["RAG_BUCKET"],
-        d1Databases: ["DECISION_MIGRATION_DB", "DECISION_UPGRADE_DB"],
+        d1Databases: [
+          "DECISION_MIGRATION_DB",
+          "DECISION_UPGRADE_DB",
+          "MEDIA_MIGRATION_DB",
+          "MEDIA_UPGRADE_DB",
+          "MEDIA_FAILURE_DB",
+        ],
         workflows: {
           SUMMARY_WORKFLOW: {
             name: "summary-test",

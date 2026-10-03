@@ -27,6 +27,23 @@ assert.equal(anonymousDecision.status, 404, "Jev is OFF before authentication");
 assert.deepEqual(await anonymousDecision.json(), {
   error: "decision_disabled",
 });
+for (const [path, method] of [
+  ["/api/media/models", "GET"],
+  ["/api/media/jobs", "POST"],
+]) {
+  const response = await call(path, method === "POST" ? {} : undefined, method);
+  assert.equal(
+    response.status,
+    404,
+    "M-1 media creation is OFF before authentication",
+  );
+  assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+}
+assert.equal(
+  (await call("/api/media/jobs")).status,
+  401,
+  "M-1 recovery requires authentication",
+);
 assert.equal(
   config.authMode,
   "better-auth",
@@ -59,6 +76,17 @@ cookie = registered.headers
   .map((value) => value.split(";")[0])
   .join("; ");
 assert.equal(Boolean(cookie), true, "session created");
+const mediaJobs = await call("/api/media/jobs");
+assert.equal(
+  mediaJobs.status,
+  200,
+  "M-1 authenticated history is readable while OFF",
+);
+assert.equal(mediaJobs.headers.get("Cache-Control"), "private, no-store");
+assert.deepEqual(await mediaJobs.json(), { jobs: [] });
+const missingMedia = await call(`/api/media/jobs/${crypto.randomUUID()}`);
+assert.equal(missingMedia.status, 404);
+assert.equal(missingMedia.headers.get("Cache-Control"), "private, no-store");
 const decisionKey = `${new Date().toISOString().slice(0, 10)}:${crypto.randomUUID()}`;
 const decisionStatus = await call(`/api/decisions/requests/${decisionKey}`);
 assert.equal(
@@ -123,5 +151,5 @@ assert.equal((await call("/api/auth/sign-out", {})).status, 200);
 assert.equal((await call("/api/models")).status, 401, "revoked session");
 cookie = "";
 console.log(
-  "PASS: local app smoke, Jev OFF and metadata route / all extensions OFF / signup / chat / history / replay / delete / logout",
+  "PASS: local app smoke, M-1 media OFF and authenticated history / Jev OFF and metadata route / all extensions OFF / signup / chat / history / replay / delete / logout",
 );

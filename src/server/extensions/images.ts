@@ -5,6 +5,7 @@ import {
 } from "../ai-verification";
 import type { AppEnv, Identity } from "../env";
 import { ApiError } from "../http";
+import { mediaDatabase, requireMediaRecoveryReady } from "../media/ledger";
 import { digest } from "./rag";
 
 export const imageInputSchema = z.strictObject({
@@ -86,6 +87,8 @@ async function providerRequest(
         Authorization: `Key ${key}`,
         "Content-Type": "application/json",
         "X-Fal-Request-Timeout": "120",
+        "X-Fal-No-Retry": "1",
+        "x-app-fal-disable-fallback": "true",
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
@@ -151,25 +154,31 @@ export async function submitImage(
   const now = Date.now();
   // The quota check and reservation share one SQL statement. Concurrent clients
   // cannot make both a successful quota check and an unreserved paid submission.
-  const reserved = await env.DB.prepare(
-    `INSERT OR IGNORE INTO image_jobs (id, owner_id, request_key, input_hash, model, state, created_at, updated_at)
+  const reserved = await mediaDatabase(
+    env.DB.prepare(
+      `INSERT OR IGNORE INTO image_jobs (id, owner_id, request_key, input_hash, model, state, created_at, updated_at)
      SELECT ?, ?, ?, ?, ?, 'submitting', ?, ?
      WHERE (SELECT COUNT(*) FROM image_jobs WHERE owner_id = ? AND created_at >= ?) < 10
        AND (SELECT COUNT(*) FROM image_jobs WHERE owner_id = ? AND state IN ('submitting','queued','running','submission_unknown','cancel_requested','timed_out')) < 1`,
-  )
-    .bind(
-      id,
-      identity.id,
-      input.requestId,
-      hash,
-      input.model,
-      now,
-      now,
-      identity.id,
-      now - 86_400_000,
-      identity.id,
     )
-    .run();
+      .bind(
+        id,
+        identity.id,
+        input.requestId,
+        hash,
+        input.model,
+        now,
+        now,
+        identity.id,
+        now - 86_400_000,
+        identity.id,
+      )
+      .run(),
+  ).catch((error: unknown) => {
+    if (error instanceof ApiError && error.code === "media_limit_reached")
+      throw new ApiError(429, "IMAGE_LIMIT_REACHED");
+    throw error;
+  });
   if (!reserved.meta.changes) {
     const duplicate = await env.DB.prepare(
       "SELECT * FROM image_jobs WHERE owner_id = ? AND request_key = ?",
@@ -186,6 +195,7 @@ export async function submitImage(
   let dispatched = false;
   try {
     await checkExtensionRuntimePolicy(env);
+    await requireMediaRecoveryReady(env.DB);
     dispatched = true;
     const response = await providerRequest(
       `https://queue.fal.run/${input.model}`,
@@ -284,6 +294,7 @@ export async function getImage(
   )
     return present(job);
   const urls = JSON.parse(job.provider_urls_json) as ProviderUrls;
+  await requireMediaRecoveryReady(env.DB);
   const response = await providerRequest(
     endpoint(urls.status, job.provider_id, "status"),
     key,
@@ -376,6 +387,7 @@ export async function cancelImage(
   await checkExtensionRuntimePolicy(env);
   const key = imageKey(env);
   if (job.state === "cancel_requested") return present(job);
+  await requireMediaRecoveryReady(env.DB);
   const urls = JSON.parse(job.provider_urls_json) as ProviderUrls;
   const response = await providerRequest(
     endpoint(urls.cancel, job.provider_id, "cancel"),

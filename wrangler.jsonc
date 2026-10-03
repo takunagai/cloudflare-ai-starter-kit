@@ -28,6 +28,8 @@
         "ENABLE_AGENT": "false",
         "ENABLE_WORKFLOWS": "false",
         "ENABLE_IMAGES": "false",
+        "ENABLE_MEDIA": "false",
+        "MEDIA_ALLOWED_MODELS": "[]",
         "ENABLE_BILLING": "false"
       },
       "d1_databases": [
@@ -52,6 +54,8 @@
         "ENABLE_AGENT": "false",
         "ENABLE_WORKFLOWS": "false",
         "ENABLE_IMAGES": "false",
+        "ENABLE_MEDIA": "false",
+        "MEDIA_ALLOWED_MODELS": "[]",
         "ENABLE_BILLING": "false"
       },
       "d1_databases": [
@@ -74,6 +78,8 @@
     "ENABLE_AGENT": "false",
     "ENABLE_WORKFLOWS": "false",
     "ENABLE_IMAGES": "false",
+    "ENABLE_MEDIA": "false",
+    "MEDIA_ALLOWED_MODELS": "[]",
     "ENABLE_BILLING": "false"
   },
   "d1_databases": [
