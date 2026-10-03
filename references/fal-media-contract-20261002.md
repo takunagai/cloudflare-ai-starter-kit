@@ -41,3 +41,15 @@ APIページの説明とschemaの機械制約が分かれるため、M-1以降�
 | [R2 presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/) | URL所持者が使える期限付き認証。S3 API domain用で、custom domain向けではない。単一URLの失効をアプリのgrantと同じと仮定しない |
 
 主Worker＋専用private R2＋短期grantの案はこれらの仕様からの設計判断で、実際のAccess/fal到達性やworkerdの画像decoder性能を検証したものではない。構成採用・上限値の採用・実配備許可を分離する。
+
+## 採用判断時の公式再照合（2026-10-03）
+
+公式Cloudflare Docs MCPと公開ページ本文を読み取り確認した。アカウント照会・クラウド変更・fal実接続・Secret操作は行っていない。本人は専用private R2/限定取得パスと上限/保持の2組を設計採用したが、公式仕様とアプリの独自制限を区別する。
+
+| 公式根拠 | 再確認した仕様・採用契約への影響 |
+| --- | --- |
+| [Access application paths](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/app-paths/) | 具体的なパスのルールが優先され、親パスのルールを継承しない。新しい通常環境の取得パスだけ対話ログインを外し、Workerのtoken検証を必須にする設計の根拠。既存Worker全体保護への適用可否・実Access/fal到達性は未検証 |
+| [R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/) / [Workers binding](https://developers.cloudflare.com/r2/api/workers/workers-api-usage/) | bucketは既定で公開されず、r2.devとcustom domainの公開経路は独立。private素材bucketをWorker bindingから利用する。R2側の直接公開経路は開設しない設計で、実bucketは未作成 |
+| [D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/) | Time Travelは常時有効で、Workers Paidは過去30日、Freeは7日へ復元可能。稼働DBの本文消去を復元履歴からの即時消去と扱わない。復元後の期限/削除再適用と消費/受付不明保持はアプリの採用契約。実環境の状態や全コピー消去は未検証 |
+
+12 endpointのモデル仕様/価格/権限を今回一括再照合した意味ではない。endpoint別契約の実装時の確認、fal側保持/ACL/Store-IO、上流削除、実品質/費用は後続の技術検証と工程Eの別承認条件として残す。
