@@ -242,6 +242,9 @@ h3 {
   .header {
     min-height: 82px;
     gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
   .brand {
     font-size: 12px;
@@ -630,6 +633,24 @@ button.conversation-link:hover {
   display: grid;
   gap: 16px;
   margin: 24px 0;
+}
+.decision-values > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e1e7db;
+  font-size: 14px;
+}
+.decision-values dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.decision-consent input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+  flex-shrink: 0;
 }
 .resource-card {
   padding: 20px;

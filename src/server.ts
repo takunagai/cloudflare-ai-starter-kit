@@ -18,7 +18,12 @@ export default {
     const headers = new Headers(response.headers);
     headers.set("Referrer-Policy", "no-referrer");
     headers.set("X-Content-Type-Options", "nosniff");
-    if (path === "/app" || path.startsWith("/app/"))
+    if (
+      path === "/app" ||
+      path.startsWith("/app/") ||
+      path === "/decisions" ||
+      path.startsWith("/decisions/")
+    )
       headers.set("Cache-Control", "no-store");
     return new Response(response.body, {
       status: response.status,

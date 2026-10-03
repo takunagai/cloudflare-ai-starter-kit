@@ -23,6 +23,15 @@ assert.match(html, /接続を確認する/);
 const help = await get("/help");
 assert.equal(help.status, 200);
 assert.match(await help.text(), /小さく始めるための土台/);
+const decisions = await get("/decisions");
+assert.equal(decisions.status, 200);
+assert.equal(decisions.headers.get("Cache-Control"), "no-store");
+assert.equal(decisions.headers.get("Referrer-Policy"), "no-referrer");
+const decisionHtml = await decisions.text();
+assert.match(decisionHtml, /noindex/);
+assert.match(decisionHtml, /短い依頼の目的を分類する/);
+assert.match(decisionHtml, /合成fixture・実Jev未使用/);
+assert.match(decisionHtml, /状態だけ確認する/);
 const missing = await get("/not-a-page");
 assert.equal(missing.status, 404);
 const apiMissing = await get("/api/missing");
@@ -67,7 +76,7 @@ for (const path of new Set(modulePaths)) {
   );
 }
 console.log(
-  `PASS: local HTTP smoke (${port}), SSR HTML / help / 404 / API / CSS / client JS`,
+  `PASS: local HTTP smoke (${port}), SSR HTML / help / decisions no-store / 404 / API / CSS / client JS`,
 );
 
 await import("./app-smoke.mjs");

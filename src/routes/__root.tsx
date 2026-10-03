@@ -52,6 +52,7 @@ function Root() {
               ホーム
             </Link>
             <Link to="/help">はじめに</Link>
+            <Link to="/decisions">依頼の分類</Link>
           </nav>
         </header>
         <Outlet />
