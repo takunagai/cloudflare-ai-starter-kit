@@ -1,5 +1,7 @@
 # 認証の導入と検証
 
+2026-10-02・C-1: 導入は[local](presets/local.md)・[個人/社内](presets/internal.md)・[公開サービス](presets/public.md)から選びます。全用途の開発開始はlocal Better Auth、配備先の認証はinternal=Access、public=Better Authです。[公開5例/build境界](公開プリセットとbuild境界.md)に沿って必要項目を整理した文書更新で、実設定・許可対象・session期間は変更していません。非localの認証が未設定でもbuild/公開healthは起動し得ますが、認証や実アプリ利用の成功を示しません。実操作は[工程E前の停止条件](operations.md#工程e前の停止条件)の確定と別承認後です。
+
 標準は Better Auth のメール＋パスワード認証です。Google は追加設定した場合だけ有効になります。社内・個人用では `AUTH_MODE=access` に切り替えられます。いずれもアプリの会話・資料・ジョブ・契約の所有権チェックを省略しません。
 
 2026-10-02・B-3: 通常stagingの拡張一括404を各入口へ置き換え、OFFは認証前404、ONは認証・入力/所有権/状態の後に設定/台帳を検査します。決済webhookはsessionを要求せず署名を先に確認します。B-2で検証した両認証方式と回復境界を維持し、AI OFF・設定不備・旧台帳による生成拒否でも認証/session/logout/所有者の会話CRUDは継続します。認証方式・session期間・実Access設定は変更していません。[設定メモ](実AI検証制御-実装状況.md#2026-10-02-b-3のモデル選択と別入口統合)。
@@ -13,7 +15,7 @@
 3. `pnpm dev` を起動し、ログイン画面でテスト用ユーザーを登録します。
 4. ログアウト、再ログイン、再読み込み後の履歴を確認します。`pnpm preview` の4173番も開発用の許可originに含みます。
 
-この省略はローカル試作用です。staging / production はHTTPS、32文字以上の本物のsecret、メール送信設定を必須とし、未設定なら認証処理を503で停止します。ダミーsecretを本番へ転用できません。非localではメール未確認ユーザーのセッションを認可に使いません。localから実運用へDB・session・secretを流用しないでください。
+この省略はローカル試作用です。Better Authを使うstaging / productionはHTTPS、32文字以上の本物のsecret、メール送信設定を必須とし、未設定なら認証処理を503で停止します。Accessだけの用途にBetter Auth用Secretやアプリメールを要求しません。ダミーsecretを本番へ転用できません。非localのBetter Authではメール未確認ユーザーのセッションを認可に使いません。localから実運用へDB・session・secretを流用しないでください。
 
 メール未設定のlocalでは確認メールの再送・パスワード再設定要求は503を返します。確認リンク・リセットtokenをAPIのデバッグ応答やログへ出す代替経路はありません。ローカルの回復フローはテストのfakeメール送信境界で検証します。
 
@@ -32,7 +34,7 @@
 
 **採用provider:** Cloudflare Email Service（Email Sending、Public Beta）。`EMAIL.send({from,to,subject,html,text})` のadapterを実装済みです。認証URLをHTML属性用にescapeし、送り先や外部SDK例外をログへ出しません。
 
-本番またはstagingへの導入は次の順で行います。現在、実クラウドの設定・実送信は未実施です。
+本番または通常stagingへの導入は、対象・送信先/回数・費用・終了方法を別承認した後に次の順で行います。C-1の文書整備を設定変更の許可にせず、[工程E前](operations.md#工程e前の停止条件)で止まれます。現在、アプリの実メール設定・実送信は未実施です。
 
 1. 対象ドメインをCloudflare DNSで管理し、Cloudflare Dashboard → Compute → Email Service → Email Sendingから送信ドメインをonboardします。DNS変更を伴うので、対象と変更内容の承認後に行います。
 2. 対象Wrangler環境に `send_email: [{ name: "EMAIL" }]` と非秘密設定 `EMAIL_FROM` を追加します。fromはonboard済みドメインの送信アドレスです。設定は必要な環境だけに追加します。
@@ -50,6 +52,8 @@ Google OAuthアプリを対象環境ごとに用意し、callbackを `https://�
 Googleの本物のアプリ・資格情報・callback疎通は通常CIでは検証しません。認証フローを実公開する前に対象環境で別途確認します。
 
 ## Cloudflare Accessを選ぶ場合
+
+新しい通常staging/productionの利用者・保護範囲・session期間は未確定です。新環境の1時間は既存計画の推奨案、Better Authの7日/更新間隔1日は現行実装の値で、今回変更・適用していません。Accessの実ID/AUD/個別URLは本人管理とし、公開例では空欄です。Accessの通知/OTPはアプリメールとは別の実接続で、追加送信を自動で行いません。
 
 `AUTH_MODE=access`、`ACCESS_TEAM_DOMAIN=自分のteam.cloudflareaccess.com`、`ACCESS_AUD=対象AccessアプリのAUD` を設定します。team domainにURL scheme・pathは入れません。Access app/policyの作成や変更はここでは自動実行しません。
 
@@ -71,6 +75,6 @@ Drizzle adapterではD1が対応しないinteractive transactionを無効化し�
 
 `tests/auth.test.ts` はworkerd＋D1で登録・ログイン・ログアウト・失効・cookie属性・Origin拒否・永続rate limit・認証方式分離・メール確認・一度だけのパスワード再設定を検証します。`tests/auth-access.test.ts` は実RSA署名とJOSE検証を使い、署名/issuer/audience/期限/不正claims/鍵/方式を検証します。Access JWKS取得とメール配送だけをfake化します。
 
-実メール配送、Google認証、Cloudflare Accessの実アプリ設定は未接続です。ローカルのテスト合格をこれらの疎通成功と読み替えないでください。
+アプリの実メール配送、Google認証、新しい通常staging/productionのCloudflare Accessは未接続です。旧本人限定検証stagingでは過去のAccessログイン確認を実施済みですが、新環境の実Access/JWKS/OTP・公開サービスのメール確認には流用しません。ローカル/fakeのテスト合格を実疎通成功と読み替えないでください。[B-4までの証拠](B4完了-次セッション開始プロンプト.md)と[C-1文書検証](C1完了-次セッション開始プロンプト.md)を区別します。
 
 一次資料: [Better Auth Email & Password](https://better-auth.com/docs/authentication/email-password)、[Drizzle adapter](https://better-auth.com/docs/adapters/drizzle)、[Security](https://better-auth.com/docs/reference/security)、[Rate Limit](https://better-auth.com/docs/concepts/rate-limit)、[Cloudflare Access JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)。確認日: 2026-09-27。

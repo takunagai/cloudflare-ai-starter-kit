@@ -1,6 +1,14 @@
 # モデル接続
 
+2026-10-02・C-1: [local](presets/local.md)・[個人/社内](presets/internal.md)・[公開サービス](presets/public.md)の導入文書を整備しました。B-4の[公開5例/build境界](公開プリセットとbuild境界.md)はlocalの固定応答、非localのAI OFF、全例Jev/拡張OFFです。設定やモデルを今回変更せず、以下の一覧は固定コードのcatalogとして示します。提供継続・実権限・価格は今回再照会していません。実接続は[工程E前の停止条件](operations.md#工程e前の停止条件)の確定と別承認後です。
+
+2026-10-02・B-3J実装完了: Jevは`src/server/decisions/`の固定fetch/3型serviceとして実装・fake上流でローカル検証済みです。固定版`jev-1.13.0`、remote時だけ`TYPESAFE_API_KEY`をサーバーで使用します。既定OFF・チャット一覧/枠とは独立。[契約・設定の管理](Jev-B3J-実装前契約.md)と[検証結果](B3J完了-次セッション開始プロンプト.md)を参照。SDK/依存追加・実接続・キー投入はなく、上流の料金/保持/権限/日本語品質は工程E前の条件です。次の契約確定節の「未実施」は当時の履歴です。
+
+2026-10-02・Jev契約確定: Jevは本書のチャット一覧へ混ぜず、[B-3J実装前契約](Jev-B3J-実装前契約.md)の型付き判断serviceとして扱います。本人の3組への回答で、固定4候補分類＋3種内部service、独立枠/全数値、本文/結果/hashなしの要求台帳・終端90日・結果再表示なし・unknown消費/同時枠保持を設計採用。固定版`jev-1.13.0`を公式再確認しましたが、service/SDK/実接続は未実施です。上流の実料金/自動補充・権限/品質・保持/unknown修復は工程E前の確認事項。チャットの上限・履歴・B-3の実装境界は変更していません。
+
 確認日: 2026-09-27。AI SDK 7のproviderをサーバーで生成する。`listModels` は表示用のID・名称・provider・設定済みフラグだけを返し、`getModel` はコードにある許可一覧から選ぶ。ブラウザから任意のモデル名、endpoint、APIキーを受け付けない。
+
+2026-10-02・B-3: `ai/catalog.ts`を設定判定とadapterの正本にしました。同期`listModels/getModel`もAI_MODE/AI_ALLOWED_MODELSを検査し、DBは読みません。認証済み`/api/models`は通常stagingの旧台帳存在検査を合成し、不適合なら全件`available:false`とします。チャット受付・予約・各モデルstep直前、Workflow受付/推論stepも非同期guardを通します。既知の選択外モデルは503、未知IDは有効なチャットポリシー下で400。通常local/productionは新設定省略でOFF（既存loopback demoだけ互換）となり、Secret/bindingだけでは直接adapterも有効にしません。下記の導入手順だけで新しい通常環境を配備せず、[工程B〜D](用途別プリセット-開発計画.md)の完了を確認してください。
 
 ## 初期の許可一覧
 
@@ -15,22 +23,28 @@
 | `openai/gpt-4.1-mini` | `gpt-4.1-mini` / Chat Completions | `OPENAI_API_KEY` |
 | `anthropic/claude-haiku-4-5` | `claude-haiku-4-5` | `ANTHROPIC_API_KEY` |
 | `google/gemini-3.5-flash-lite` | `gemini-3.5-flash-lite` | `GOOGLE_GENERATIVE_AI_API_KEY` |
-| `workers-ai/llama-3.1-8b-fp8` | `@cf/meta/llama-3.1-8b-instruct-fp8` | Workers AI binding `AI`。stagingは検証設定・期限も必要 |
+| `workers-ai/llama-3.1-8b-fp8` | `@cf/meta/llama-3.1-8b-instruct-fp8` | Workers AI binding `AI`。旧検証stagingだけは固定窓/総枠の既存設定も必要 |
 | `openrouter/openai/gpt-4.1-mini` | `openai/gpt-4.1-mini` | `OPENROUTER_API_KEY` |
 | `lm-studio/local` | サーバー側の `LM_STUDIO_MODEL` | ローカル環境と `LM_STUDIO_BASE_URL` |
 | `local/demo` | AIを使わない固定応答 | ローカル環境と `LOCAL_DEMO=true` |
 
-`available` は設定が揃っているという意味。実際のキーの有効性、残高、モデルへのアクセス権、providerの稼働状況を照会した結果ではない。未設定モデルを選ぶと外部通信前に `ModelUnavailableError` になる。モデル一覧を取得するだけでは課金されない。
+adapterの`available`は同期ポリシーの選択と設定充足、HTTPモデル一覧の`available`はさらに台帳検査を通過した意味です。旧検証では従来の固定窓判定も維持します。キーの有効性、残高、実利用権限、provider稼働状況を照会した結果ではありません。選択外/未設定adapterは外部通信前に`ModelUnavailableError`になり、HTTPチャットは固定コードを返します。モデル一覧は推論しません。
 
-Googleの2.5系は確認時点で新規利用が制限されているため、新規プロジェクト向けとして公式が案内する3.5 Flash-Liteをサンプルにした。これは全モデルの性能・価格比較の結果ではない。利用モデルを追加・変更する場合は `src/server/ai/providers.ts` の許可一覧とadapterを変更し、テストと説明を更新する。無制限なモデルID入力や自動fallbackは導入していない。
+Googleの2.5系は確認時点で新規利用が制限されているため、新規プロジェクト向けとして公式が案内する3.5 Flash-Liteをサンプルにした。これは全モデルの性能・価格比較の結果ではない。利用モデルを追加・変更する場合は `src/server/ai/catalog.ts`の公開定義と`providers.ts`のadapterを変更し、選択/直接取得の契約テストと説明を更新する。無制限なモデルID入力や自動fallbackは導入していない。
 
 ## 導入手順
 
-1. 対象環境と使うproviderを決める。機能が不要ならSecretやbindingを追加しない。
-2. 外部モデルでは利用可能モデル・課金単位・入力/出力上限・予算をproviderの管理画面と公式料金表で確認する。Workers有料プランの月額に他社モデルの料金は含まれない。
-3. Secretはユーザーが会話外で対象環境へ投入する。[Secrets運用補足](../rules/secrets.md) に従い、値をチャット・コマンド引数・ログに出さない。Workers AIは各環境へ `AI` bindingを個別に設定する。
-4. モデル一覧で設定済みのモデルを選び、承認した回数・予算内の小さなリクエストで実接続を確認する。設定済み表示だけで実接続成功と扱わない。
-5. API側で利用者の認証・利用枠・履歴所有権を確認し、`streamText` / `generateText` へ出力上限、timeout、retry回数を渡す。providerの生エラーにはリクエスト情報が含まれ得るため、HTTP応答やログへ丸ごと返さない。
+この順序は選んだ接続を準備する手順で、C-1では1〜3の項目整理までです。4〜5の実設定・実接続は別承認後に扱います。
+
+1. [用途別入口](../README.md#用途を選んで始める)から環境・認証を選ぶ。共通localの固定応答や非localのAI OFFのままで準備でき、不要なproviderのSecret/bindingは追加しない。
+2. チャットは`AI_MODE=selected`、`LOCAL_DEMO="false"`、`AI_ALLOWED_MODELS`にこのcatalogの公開IDだけを非空JSON配列で明示する計画を立てる。空/重複/未知IDを拒否し、selectedに`local/demo`・Jev・falを混ぜない。AI OFF/demoではallowlistは省略または`[]`だけ。実際の設定変更はまだ行わない。
+3. [工程E前](operations.md#工程e前の停止条件)に、提供継続・実権限・課金単位・保持/削除・人数・共有利用・総予算・期間・終了操作を確認して承認対象を具体化する。Workers有料プランの月額に他社モデルの料金は含まれない。過去の検証枠や予算を新用途へ流用しない。
+4. 別承認後だけ、ユーザーが会話外で対象環境のSecretを投入する。[Secrets運用補足](../rules/secrets.md)に従い、値をチャット・コマンド引数・ログに出さない。Workers AIは各環境へ`AI` bindingを個別に設定する。build/配備先は[B-4の固定対応](公開プリセットとbuild境界.md#buildの選択と拒否)に従い、旧検証stagingを通常へ転換しない。
+5. 認証済みモデル一覧で選択と設定充足を確認し、承認した回数・予算・期間内の小さなリクエストで実接続する。設定済み/available表示は資格情報・残高・実権限の照会結果ではない。実行時も認証・所有権・原子的枠・台帳・モデル選択を再確認し、出力上限/timeout/retry 0を維持する。生エラーをHTTPやログへ丸ごと返さない。
+
+資格情報だけでは有効にならない点は旧版からの互換性変更です。AI_MODE省略→demoを保持するのは安全なloopback local＋LOCAL_DEMO=trueだけで、他の通常経路はOFFです。旧検証stagingでは新AI設定を混ぜず、従来の固定FP8・30分・総3回・単一所有者・失敗消費・閉鎖を保持します。新しいAI設定への書換えや台帳の削除/更新で解除しません。
+
+Jevは専用`JEV_MODE`、fal等は対応`ENABLE_*`で独立して制御します。AI_MODEだけで実メール・Jev・画像・決済の全接続を止められると説明せず、終了操作を個別に定義します。
 
 料金は可変なのでコードに単価を埋め込まない。既定allowlistでも無課金を保証しない。アプリの回数/文字数/token上限は支出額そのものではないため、provider側の予算制限も併用する。キーがない場合に別providerへ自動転送することはない。
 
@@ -46,7 +60,8 @@ staging/productionではdemoとLM Studioを無効化する。API入口でも実�
 
 1. 開発PCでLM Studioのローカルサーバーを起動し、使用するモデルをロードする。外部公開やTunnelは不要。
 2. サーバー設定に `LM_STUDIO_BASE_URL=http://127.0.0.1:1234/v1` と、ロードしたモデルの識別子を `LM_STUDIO_MODEL` として設定する。これらはモデル名/ローカルURLでありSecretではない。エージェントは実環境一覧を表示せず、設定はユーザーが行う。
-3. `APP_ENV=local` とloopbackの `APP_ORIGIN` でアプリを起動し、`lm-studio/local` を選ぶ。LM Studioのモデル名はブラウザから自由指定できない。
+3. 別選択として`APP_ENV=local`とloopbackの`APP_ORIGIN`、`LOCAL_DEMO="false"`、`AI_MODE=selected`、`AI_ALLOWED_MODELS='["lm-studio/local"]'`を対象設定に明示する。既定demoから自動接続しない。環境や実設定の変更は承認された範囲で本人が行う。
+4. そのlocal対象で起動して`lm-studio/local`を選び、実プロセスとの疎通を確認する。LM Studioのモデル名はブラウザから自由指定できない。通常の固定応答試験やfakeテストはLM Studioの実疎通の証拠ではない。
 
 接続先はHTTPの `localhost` / `127.0.0.1` / `[::1]` と `/v1` に限定する。userinfo・query・fragmentや外部ホストは拒否し、HTTP redirectも追わない。クラウドWorkerのlocalhostは開発PCを指さないため、クラウドからの接続はサポートしない。ローカルサーバー側で追加認証を要求する設定は、このサンプルの対象外。
 
