@@ -752,3 +752,18 @@ button.conversation-link:hover {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.media-workspace > section {
+  margin-top: 2rem;
+}
+.media-reference-thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin: 0.5rem;
+}
+.media-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}

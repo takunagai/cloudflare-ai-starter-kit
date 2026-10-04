@@ -15,13 +15,13 @@ const legacy = (database: D1Database) =>
     )
     .run();
 describe("M-1 isolated migration compatibility", () => {
-  it("applies all 8 on empty D1, reapply adds zero and enforces owner foreign keys", async () => {
+  it("applies all 9 on empty D1, reapply adds zero and enforces owner foreign keys", async () => {
     const database = BINDINGS.MEDIA_MIGRATION_DB;
     await applyD1Migrations(database, BINDINGS.TEST_MIGRATIONS);
     const before = await database
       .prepare("SELECT * FROM d1_migrations ORDER BY id")
       .all();
-    expect(before.results).toHaveLength(8);
+    expect(before.results).toHaveLength(9);
     const models = await database
       .prepare("SELECT id,kind FROM media_models ORDER BY id")
       .all();
@@ -155,6 +155,6 @@ describe("M-1 isolated migration compatibility", () => {
           .prepare("SELECT count(*) AS n FROM d1_migrations")
           .first<{ n: number }>()
       )?.n,
-    ).toBe(8);
+    ).toBe(9);
   });
 });

@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  IMAGE_ENDPOINTS,
+  IMAGE_PRESETS,
+  IMAGE_QUALITIES,
+} from "../../lib/media-image-options";
 import { ApiError } from "../http";
 
 export const MEDIA_CATALOG_VERSION = "media-v1";
@@ -18,10 +23,7 @@ export const MEDIA_LIMITS = {
   monitorMs: 60 * 60_000,
 } as const;
 export const MEDIA_MODEL_IDS = [
-  "openai/gpt-image-2.5/sunburst/text-to-image",
-  "openai/gpt-image-2.5/sunburst/edit",
-  "openai/gpt-image-2.5/flare/text-to-image",
-  "openai/gpt-image-2.5/flare/edit",
+  ...IMAGE_ENDPOINTS,
   "minimax/h3-max/text-to-video",
   "minimax/h3-max/image-to-video",
   "minimax/h3-max/reference-to-video",
@@ -85,13 +87,7 @@ const dimensions = z
       width * height >= 655360 &&
       width * height <= 8294400,
   );
-const IMAGE_SIZES = {
-  square: { width: 1024, height: 1024 },
-  landscape: { width: 1536, height: 1024 },
-  portrait: { width: 1024, height: 1536 },
-  widescreen: { width: 1536, height: 864 },
-  vertical: { width: 864, height: 1536 },
-} as const;
+const IMAGE_SIZES = IMAGE_PRESETS;
 const imageSize = z.union([
   z
     .enum(["square", "landscape", "portrait", "widescreen", "vertical"])
@@ -101,9 +97,7 @@ const imageSize = z.union([
 const imageFields = {
   prompt: codePoints(4000),
   size: imageSize.default(IMAGE_SIZES.square),
-  quality: z
-    .enum(["auto", "low", "medium", "high", "xhigh", "max"])
-    .default("medium"),
+  quality: z.enum(IMAGE_QUALITIES).default("medium"),
   count: z.number().int().min(1).max(4).default(1),
   format: z.enum(["png", "jpeg", "webp"]).default("png"),
   background: z.enum(["auto", "opaque", "transparent"]).default("auto"),

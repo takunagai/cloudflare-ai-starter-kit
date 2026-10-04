@@ -24,6 +24,7 @@ import {
   readJson,
   requireSameOrigin,
 } from "./http";
+import { handleMediaSource } from "./media/grants";
 import { type MediaEnv, requireMediaEnabled } from "./media/policy";
 import { handleMedia, isMediaCreationPath } from "./media/routes";
 import { resolveRuntimePolicy } from "./runtime-policy";
@@ -52,11 +53,14 @@ export async function handleApp(
         path.startsWith("/api/extensions/") ||
         path === "/api/media" ||
         path.startsWith("/api/media/") ||
+        path.startsWith("/api/media-source") ||
         path === "/api/approvals" ||
         path.startsWith("/api/approvals/") ||
         path === "/api/notes")
     )
       throw new ApiError(404, "feature_disabled");
+    if (path.startsWith("/api/media-source"))
+      return await handleMediaSource(request, env);
     if (isMediaCreationPath(path, request.method)) requireMediaEnabled(env);
     // OFFは認証前に404。ONのmethod/input/所有権は各handlerで先に確認。
     if (path.startsWith("/api/billing/"))
@@ -106,6 +110,7 @@ export async function handleApp(
           agent: chatAvailable && isEnabled(env.ENABLE_AGENT),
           workflows: chatAvailable && isEnabled(env.ENABLE_WORKFLOWS),
           images: featuresAvailable && isEnabled(env.ENABLE_IMAGES),
+          media: featuresAvailable && isEnabled(env.ENABLE_MEDIA),
           billing: featuresAvailable && isEnabled(env.ENABLE_BILLING),
         },
       });
@@ -243,7 +248,8 @@ export async function handleApp(
       path === "/api/decisions" ||
       path.startsWith("/api/decisions/") ||
       path === "/api/media" ||
-      path.startsWith("/api/media/")
+      path.startsWith("/api/media/") ||
+      path.startsWith("/api/media-source")
     )
       response.headers.set("Cache-Control", "private, no-store");
     return response;

@@ -23,6 +23,8 @@
     "db:migrate:local": "wrangler d1 migrations apply DB --local"
   },
   "dependencies": {
+    "@jsquash/jpeg": "1.6.0",
+    "@jsquash/webp": "1.5.0",
     "@ai-sdk/anthropic": "4.0.65",
     "@ai-sdk/google": "4.0.82",
     "@ai-sdk/openai": "4.0.78",

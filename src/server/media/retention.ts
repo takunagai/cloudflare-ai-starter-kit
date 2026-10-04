@@ -29,6 +29,9 @@ export async function eraseMediaBody(
       env.DB.prepare(
         "DELETE FROM media_job_assets WHERE job_id=? AND owner_id=? AND role!='output'",
       ).bind(id, identity.id),
+      env.DB.prepare(
+        "UPDATE media_asset_grants SET revoked_at=COALESCE(revoked_at,?) WHERE job_id=? AND owner_id=?",
+      ).bind(now, id, identity.id),
     ]),
   );
   return getMediaJob(env, identity, id);
@@ -178,6 +181,8 @@ export interface MediaRecoveryWitness {
   usage: RecoveryUsage[];
   storage: RecoveryStorage[];
   legacy: RecoveryLegacy[];
+  uploads: unknown[];
+  outputObjects: unknown[];
 }
 const RECOVERY_JOB_COLUMNS =
   "id,owner_id,request_key,input_hash,model_id,quantity,reserved_bytes,created_at,attempt_count,provider_state,provider_id,terminal_at,terminal_outcome,body_erased_at,cancel_requested_at";
@@ -209,6 +214,12 @@ export async function readMediaRecoveryWitness(
       db.prepare(
         "SELECT id,owner_id,request_key,state,created_at FROM image_jobs ORDER BY id LIMIT 1001",
       ),
+      db.prepare(
+        "SELECT asset_id,owner_id,declared_bytes,state,expires_at FROM media_uploads ORDER BY asset_id LIMIT 1001",
+      ),
+      db.prepare(
+        "SELECT job_id,owner_id,ordinal,asset_id,state,created_at FROM media_output_objects ORDER BY job_id,ordinal LIMIT 1001",
+      ),
     ]),
   );
   if (results.some((result) => result.results.length > 1000))
@@ -219,6 +230,8 @@ export async function readMediaRecoveryWitness(
     usage: results[2].results as unknown as RecoveryUsage[],
     storage: results[3].results as unknown as RecoveryStorage[],
     legacy: results[4].results as unknown as RecoveryLegacy[],
+    uploads: results[5].results,
+    outputObjects: results[6].results,
   };
 }
 function sameRecords(left: unknown[], right: unknown[]) {
@@ -244,7 +257,9 @@ export async function reconcileMediaRecovery(
     !sameRecords(current.usage, witness.usage) ||
     !sameRecords(current.storage, witness.storage) ||
     !sameRecords(current.legacy, witness.legacy) ||
-    !sameRecords(current.assets, witness.assets)
+    !sameRecords(current.assets, witness.assets) ||
+    !sameRecords(current.uploads, witness.uploads) ||
+    !sameRecords(current.outputObjects, witness.outputObjects)
   )
     throw new ApiError(503, "media_recovery_manual_reconciliation_required");
   // 巻戻った本文の早期消去と取消意図だけを単調に再適用する。
@@ -280,6 +295,14 @@ export async function reconcileMediaRecovery(
   if (statements.length > 100)
     throw new ApiError(503, "media_recovery_manual_reconciliation_required");
   if (statements.length) await mediaDatabase(db.batch(statements));
+  await mediaDatabase(
+    db
+      .prepare(
+        "UPDATE media_asset_grants SET revoked_at=COALESCE(revoked_at,?)",
+      )
+      .bind(now)
+      .run(),
+  );
   await maintainMediaRetention(db, now);
   if (!(await verifyExternalReconciliation()))
     throw new ApiError(503, "media_recovery_external_reconciliation_required");
@@ -291,6 +314,15 @@ export async function reconcileMediaRecovery(
   );
   if (active?.n !== 0)
     throw new ApiError(503, "media_recovery_unresolved_jobs");
+  const unresolvedAssets = await mediaDatabase(
+    db
+      .prepare(
+        "SELECT (SELECT count(*) FROM media_uploads WHERE state!='settled')+(SELECT count(*) FROM media_output_objects WHERE state IN ('writing','write_unknown','deleting')) AS n",
+      )
+      .first<{ n: number }>(),
+  );
+  if (unresolvedAssets?.n !== 0)
+    throw new ApiError(503, "media_recovery_unresolved_assets");
   await mediaDatabase(
     db
       .prepare(

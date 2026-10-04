@@ -27,6 +27,9 @@ export const MEDIA_BOB: Identity = {
 export async function resetMediaDatabase() {
   await MEDIA_DATABASE.batch([
     ...[
+      "media_asset_grants",
+      "media_uploads",
+      "media_output_objects",
       "media_job_assets",
       "media_job_bodies",
       "media_usage_events",

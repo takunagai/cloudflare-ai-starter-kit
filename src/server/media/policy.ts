@@ -11,6 +11,8 @@ export type MediaEnv = AppEnv &
   RuntimePolicyInput & {
     ENABLE_MEDIA?: string;
     MEDIA_ALLOWED_MODELS?: string;
+    MEDIA_BUCKET?: R2Bucket;
+    MEDIA_VERIFIED_IMAGE_MODELS?: string;
   };
 export function mediaPolicy(
   env: Pick<MediaEnv, "ENABLE_MEDIA" | "MEDIA_ALLOWED_MODELS">,
@@ -36,6 +38,11 @@ export function mediaPolicy(
     isEnabled: flag === "true",
     allowedModels: allowed as MediaModelId[],
   };
+}
+export function requireMediaBucket(env: MediaEnv) {
+  if (!env.MEDIA_BUCKET || env.MEDIA_BUCKET === env.RAG_BUCKET)
+    throw new ApiError(503, "media_storage_not_configured");
+  return env.MEDIA_BUCKET;
 }
 export function requireMediaEnabled(env: MediaEnv) {
   requireExtensionEnabled(env, env.ENABLE_MEDIA, "media_disabled");

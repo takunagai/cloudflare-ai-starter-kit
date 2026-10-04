@@ -13,13 +13,15 @@ export default defineConfig({
           TEST_MIGRATIONS: await readD1Migrations("./migrations"),
           ENABLE_WORKFLOWS: "true",
         },
-        r2Buckets: ["RAG_BUCKET"],
+        r2Buckets: ["RAG_BUCKET", "MEDIA_BUCKET"],
         d1Databases: [
           "DECISION_MIGRATION_DB",
           "DECISION_UPGRADE_DB",
           "MEDIA_MIGRATION_DB",
           "MEDIA_UPGRADE_DB",
           "MEDIA_FAILURE_DB",
+          "MEDIA_ASSET_UPGRADE_DB",
+          "MEDIA_ASSET_FAILURE_DB",
         ],
         workflows: {
           SUMMARY_WORKFLOW: {
@@ -30,5 +32,10 @@ export default defineConfig({
       },
     })),
   ],
-  test: { include: ["tests/**/*.test.ts"], setupFiles: ["./tests/setup.ts"] },
+  // WASMとworkerdのisolateを同時に増やし過ぎず、全試験を実行する。
+  test: {
+    maxWorkers: 4,
+    include: ["tests/**/*.test.ts"],
+    setupFiles: ["./tests/setup.ts"],
+  },
 });

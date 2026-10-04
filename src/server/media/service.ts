@@ -39,6 +39,7 @@ export interface MediaReceipt {
   validatedAt: number;
 }
 export interface MediaDriver {
+  assertReady?(modelId: string): void;
   submit(
     media: NormalizedMedia,
     context: {
@@ -252,6 +253,7 @@ export async function submitMedia(context: MediaContext, raw: unknown) {
   await checkMediaExecution(env, media.model.id);
   await requireMediaRecoveryReady(env.DB);
   if (!driver) throw new ApiError(503, "media_adapter_not_ready");
+  driver.assertReady?.(media.model.id);
   const assets = await validateReferences(
     env.DB,
     identity.id,
@@ -356,6 +358,13 @@ export async function requestMediaCancellation(
       "UPDATE media_jobs SET cancel_requested_at=COALESCE(cancel_requested_at,?),updated_at=? WHERE id=? AND owner_id=? AND terminal_at IS NULL",
     )
       .bind(Date.now(), Date.now(), id, identity.id)
+      .run(),
+  );
+  await mediaDatabase(
+    env.DB.prepare(
+      "UPDATE media_asset_grants SET revoked_at=COALESCE(revoked_at,?) WHERE job_id=? AND owner_id=?",
+    )
+      .bind(Date.now(), id, identity.id)
       .run(),
   );
   return mediaMetadata(await ownedMediaJob(env.DB, identity.id, id));
@@ -582,6 +591,7 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
   await checkMediaExecution(env, job.model_id);
   await requireMediaRecoveryReady(env.DB);
   if (!driver) throw new ApiError(503, "media_adapter_not_ready");
+  driver.assertReady?.(job.model_id);
   const token = await claimMediaLease(env.DB, job, Date.now());
   if (!token) return mediaMetadata(job);
   try {
@@ -746,6 +756,13 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
     const now = Date.now();
     await mediaDatabase(
       env.DB.prepare(
+        "UPDATE media_asset_grants SET revoked_at=COALESCE(revoked_at,?) WHERE job_id=? AND EXISTS(SELECT 1 FROM media_jobs WHERE id=? AND (provider_state IN ('completed','failed','cancelled') OR terminal_at IS NOT NULL OR cancel_requested_at IS NOT NULL OR body_erased_at IS NOT NULL))",
+      )
+        .bind(now, id, id)
+        .run(),
+    );
+    await mediaDatabase(
+      env.DB.prepare(
         "UPDATE media_jobs SET lease_token=NULL,lease_until=NULL,next_poll_at=?,updated_at=? WHERE id=? AND owner_id=? AND lease_token=?",
       )
         .bind(
@@ -764,4 +781,25 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
     );
   }
   return mediaMetadata(await ownedMediaJob(env.DB, identity.id, id));
+}
+
+/** 同じprovider IDの回収のみ再開。生成POST/受付不明の解放はしない。 */
+export async function resumeMediaCollection(context: MediaContext, id: string) {
+  const { env, identity } = context;
+  const job = await ownedMediaJob(env.DB, identity.id, id);
+  await checkMediaExecution(env, job.model_id);
+  await requireMediaRecoveryReady(env.DB);
+  if (!context.driver) throw new ApiError(503, "media_adapter_not_ready");
+  context.driver.assertReady?.(job.model_id);
+  const now = Date.now();
+  const result = await mediaDatabase(
+    env.DB.prepare(
+      `UPDATE media_jobs SET collection_attempts=0,next_poll_at=? WHERE id=? AND owner_id=? AND provider_state='completed' AND provider_id IS NOT NULL AND collection_state='collection_failed' AND terminal_at IS NULL AND cancel_requested_at IS NULL AND body_erased_at IS NULL AND created_at+3600000>? AND (lease_until IS NULL OR lease_until<=?) AND NOT EXISTS(SELECT 1 FROM media_output_objects WHERE job_id=? AND state IN ('writing','write_unknown','deleting'))`,
+    )
+      .bind(now, id, identity.id, now, now, id)
+      .run(),
+  );
+  if (result.meta.changes !== 1)
+    throw new ApiError(409, "media_collection_not_resumable");
+  return advanceMediaJob(context, id);
 }

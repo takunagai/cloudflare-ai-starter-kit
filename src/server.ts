@@ -22,7 +22,9 @@ export default {
       path === "/app" ||
       path.startsWith("/app/") ||
       path === "/decisions" ||
-      path.startsWith("/decisions/")
+      path.startsWith("/decisions/") ||
+      path === "/media" ||
+      path.startsWith("/media/")
     )
       headers.set("Cache-Control", "no-store");
     return new Response(response.body, {
