@@ -1,5 +1,9 @@
 # 公式情報の参照索引
 
+- [M-4のCodexモデル・エフォート選定](m4-codex-model-selection-20261004.md): GPT-6.1 Sol/Highと別セッションを推奨する公式根拠・判断。M-4の実行やモデル設定変更は行わない。
+
+- [M-3通常動画・private stream・Rangeの公式確認](m3-media-video-20261004.md): 固定4 schema、現在のduration/入力、R2 stream/隔離とHTTP境界。実fal/上流保持の証拠ではない。
+
 - [M-2素材・画像4件の公式確認](m2-media-images-20261004.md): 固定画像schema、private回収、R2/WASM/decoderと隔離previewの根拠。実接続の証拠ではない。
 - [M-3のCodexモデル選定](m3-codex-model-selection-20261004.md): GPT-6.1 Sol/Highを推奨する公式根拠と判断。実装許可やモデル設定変更ではない。
 
