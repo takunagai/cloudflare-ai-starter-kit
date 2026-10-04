@@ -4,6 +4,11 @@ import {
   IMAGE_PRESETS,
   IMAGE_QUALITIES,
 } from "../../lib/media-image-options";
+import {
+  isCameraValid,
+  VIDEO_ENDPOINTS,
+  VIDEO_RATIOS,
+} from "../../lib/media-video-options";
 import { ApiError } from "../http";
 
 export const MEDIA_CATALOG_VERSION = "media-v1";
@@ -24,10 +29,7 @@ export const MEDIA_LIMITS = {
 } as const;
 export const MEDIA_MODEL_IDS = [
   ...IMAGE_ENDPOINTS,
-  "minimax/h3-max/text-to-video",
-  "minimax/h3-max/image-to-video",
-  "minimax/h3-max/reference-to-video",
-  "minimax/h3-max/camera-controls",
+  ...VIDEO_ENDPOINTS,
   "google/gemini-3.8-flash-tts",
   "google/gemini-3.8-flash-lite-tts",
   "elevenlabs/tts/eleven-v4",
@@ -125,7 +127,7 @@ const videoFields = {
   resolution: z.enum(["480P", "768P", "1080P"]).default("768P"),
   seed: z.number().int().min(0).max(2147483647).optional(),
 };
-const aspectRatio = z.enum(["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"]);
+const aspectRatio = z.enum(VIDEO_RATIOS);
 const textVideoSchema = z.strictObject({
   ...videoFields,
   aspectRatio: aspectRatio.default("16:9"),
@@ -139,7 +141,11 @@ const imageVideoSchema = z
   .refine((value) => Boolean(value.start || value.end));
 const referenceVideoSchema = z.strictObject({
   ...videoFields,
-  references: z.array(assetId).min(1).max(4),
+  references: z
+    .array(assetId)
+    .min(1)
+    .max(4)
+    .refine((values) => new Set(values).size === values.length),
   start: assetId.optional(),
   end: assetId.optional(),
   aspectRatio: z
@@ -163,17 +169,7 @@ const cameraSchema = z
       .min(2)
       .max(12),
   })
-  .refine(({ keyframes }) => {
-    if (keyframes[0].time !== 0 || keyframes.at(-1)?.time !== 1) return false;
-    let rotation = 0;
-    for (let index = 1; index < keyframes.length; index++) {
-      if (keyframes[index].time <= keyframes[index - 1].time) return false;
-      rotation += Math.abs(
-        keyframes[index].azimuth - keyframes[index - 1].azimuth,
-      );
-    }
-    return rotation <= 720;
-  });
+  .refine(({ keyframes }) => isCameraValid(keyframes));
 const singleSpeech = z.strictObject({
   mode: z.literal("single"),
   text: codePoints(4000),

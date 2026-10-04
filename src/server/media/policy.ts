@@ -13,6 +13,7 @@ export type MediaEnv = AppEnv &
     MEDIA_ALLOWED_MODELS?: string;
     MEDIA_BUCKET?: R2Bucket;
     MEDIA_VERIFIED_IMAGE_MODELS?: string;
+    MEDIA_VERIFIED_VIDEO_MODELS?: string;
   };
 export function mediaPolicy(
   env: Pick<MediaEnv, "ENABLE_MEDIA" | "MEDIA_ALLOWED_MODELS">,

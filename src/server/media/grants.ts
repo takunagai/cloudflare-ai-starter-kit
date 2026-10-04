@@ -48,7 +48,7 @@ export async function createReferenceGrants(
   );
   const grants: { role: string; ordinal: number; url: string }[] = [];
   for (const link of links.results) {
-    if (!["reference", "mask"].includes(link.role))
+    if (!["reference", "mask", "start", "end"].includes(link.role))
       throw new ApiError(400, "media_reference_invalid");
     const asset = await ownedAsset(env.DB, owner, link.asset_id),
       now = Date.now();

@@ -6,6 +6,7 @@ import {
   IMAGE_QUALITIES,
 } from "../lib/media-image-options";
 import { api, ClientError, errorCode, responseError } from "./api-client";
+import { VideoControls } from "./video-controls";
 
 type Asset = {
   id: string;
@@ -14,6 +15,7 @@ type Asset = {
   bytes: number;
   width: number;
   height: number;
+  duration: number | null;
   hasAlpha: boolean;
   state: string;
   expiresAt: number;
@@ -80,6 +82,7 @@ export function MediaPanel() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [videoStart, setVideoStart] = useState("");
   const requestRef = useRef<{ input: string; id: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const isEdit = model.endsWith("/edit"),
@@ -106,11 +109,7 @@ export function MediaPanel() {
     setJobs(jobData.jobs);
     if (current.features.media) {
       const data = await api<{ models: Model[] }>("/api/media/models");
-      setModels(
-        data.models.filter((item) =>
-          IMAGE_ENDPOINTS.some((id) => id === item.id),
-        ),
-      );
+      setModels(data.models);
     } else setModels([]);
   }, []);
   useEffect(() => {
@@ -223,7 +222,7 @@ export function MediaPanel() {
     >
       <h1>画像と素材</h1>
       <p>
-        参照画像は7日、生成画像は最初の保存から30日。再利用で期限は延長されません。
+        参照画像は7日、生成した画像・動画は最初の保存から30日。再利用で期限は延長されません。
       </p>
       {!isEnabled && (
         <p className="app-notice">
@@ -537,12 +536,39 @@ export function MediaPanel() {
           </p>
         </form>
       </section>
+      <VideoControls
+        key={videoStart}
+        initialStart={videoStart}
+        assets={assets}
+        models={models}
+        isBusy={isBusy}
+        isEnabled={isEnabled}
+        submit={async (request) => {
+          await run(async () => {
+            await api("/api/media/jobs", request);
+            setNotice(
+              "動画の受付を記録しました。生成履歴から状態を確認できます。",
+            );
+          });
+        }}
+      />
       <section>
         <h2>自分の素材</h2>
         <div className="resource-cards">
           {assets.map((asset) => (
             <article className="resource-card" key={asset.id}>
-              {asset.isAvailable && (
+              {asset.isAvailable && asset.format === "mp4" && (
+                <video
+                  className="generated-image"
+                  controls
+                  preload="metadata"
+                  src={`/api/media/assets/${asset.id}/file`}
+                  aria-label="生成した動画"
+                >
+                  <track kind="captions" />
+                </video>
+              )}
+              {asset.isAvailable && asset.format !== "mp4" && (
                 <img
                   className="generated-image"
                   src={`/api/media/assets/${asset.id}/file`}
@@ -556,8 +582,13 @@ export function MediaPanel() {
                 />
               )}
               <p>
-                {asset.source === "result" ? "生成画像" : "参照画像"} ·{" "}
-                {asset.format.toUpperCase()} · {asset.width} × {asset.height}
+                {asset.format === "mp4"
+                  ? "生成動画"
+                  : asset.source === "result"
+                    ? "生成画像"
+                    : "参照画像"}{" "}
+                · {asset.format.toUpperCase()} · {asset.width} × {asset.height}
+                {asset.duration !== null && ` · ${asset.duration.toFixed(2)}秒`}
               </p>
               <p>
                 {asset.expiresAt <= Date.now()
@@ -565,7 +596,7 @@ export function MediaPanel() {
                   : (STATES[asset.state] ?? "確認待ち")}{" "}
                 · 期限 {new Date(asset.expiresAt).toLocaleString("ja-JP")}
               </p>
-              {!asset.canReference && (
+              {!asset.canReference && asset.format !== "mp4" && (
                 <p className="app-hint">
                   {!asset.isAvailable
                     ? "期限・削除・検証状態により利用できません。"
@@ -573,6 +604,21 @@ export function MediaPanel() {
                 </p>
               )}
               <div className="button-row">
+                {asset.format !== "mp4" && (
+                  <button
+                    type="button"
+                    className="secondary"
+                    disabled={
+                      isBusy ||
+                      !isEnabled ||
+                      !asset.canReference ||
+                      asset.expiresAt < Date.now() + 1800000
+                    }
+                    onClick={() => setVideoStart(asset.id)}
+                  >
+                    動画の開始画像に使う
+                  </button>
+                )}
                 <button
                   type="button"
                   className="secondary"
@@ -600,9 +646,9 @@ export function MediaPanel() {
                 {asset.isAvailable && (
                   <a
                     href={`/api/media/assets/${asset.id}/file`}
-                    download={`image.${asset.format}`}
+                    download={`media.${asset.format}`}
                   >
-                    画像を保存
+                    {asset.format === "mp4" ? "動画を保存" : "画像を保存"}
                   </a>
                 )}
                 <button

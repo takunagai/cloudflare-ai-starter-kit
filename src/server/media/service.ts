@@ -439,6 +439,17 @@ async function recordReceipts(
           3)
     )
       throw new ApiError(502, "media_result_invalid");
+    if (
+      job.kind === "video" &&
+      (!asset.width ||
+        !asset.height ||
+        !asset.duration ||
+        Math.max(asset.width, asset.height) > 4096 ||
+        asset.width * asset.height > 8294400 ||
+        asset.duration < job.quantity - 0.05 ||
+        asset.duration > job.quantity + 0.75)
+    )
+      throw new ApiError(502, "media_result_invalid");
   }
   if (
     new Set(parsed.data.map((asset) => asset.ordinal)).size !==

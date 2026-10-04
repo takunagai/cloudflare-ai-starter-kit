@@ -20,6 +20,7 @@ import {
   requireMediaEnabled,
 } from "./policy";
 import { confirmMediaAssetDeletion } from "./retention";
+import { videoFile } from "./video-file";
 
 export const UPLOAD_LIMIT = 10 * 1024 * 1024;
 export const UPLOAD_LEASE_MS = 10 * 60_000;
@@ -67,6 +68,7 @@ export function assetMetadata(asset: MediaAsset, now = Date.now()) {
     bytes: asset.bytes,
     width: asset.width,
     height: asset.height,
+    duration: asset.duration,
     hasAlpha: asset.has_alpha === 1,
     state: asset.state,
     expiresAt: asset.expires_at,
@@ -347,6 +349,7 @@ export async function assetFile(
   const asset = await ownedAsset(env.DB, identity.id, id);
   if (asset.state !== "ready" || asset.expires_at <= Date.now())
     throw new ApiError(404, "not_found");
+  if (asset.format === "mp4") return videoFile(request, env, identity, asset);
   if (!["png", "jpeg", "webp"].includes(asset.format))
     throw new ApiError(415, "unsupported_media_type");
   if (request.headers.has("Range"))

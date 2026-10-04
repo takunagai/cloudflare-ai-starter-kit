@@ -52,7 +52,7 @@ describe("M-2 additive0009 isolated upgrade", () => {
     expect(after).toEqual(before);
     expect(
       await database.prepare("SELECT count(*) AS n FROM d1_migrations").first(),
-    ).toEqual({ n: 9 });
+    ).toEqual({ n: 10 });
     await expect(
       database
         .prepare(

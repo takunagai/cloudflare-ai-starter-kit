@@ -1,13 +1,11 @@
 import { z } from "zod";
+import { VIDEO_ENDPOINTS } from "../../lib/media-video-options";
 import type { Identity } from "../env";
 import { ApiError, json, readJson } from "../http";
 import { handleAssets } from "./assets";
 import { MEDIA_CATALOG, MEDIA_LIMITS, mediaRequestSchema } from "./catalog";
-import {
-  createImageDriver,
-  IMAGE_MODEL_IDS,
-  imageAdapterReady,
-} from "./image-driver";
+import { createMediaDriver } from "./driver";
+import { IMAGE_MODEL_IDS, imageAdapterReady } from "./image-driver";
 import { type MediaEnv, requireMediaEnabled } from "./policy";
 import { eraseMediaBody } from "./retention";
 import {
@@ -19,6 +17,7 @@ import {
   resumeMediaCollection,
   submitMedia,
 } from "./service";
+import { videoAdapterReady } from "./video-driver";
 
 export function isMediaCreationPath(path: string, method: string) {
   return (
@@ -28,7 +27,7 @@ export function isMediaCreationPath(path: string, method: string) {
     (path === "/api/media/jobs" && method === "POST")
   );
 }
-/** driver引数は内部試験用。公開APIは検証済みの固定画像adapterだけを使う。 */
+/** driver引数は内部試験用。公開APIは検証済みの固定画像/動画adapterだけを使う。 */
 export async function handleMedia(
   request: Request,
   env: MediaEnv,
@@ -51,13 +50,17 @@ export async function handleMedia(
         kind,
         version,
         output,
-        hasAdapter: IMAGE_MODEL_IDS.includes(id),
-        isExecutable: imageAdapterReady(env, id),
-        unavailableReason: imageAdapterReady(env, id)
-          ? null
-          : IMAGE_MODEL_IDS.includes(id)
-            ? "media_upstream_unverified"
-            : "media_adapter_not_ready",
+        hasAdapter:
+          IMAGE_MODEL_IDS.includes(id) ||
+          VIDEO_ENDPOINTS.some((endpoint) => endpoint === id),
+        isExecutable: imageAdapterReady(env, id) || videoAdapterReady(env, id),
+        unavailableReason:
+          imageAdapterReady(env, id) || videoAdapterReady(env, id)
+            ? null
+            : IMAGE_MODEL_IDS.includes(id) ||
+                VIDEO_ENDPOINTS.some((endpoint) => endpoint === id)
+              ? "media_upstream_unverified"
+              : "media_adapter_not_ready",
       })),
     });
   }
@@ -79,8 +82,9 @@ export async function handleMedia(
           identity,
           driver:
             driver ??
-            (env.MEDIA_BUCKET && env.MEDIA_VERIFIED_IMAGE_MODELS
-              ? createImageDriver(env)
+            (env.MEDIA_BUCKET &&
+            (env.MEDIA_VERIFIED_IMAGE_MODELS || env.MEDIA_VERIFIED_VIDEO_MODELS)
+              ? createMediaDriver(env)
               : undefined),
         },
         await readJson(
@@ -115,8 +119,9 @@ export async function handleMedia(
     identity,
     driver:
       driver ??
-      (env.MEDIA_BUCKET && env.MEDIA_VERIFIED_IMAGE_MODELS
-        ? createImageDriver(env)
+      (env.MEDIA_BUCKET &&
+      (env.MEDIA_VERIFIED_IMAGE_MODELS || env.MEDIA_VERIFIED_VIDEO_MODELS)
+        ? createMediaDriver(env)
         : undefined),
   };
   return response(

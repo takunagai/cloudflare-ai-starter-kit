@@ -82,7 +82,9 @@ export function mediaReceipts(job: Readonly<MediaJob>): MediaReceipt[] {
       bytes: 1024,
       ...(job.kind === "image"
         ? { width: 1024, height: 1024 }
-        : { duration: 5 }),
+        : job.kind === "video"
+          ? { width: 1366, height: 768, duration: job.quantity }
+          : { duration: 5 }),
       validatedAt: Date.now(),
     }),
   );

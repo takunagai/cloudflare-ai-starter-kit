@@ -35,7 +35,7 @@ export function imageAdapterReady(env: MediaEnv, id: string) {
       verifiedImageModels(env).includes(id),
   );
 }
-async function responseJson(response: Response) {
+export async function responseJson(response: Response) {
   if (
     !response.ok ||
     response.headers.get("Content-Type")?.split(";")[0] !== "application/json"
@@ -53,11 +53,13 @@ async function responseJson(response: Response) {
     throw new ApiError(502, "media_provider_response_invalid");
   }
 }
-function queueUrl(job: Readonly<MediaJob>, operation = "") {
+export function queueUrl(
+  job: Readonly<MediaJob>,
+  operation = "",
+  allowedModels: readonly string[] = IMAGE_MODEL_IDS,
+) {
   if (
-    !IMAGE_MODEL_IDS.includes(
-      job.model_id as (typeof MEDIA_MODEL_IDS)[number],
-    ) ||
+    !allowedModels.includes(job.model_id) ||
     !job.provider_id ||
     !/^[A-Za-z0-9_-]{1,100}$/.test(job.provider_id)
   )
@@ -109,7 +111,7 @@ const RESULT = z.object({
     .min(1)
     .max(4),
 });
-function privateImageUrl(value: string) {
+export function privateImageUrl(value: string) {
   let url: URL;
   try {
     url = new URL(value);
