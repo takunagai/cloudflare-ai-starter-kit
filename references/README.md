@@ -1,8 +1,8 @@
 # 公式情報の参照索引
 
-- [工程E限定接続設計のモデル・セッション選定](e-codex-model-selection-20261005.md): 計画3件の採用後は別セッション・GPT-6.1 Sol/Highを推奨。公式根拠と工程の性質による判断。実装/実接続の許可やモデル設定変更ではない。
+- [工程Eのモデル・セッション選定](e-codex-model-selection-20261005.md): 事前整理後の別セッション推奨と、詳細設計/採用後の同じセッション継続推奨を時点別に記録。GPT-6.1 Sol/Highの公式根拠と作業の性質による判断。実装/実接続の許可やモデル設定変更ではない。
 
-- [工程E事前整理のfal公開契約・費用](e-preflight-fal-20261005.md): 選択候補1件の価格、Store-IO/CDN ACL/保持、API補足規約・DPA、共有基盤費用の留保。実契約/権限/実挙動は未確認。用途/素材/予算等の3問は計画採用済みで、実接続の許可とは別。
+- [工程E事前整理と限定確認設計の公開根拠](e-preflight-fal-20261005.md): 選択1件の価格/schema/null許容、Store-IO/ACL/3600秒、取消/上流admin削除・個別結果、契約/creditと共有料金、D1 batch/Access session/診断streamの制約。実契約/権限/実挙動は未確認。計画3件と詳細3件は設計採用済み、実装/実行許可は別。
 
 - [M-5の固定install・ローカル隔離手順](m5-local-isolation-20261004.md): pnpm12.6.0/Wrangler4.141.0の実help、frozen-lockfileとVite/Wranglerの専用状態。実クラウド・実上流の証拠ではない。
 
