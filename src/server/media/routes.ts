@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { AUDIO_ENDPOINTS } from "../../lib/media-audio-options";
 import { VIDEO_ENDPOINTS } from "../../lib/media-video-options";
 import type { Identity } from "../env";
 import { ApiError, json, readJson } from "../http";
 import { handleAssets } from "./assets";
+import { audioAdapterReady } from "./audio-driver";
 import { MEDIA_CATALOG, MEDIA_LIMITS, mediaRequestSchema } from "./catalog";
 import { createMediaDriver } from "./driver";
 import { IMAGE_MODEL_IDS, imageAdapterReady } from "./image-driver";
@@ -27,7 +29,7 @@ export function isMediaCreationPath(path: string, method: string) {
     (path === "/api/media/jobs" && method === "POST")
   );
 }
-/** driver引数は内部試験用。公開APIは検証済みの固定画像/動画adapterだけを使う。 */
+/** driver引数は内部試験用。公開APIは検証済みの固定adapterだけを使う。 */
 export async function handleMedia(
   request: Request,
   env: MediaEnv,
@@ -52,13 +54,20 @@ export async function handleMedia(
         output,
         hasAdapter:
           IMAGE_MODEL_IDS.includes(id) ||
-          VIDEO_ENDPOINTS.some((endpoint) => endpoint === id),
-        isExecutable: imageAdapterReady(env, id) || videoAdapterReady(env, id),
+          VIDEO_ENDPOINTS.some((endpoint) => endpoint === id) ||
+          AUDIO_ENDPOINTS.some((endpoint) => endpoint === id),
+        isExecutable:
+          imageAdapterReady(env, id) ||
+          videoAdapterReady(env, id) ||
+          audioAdapterReady(env, id),
         unavailableReason:
-          imageAdapterReady(env, id) || videoAdapterReady(env, id)
+          imageAdapterReady(env, id) ||
+          videoAdapterReady(env, id) ||
+          audioAdapterReady(env, id)
             ? null
             : IMAGE_MODEL_IDS.includes(id) ||
-                VIDEO_ENDPOINTS.some((endpoint) => endpoint === id)
+                VIDEO_ENDPOINTS.some((endpoint) => endpoint === id) ||
+                AUDIO_ENDPOINTS.some((endpoint) => endpoint === id)
               ? "media_upstream_unverified"
               : "media_adapter_not_ready",
       })),
@@ -83,7 +92,9 @@ export async function handleMedia(
           driver:
             driver ??
             (env.MEDIA_BUCKET &&
-            (env.MEDIA_VERIFIED_IMAGE_MODELS || env.MEDIA_VERIFIED_VIDEO_MODELS)
+            (env.MEDIA_VERIFIED_IMAGE_MODELS ||
+              env.MEDIA_VERIFIED_VIDEO_MODELS ||
+              env.MEDIA_VERIFIED_AUDIO_MODELS)
               ? createMediaDriver(env)
               : undefined),
         },
@@ -120,7 +131,9 @@ export async function handleMedia(
     driver:
       driver ??
       (env.MEDIA_BUCKET &&
-      (env.MEDIA_VERIFIED_IMAGE_MODELS || env.MEDIA_VERIFIED_VIDEO_MODELS)
+      (env.MEDIA_VERIFIED_IMAGE_MODELS ||
+        env.MEDIA_VERIFIED_VIDEO_MODELS ||
+        env.MEDIA_VERIFIED_AUDIO_MODELS)
         ? createMediaDriver(env)
         : undefined),
   };

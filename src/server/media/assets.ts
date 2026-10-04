@@ -349,7 +349,8 @@ export async function assetFile(
   const asset = await ownedAsset(env.DB, identity.id, id);
   if (asset.state !== "ready" || asset.expires_at <= Date.now())
     throw new ApiError(404, "not_found");
-  if (asset.format === "mp4") return videoFile(request, env, identity, asset);
+  if (["mp4", "wav", "mp3"].includes(asset.format))
+    return videoFile(request, env, identity, asset);
   if (!["png", "jpeg", "webp"].includes(asset.format))
     throw new ApiError(415, "unsupported_media_type");
   if (request.headers.has("Range"))

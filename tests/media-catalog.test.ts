@@ -33,7 +33,7 @@ const fixture = (index: number) => ({
           ? { mode: "single", text: "合成音声" }
           : index === 10
             ? { text: "合成音声", voice: "Rachel" }
-            : { prompt: "合成音楽" },
+            : { prompt: "合成音楽", duration: 30 },
 });
 describe("M-1 fixed catalog and strict application inputs", () => {
   it.each(MEDIA_MODEL_IDS)(
@@ -128,14 +128,14 @@ describe("M-1 fixed catalog and strict application inputs", () => {
   it("uses UTF-8 bytes for speech, validates two aliases and refuses excluded music composition", () => {
     expect(
       normalizeMedia({
-        ...fixture(8),
-        input: { mode: "single", text: "あ".repeat(1333) },
+        ...fixture(10),
+        input: { voice: "Rachel", text: "あ".repeat(1333) },
       }).quantity,
     ).toBe(3999);
     expect(() =>
       normalizeMedia({
-        ...fixture(8),
-        input: { mode: "single", text: "あ".repeat(1334) },
+        ...fixture(10),
+        input: { voice: "Rachel", text: "あ".repeat(1334) },
       }),
     ).toThrow();
     const input = {

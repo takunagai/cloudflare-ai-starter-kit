@@ -1,5 +1,19 @@
 import { z } from "zod";
 import {
+  AUDIO_ENDPOINTS,
+  ELEVEN_VOICES,
+  GEMINI_VOICES,
+  geminiAdmission,
+  MUSIC_FORMATS,
+  SPEECH_FORMATS,
+  SPEECH_LANGUAGES,
+  speechParts,
+  TEXT_NORMALIZATION,
+} from "../../lib/media-audio-options";
+
+export { GEMINI_VOICES } from "../../lib/media-audio-options";
+
+import {
   IMAGE_ENDPOINTS,
   IMAGE_PRESETS,
   IMAGE_QUALITIES,
@@ -30,45 +44,10 @@ export const MEDIA_LIMITS = {
 export const MEDIA_MODEL_IDS = [
   ...IMAGE_ENDPOINTS,
   ...VIDEO_ENDPOINTS,
-  "google/gemini-3.8-flash-tts",
-  "google/gemini-3.8-flash-lite-tts",
-  "elevenlabs/tts/eleven-v4",
-  "elevenlabs/music/v2.5",
+  ...AUDIO_ENDPOINTS,
 ] as const;
 export type MediaModelId = (typeof MEDIA_MODEL_IDS)[number];
 export type MediaKind = "image" | "video" | "tts" | "music";
-export const GEMINI_VOICES = [
-  "Achernar",
-  "Achird",
-  "Algenib",
-  "Algieba",
-  "Alnilam",
-  "Aoede",
-  "Autonoe",
-  "Callirrhoe",
-  "Charon",
-  "Despina",
-  "Enceladus",
-  "Erinome",
-  "Fenrir",
-  "Gacrux",
-  "Iapetus",
-  "Kore",
-  "Laomedeia",
-  "Leda",
-  "Orus",
-  "Pulcherrima",
-  "Puck",
-  "Rasalgethi",
-  "Sadachbia",
-  "Sadaltager",
-  "Schedar",
-  "Sulafat",
-  "Umbriel",
-  "Vindemiatrix",
-  "Zephyr",
-  "Zubenelgenubi",
-] as const;
 const codePoints = (max: number) =>
   z
     .string()
@@ -209,21 +188,19 @@ const dialogue = z
 const geminiSchema = z.union([singleSpeech, dialogue]);
 const elevenSchema = z.strictObject({
   text: codePoints(4000),
-  voice: z.enum(["Rachel", "Aria"]),
-  language: z
-    .string()
-    .regex(/^[a-z]{2,3}$/)
-    .optional(),
+  voice: z.enum(ELEVEN_VOICES),
+  language: z.enum(SPEECH_LANGUAGES).optional(),
+  normalization: z.enum(TEXT_NORMALIZATION).default("auto"),
   stability: z.number().min(0).max(1).default(0.5),
   similarityBoost: z.number().min(0).max(1).default(0.75),
   seed: videoFields.seed,
-  format: z.enum(["mp3_44100_128", "mp3_44100_192"]).default("mp3_44100_128"),
+  format: z.enum(SPEECH_FORMATS).default("mp3_44100_128"),
 });
 const musicSchema = z.strictObject({
   prompt: codePoints(2000),
-  duration: z.number().int().min(3).max(60).default(30),
+  duration: z.number().int().min(3).max(60),
   instrumental: z.boolean().default(false),
-  format: z.enum(["mp3_48000_128", "mp3_48000_192"]).default("mp3_48000_128"),
+  format: z.enum(MUSIC_FORMATS).default("mp3_48000_128"),
 });
 export const mediaRequestSchema = z.strictObject({
   requestId: z
@@ -278,21 +255,6 @@ export function mediaModel(id: string) {
   if (!model) throw new ApiError(400, "media_model_unknown");
   return model;
 }
-function speechParts(value: Record<string, unknown>): string[] {
-  if (typeof value.text === "string") return [value.text];
-  const speakers = value.speakers as { alias: string }[] | undefined;
-  const turns = value.turns as
-    | { alias: string; text: string; instruction?: string }[]
-    | undefined;
-  return [
-    ...(speakers?.map((speaker) => speaker.alias) ?? []),
-    ...(turns?.flatMap((turn) => [
-      turn.alias,
-      turn.text,
-      turn.instruction ?? "",
-    ]) ?? []),
-  ];
-}
 export type NormalizedMedia = ReturnType<typeof normalizeMedia>;
 export function normalizeMedia(raw: unknown) {
   if (
@@ -308,11 +270,11 @@ export function normalizeMedia(raw: unknown) {
   const input = parsed.data as Record<string, unknown>;
   const inputBytes =
     model.kind === "tts"
-      ? new TextEncoder().encode(
-          [...speechParts(input), String(input.instruction ?? "")].join(""),
-        ).byteLength
+      ? new TextEncoder().encode(speechParts(input).join("")).byteLength
       : 0;
   if (inputBytes > 4000) throw new ApiError(400, "media_input_bytes_limit");
+  if (model.id.startsWith("google/") && !geminiAdmission(input).canAccept)
+    throw new ApiError(400, "media_gemini_admission_limit");
   const quantity =
     model.kind === "image"
       ? Number(input.count)

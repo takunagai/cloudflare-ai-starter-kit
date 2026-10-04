@@ -46,7 +46,12 @@ export async function videoFile(
     throw new ApiError(404, "not_found");
   const modified = head.uploaded.toUTCString();
   const headers: Record<string, string> = {
-    "Content-Type": "video/mp4",
+    "Content-Type":
+      asset.format === "mp4"
+        ? "video/mp4"
+        : asset.format === "wav"
+          ? "audio/wav"
+          : "audio/mpeg",
     "Cache-Control": "private, no-store",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",

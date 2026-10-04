@@ -155,7 +155,7 @@ describe("M-1 common media service with fake upstream and real workerd/D1", () =
     [0, { prompt: "x", count: 4 }, 5],
     [4, { prompt: "x", duration: 10 }, 3],
     [8, { mode: "single", text: "x" }, 10],
-    [8, { mode: "single", text: "x".repeat(4000) }, 5],
+    [10, { voice: "Rachel", text: "x".repeat(4000) }, 5],
     [11, { prompt: "x", duration: 60 }, 3],
   ] as const)(
     "consumes rolling request/unit limits for kind index %s without refunding rejection",

@@ -6,6 +6,7 @@ import {
   IMAGE_QUALITIES,
 } from "../lib/media-image-options";
 import { api, ClientError, errorCode, responseError } from "./api-client";
+import { AudioControls } from "./audio-controls";
 import { VideoControls } from "./video-controls";
 
 type Asset = {
@@ -222,7 +223,7 @@ export function MediaPanel() {
     >
       <h1>画像と素材</h1>
       <p>
-        参照画像は7日、生成した画像・動画は最初の保存から30日。再利用で期限は延長されません。
+        参照画像は7日、生成した画像・動画・音声は最初の保存から30日。再利用で期限は延長されません。
       </p>
       {!isEnabled && (
         <p className="app-notice">
@@ -552,6 +553,19 @@ export function MediaPanel() {
           });
         }}
       />
+      <AudioControls
+        models={models}
+        isBusy={isBusy}
+        isEnabled={isEnabled}
+        submit={async (request) => {
+          await run(async () => {
+            await api("/api/media/jobs", request);
+            setNotice(
+              "音声の受付を記録しました。生成履歴から状態を確認できます。",
+            );
+          });
+        }}
+      />
       <section>
         <h2>自分の素材</h2>
         <div className="resource-cards">
@@ -568,26 +582,42 @@ export function MediaPanel() {
                   <track kind="captions" />
                 </video>
               )}
-              {asset.isAvailable && asset.format !== "mp4" && (
-                <img
-                  className="generated-image"
+              {asset.isAvailable && ["wav", "mp3"].includes(asset.format) && (
+                <audio
+                  controls
+                  preload="metadata"
                   src={`/api/media/assets/${asset.id}/file`}
-                  alt={
-                    asset.source === "result"
-                      ? "生成した画像"
-                      : "アップロードした参照画像"
-                  }
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
+                  aria-label="生成した音声"
+                >
+                  <track kind="captions" />
+                </audio>
               )}
+              {asset.isAvailable &&
+                ["png", "jpeg", "webp"].includes(asset.format) && (
+                  <img
+                    className="generated-image"
+                    src={`/api/media/assets/${asset.id}/file`}
+                    alt={
+                      asset.source === "result"
+                        ? "生成した画像"
+                        : "アップロードした参照画像"
+                    }
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
               <p>
                 {asset.format === "mp4"
                   ? "生成動画"
-                  : asset.source === "result"
-                    ? "生成画像"
-                    : "参照画像"}{" "}
-                · {asset.format.toUpperCase()} · {asset.width} × {asset.height}
+                  : ["wav", "mp3"].includes(asset.format)
+                    ? "生成音声"
+                    : asset.source === "result"
+                      ? "生成画像"
+                      : "参照画像"}{" "}
+                · {asset.format.toUpperCase()}{" "}
+                {asset.width && asset.height
+                  ? ` · ${asset.width} × ${asset.height}`
+                  : ""}
                 {asset.duration !== null && ` · ${asset.duration.toFixed(2)}秒`}
               </p>
               <p>
@@ -596,15 +626,16 @@ export function MediaPanel() {
                   : (STATES[asset.state] ?? "確認待ち")}{" "}
                 · 期限 {new Date(asset.expiresAt).toLocaleString("ja-JP")}
               </p>
-              {!asset.canReference && asset.format !== "mp4" && (
-                <p className="app-hint">
-                  {!asset.isAvailable
-                    ? "期限・削除・検証状態により利用できません。"
-                    : "参照画像の容量・寸法上限を超えています。保存用として取得できます。"}
-                </p>
-              )}
+              {!asset.canReference &&
+                ["png", "jpeg", "webp"].includes(asset.format) && (
+                  <p className="app-hint">
+                    {!asset.isAvailable
+                      ? "期限・削除・検証状態により利用できません。"
+                      : "参照画像の容量・寸法上限を超えています。保存用として取得できます。"}
+                  </p>
+                )}
               <div className="button-row">
-                {asset.format !== "mp4" && (
+                {["png", "jpeg", "webp"].includes(asset.format) && (
                   <button
                     type="button"
                     className="secondary"
@@ -648,7 +679,11 @@ export function MediaPanel() {
                     href={`/api/media/assets/${asset.id}/file`}
                     download={`media.${asset.format}`}
                   >
-                    {asset.format === "mp4" ? "動画を保存" : "画像を保存"}
+                    {asset.format === "mp4"
+                      ? "動画を保存"
+                      : ["wav", "mp3"].includes(asset.format)
+                        ? "音声を保存"
+                        : "画像を保存"}
                   </a>
                 )}
                 <button

@@ -61,7 +61,7 @@ export function mediaInput(
             ? { mode: "single", text: "TEST_ONLY_speech" }
             : index === 10
               ? { text: "TEST_ONLY_speech", voice: "Rachel" }
-              : { prompt: "TEST_ONLY_music" }),
+              : { prompt: "TEST_ONLY_music", duration: 30 }),
   };
 }
 export function mediaReceipts(job: Readonly<MediaJob>): MediaReceipt[] {
@@ -84,7 +84,7 @@ export function mediaReceipts(job: Readonly<MediaJob>): MediaReceipt[] {
         ? { width: 1024, height: 1024 }
         : job.kind === "video"
           ? { width: 1366, height: 768, duration: job.quantity }
-          : { duration: 5 }),
+          : { duration: job.kind === "music" ? job.quantity : 5 }),
       validatedAt: Date.now(),
     }),
   );

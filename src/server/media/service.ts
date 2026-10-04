@@ -35,6 +35,10 @@ export interface MediaReceipt {
   width?: number;
   height?: number;
   duration?: number;
+  sampleRate?: number;
+  channels?: number;
+  bitsPerSample?: number;
+  bitrate?: number;
   hasAlpha?: boolean;
   validatedAt: number;
 }
@@ -378,6 +382,10 @@ const RECEIPT_SCHEMA = z.strictObject({
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
   duration: z.number().positive().finite().optional(),
+  sampleRate: z.number().int().positive().optional(),
+  channels: z.number().int().min(1).max(2).optional(),
+  bitsPerSample: z.literal(16).optional(),
+  bitrate: z.union([z.literal(128), z.literal(192)]).optional(),
   hasAlpha: z.boolean().optional(),
   validatedAt: z.number().int().nonnegative(),
 });
@@ -448,6 +456,13 @@ async function recordReceipts(
         asset.width * asset.height > 8294400 ||
         asset.duration < job.quantity - 0.05 ||
         asset.duration > job.quantity + 0.75)
+    )
+      throw new ApiError(502, "media_result_invalid");
+    if (
+      (job.kind === "tts" || job.kind === "music") &&
+      (!asset.duration ||
+        (job.kind === "music" &&
+          Math.abs(asset.duration - job.quantity) > 0.15))
     )
       throw new ApiError(502, "media_result_invalid");
   }
