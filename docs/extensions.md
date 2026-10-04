@@ -1,5 +1,7 @@
 # 任意拡張の導入と確認
 
+2026-10-04・M-4: [音声4件の設定・受付・検査・private再生](M4-音声4モデルとprivate再生.md)を追加。`/media`でGemini単一/2話者、Eleven TTS、Musicを明示選択する。`MEDIA_VERIFIED_AUDIO_MODELS`は独立した既定空gate。完成WAV/MP3だけを扱い、生成streaming/timestamps/raw PCM/composition/音楽seedは拒否。SQLは0001〜0010のまま。M-5と実接続は後続、以下は各工程当時の履歴。
+
 2026-10-04・M-3: [通常動画4件・カメラ・private Range再生](M3-通常動画4モデルとprivate再生.md)を追加。`/media`で動画モデルを明示選択し、始終画像/順序付き参照/カメラを設定する。`MEDIA_VERIFIED_VIDEO_MODELS`は画像と独立の既定空gateで、実上流確認前は生成を拒否。現行migrationは0001〜0010、今回の適用は隔離試験DBだけ。音声4件・M-5全体統合/複製・実接続は後続。以下は各工程当時の履歴。
 
 2026-10-04・M-2: [素材基盤と画像4モデル](M2-素材基盤と画像4モデル.md)を追加。`/media`で素材・画像設定を操作する。既定OFF、RAGと別private bucket、固定モデル許可と上流条件の検証済み一覧を別に管理する。動画/音声、実リソース作成・配備・実接続は後続。現行migrationは0001〜0009で、今回の適用は隔離試験DBだけ。

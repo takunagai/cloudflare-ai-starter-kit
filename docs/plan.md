@@ -10,6 +10,22 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 ## 現在地
 
+**2026-10-04・M-4のローカルコミット:** 本人の「やり残しや心残りがないならコミットして」により、M-4の許可範囲に残件がないことを確認し、実装/試験24件を`84b0ecd`へローカルコミットした。817 workerd＋7合成試験を含むcheck/HTTP/Chromeの検証済みコードを変更せず、ステージ版と作業ツリー/コミット前の内容識別24件の一致、公開可否・既存の例示作者/署名設定・保護フックを確認した。文書/根拠11件は本追記と[M-5のモデル・エフォート選定](../references/m5-codex-model-selection-20261004.md)を含む別の文書コミットへまとめ、最終HEAD/cleanを実Gitで照合する。新しいコード検証が必要な差分はなく、全体checkは繰り返していない。
+
+M-5は別セッション、GPT-6.1 Sol/Highを推奨する。全12モデルの統合/当該版の別名複製検証へ集中し、M-4の結果をそのままM-5成功へ流用しない。開始プロンプトは会話内で提示し、チャット作成/送信・モデル設定変更・M-5実行は行わない。実接続/課金/クラウド/Secret・配備、既存D-2の再実行/再複製、push/PR・remote/CI再照会は対象外。下記の未commit/Git操作禁止は、追加許可前のM-4検証時点の記録。
+
+**2026-10-04・M-4実装・ローカル検証完了:** 本人許可でGemini Flash/Flash Lite TTS、Eleven v4 TTS、Music v2.5の4固定adapterと設定UIを追加。[音声設定・受付・検査・private再生・保持・制約](M4-音声4モデルとprivate再生.md)と[公式確認](../references/m4-media-audio-20261004.md)を参照。Gemini単一/正確に2話者、固定30音声・alias/順序/演技、8192 tokenと4,000 bytesを分けた保守的受付、Eleven許可voice/言語/全設定/MP3、Music必須3〜60秒/ミリ秒変換/instrumentalを実装した。上流未確認の独立gateは既定空。第三話者・未登録alias・単一/対話混在・composition/音楽seed・timestamps/生成streaming/raw PCMは拒否する。
+
+開始Gitはmain/HEAD `0c23a9f43a5f3f2a64784019032e797eb858c979`・clean、Node26.10.0/pnpm12.6.0に一致、remote再照会なし。0001〜0010・固定依存/lockfile・公開wrangler/5例・AGENTS/CLAUDE/Jev、元利用DB・実設定を保持。既存format/durationとreceiptを使うため追加SQLなし。動画のbounded stream保存を音声と共通化し、1claim/lease/CAS、private R2、回収receipt再利用/ID・初回時刻・期限、新旧合算/所有権、unknown/書込み不明保持、本文終端30日/台帳終端90日、物理削除後の容量解放と復旧条件を維持した。
+
+今回の最終コードのcheckはexit0（lint/型生成・型検査、41ファイル817 workerd＋7合成build/HTTP、client/Worker build/help事前生成）。817には新108音声試験、画像4件・動画4件（10秒/Highを含む）・旧画像/標準機能、M-1〜M-3の保持/復旧/migration回帰を含む。初回の既存4,000文字Gemini利用量試験は新受付判定に先に拒否されたため、同じ共通TTS bytes枠をElevenへ移して維持した。音声試験はPCM16/24k mono WAVとffmpeg8.1.2/libmp3lameの3秒MP3 44.1/48 kHz×128/192 kbps（ffprobe照合）、合成上流・隔離D1/R2だけ。音声のMIME/容量/形式/仕様/時間、実stream不足/超過/切断、private保存、gate/所有権・冪等性、待機/再読込/取消競合、部分回収/台帳失敗後のreceipt再利用、物理削除失敗/並行削除・容量保持、WAV/MP3各Range/If-Range/HEAD/416/切断後seekを確認。断線・既存Workflowの失敗注入診断とテスト失敗を区別する。
+
+同じ最終コードの既定OFF build・専用隔離previewで標準smoke（SSR/help/認証/固定チャット/履歴/replay/削除/logout・Jev/全拡張OFF）とメディアOFF smokeが成功。専用OFF DBの空10本/再適用0を確認。音声ONの合成build/隔離previewでは4 endpointすべてのHTTP受付/待機/同ID再取得/回収・private音声GET/HEAD/Range/If-Range/416/削除/logout401が成功。外部fetchは合成Workerで固定fake以外拒否。初回はfakeのCDN URLが既存許可パスに合わずinvalidとなり、guardを維持してfake側だけ修正して最終4件を完了した。
+
+現在のChrome（既存プロフィールの拡張接続）で合成登録、4音声モデル設定、30音声・単一/対話の排他・alias変更/重複送信停止・台詞追加/順序入替、保守的受付超過、Elevenのvoice/言語/stability/similarity/seed/正規化/192kbps、Musicの60秒表示・2/61秒停止・3秒/instrumental/192kbps、生成待機の再読込/2タブ、取消依頼→破棄、WAV/MP3再生とseek、物理削除通知/別タブ反映・logout/未認証表示を確認。WAVは3秒・再生中0.175639秒/seek2.0579秒、MP3は3.030167秒・再生中0.120045秒/seek2.12954秒、両方errorなし。Music3秒の保存/削除も確認。合成画面の証跡はローカルのチャット成果物へ保存し、リポジトリに個人パス/画像を記録していない。
+
+自身の確認2タブ/previewを終了し、公開設定の既定OFFでbuild再生成が成功。生成設定はlocal・MEDIA OFF/空一覧・FAL_KEY/追加R2なし・remoteなし、4173/4196待受なしを確認した。公開コードと整形結果は構造化apply_patchで反映、保護フック/例外を変更せず、新たな保護拒否なし。未commit/空indexで引き渡す。実fal/AI/Jev/メール/決済接続・課金、クラウド/Access/R2作成変更・配備・Secret、M-5以降・D-2再実行/再複製、stage/commit・push/PR・remote/CI再照会は未実施。Gemini受付スコアはモデル固有token実測/非公開wrapper込み上限証明ではなく、実モデルのgate追加前に確認が必要。MP3はframe/構造/仕様検査で、全波形の復号・実品質保証ではない。以下はM-3以前の対象版別の履歴。
+
 **2026-10-04・M-3のローカルコミット:** 本人の「コミットして」により、検証済みM-3と正常系補強を実装/試験31件と文書/根拠13件の2つの論理単位で記録。実装/試験は`9b42109`でコミット済み。709 workerd＋7合成試験のcheck版、ステージ版、コミット版の全31ファイルが一致し、公開可否・既存の例示作者/署名設定・保護フックを維持した。文書/根拠13件は本追記を含む文書コミットとしてまとめ、最終HEAD/cleanは実Gitで照合する。M-4は別セッションを推奨し、[GPT-6.1 Sol/Highの公式根拠と判断](../references/m4-codex-model-selection-20261004.md)を記録。開始プロンプトは会話内に提示し、チャット作成/送信・モデル設定変更やM-4実行は行わない。push/PR・remote再照会・実接続/課金/クラウド/Secret・配備も対象外。以下の未commit/Git禁止は各作業時点の履歴。
 
 **2026-10-04・M-3正常系の補強完了:** 本人がコミット前の追加検証を許可した。10秒・768P/1080P・横長/縦長・H.264 High（B-frameあり）の合成MP4を4種類追加し、ffprobeでprofile/寸法/240フレームを照合。[素材と試験の対応](M3-通常動画4モデルとprivate再生.md#10秒高解像度high-profileの正常系補強)を参照。SPS/crop/時間の検査4件と、4固定endpoint×4素材で入力/grantからprivate R2保存・容量置換・利用量・metadata/期限・冪等性/receipt再取得・suffix Rangeまで通す16件、計20試験を追加した。対象2ファイル60 workerd試験が成功し、その後Node26.10.0/pnpm12.6.0の全体checkもexit0（38ファイル709 workerd＋7合成build/HTTP、lint/型生成・型検査、client/Worker build/help事前生成）。709件はVitest JSON一覧でも照合した。
@@ -335,7 +351,7 @@ Gitは開始時main/ローカルorigin/mainとも`66fd90f3526a52083ae79f4bd60fa9
 
 ## 次の作業
 
-M-0の採用契約、M-1共通ジョブ、M-2素材/画像4件、M-3通常動画4件の実装・ローカル検証は完了。参照7日・生成30日・所有者1 GiB/初版除外と採用2組は再質問しない。次は別許可後のM-4音声、M-5統合/その版の複製検証。完了済みD-2は再実行しない。実接続/課金/配備は工程Eで別に扱い、今回の許可をGit操作・元利用DBへの適用へ広げない。
+M-0の採用契約、M-1共通ジョブ、M-2素材/画像4件、M-3通常動画4件、M-4音声4件の実装・ローカル検証は完了。参照7日・生成30日・所有者1 GiB/初版除外と採用2組は再質問しない。次は別許可後のM-5統合/その版の複製検証。完了済みD-2は再実行しない。実接続/課金/配備は工程Eで別に扱い、今回の許可をGit操作・元利用DBへの適用へ広げない。
 
 限定した使用量確認・文書整理・PR #2/#3最終レビュー・main取り込みと同期/検査は完了し、結果を本書と取り込み記録へ保存しました。Workers/D1の共有課金対象量0と途中コストを確認できましたが、AIの内訳と確定請求額は未確定です。
 

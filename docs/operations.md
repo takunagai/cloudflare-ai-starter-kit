@@ -1,5 +1,7 @@
 # 環境・更新・配備・復旧の運用方針
 
+2026-10-04・M-4: [音声4件の独立gate・WAV/MP3検査・private Range/回収/削除](M4-音声4モデルとprivate再生.md)を追加。追加SQLなし、0001〜0010と保持/復旧を維持。実音声モデルは上流条件とGemini受付の根拠を工程Eで確認するまで有効にしない。今回の検証は専用の隔離ローカルD1/R2だけ。M-5以降・元利用DB/実設定/実接続/配備は対象外。以下は各工程当時の履歴。
+
 2026-10-04・M-3: [動画4件・非公開出力確認gate・bounded stream・Range・取消/部分回収](M3-通常動画4モデルとprivate再生.md)を追加。現行migrationは0001〜0010。0010は既存grantの全列を保持しstart/endを追加するため、失敗rollbackと旧画像grant/予約の一致を隔離DBで検証する。実環境への適用は別承認。元利用DB/実設定・0001〜0009・保持/復旧条件は保持。以下は各工程時点の履歴。
 
 2026-10-04・M-2: [素材/取得grant・private保存/削除・画像4件・上流検証gate](M2-素材基盤と画像4モデル.md)を追加。現行migrationは0001〜0009。今回は専用ローカルD1/R2だけに適用し、元利用DB/実設定を保持した。upload/出力の未確定書込みも復旧照合に含め、物理削除未確認の容量を保持する。実fal/R2/Access・配備・Secret操作は別承認。
@@ -79,7 +81,7 @@ Cloudflareの`wrangler secret put`は即時deployを伴う外部変更として�
 
 `migrations/`の連番SQLを履歴管理する。認証はDrizzle schemaとSQLの列・制約一致を実D1テストで確認する。チャットと拡張の枠予約・冪等処理は明示SQLとD1の原子的batchを使う。自動schema pushは使わず、変更ごとに次番号のSQLを追加してレビューする。適用済みSQLを編集しない。空DBへの全適用・再適用と、既存データを保持した追加migrationを検証する。
 
-ローカルは`pnpm db:migrate:local`。認証・会話・資料metadata・ジョブ・課金台帳・Jev要求metadata・共通メディア基盤を同じ環境のD1へ保存し、対象は0001〜0009。リモートは別承認後に対象の管理外設定・環境・DB bindingを明示して適用する。公開wranglerのダミーIDや、旧verificationの設定を新しい通常stagingへ流用しない。productionも対象を明示して別に適用する。M-1/M-2の検証は専用`--persist-to`/Vite `persistState`の隔離DBだけで、元DBへの適用は行わない。C-1ではローカル/remoteとも追加適用していない。
+ローカルは`pnpm db:migrate:local`。認証・会話・資料metadata・ジョブ・課金台帳・Jev要求metadata・共通メディア基盤を同じ環境のD1へ保存し、対象は0001〜0010。リモートは別承認後に対象の管理外設定・環境・DB bindingを明示して適用する。公開wranglerのダミーIDや、旧verificationの設定を新しい通常stagingへ流用しない。productionも対象を明示して別に適用する。M-1〜M-4の検証は専用`--persist-to`/Vite `persistState`の隔離DBだけで、元DBへの適用は行わない。C-1ではローカル/remoteとも追加適用していない。
 
 リモート適用前に対象環境とDBを照合し、バックアップ/復旧可能点、既存コードとの互換性、適用順を確認する。staging検証後にproductionへ進む。削除・rename・型変更など既存データへの影響がある変更は、追加→移行→削除の段階的変更を優先する。SQL生成や型検査が成功しても、DBへ適用済みとは扱わない。
 

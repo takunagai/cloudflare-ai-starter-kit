@@ -1,5 +1,9 @@
 # 公式情報の参照索引
 
+- [M-5のCodexモデル・エフォート選定](m5-codex-model-selection-20261004.md): GPT-6.1 Sol/Highと別セッションを推奨する公式根拠・判断。M-5の実行やモデル設定変更は行わない。
+
+- [M-4音声4件・入力token・WAV/MP3の公式確認](m4-media-audio-20261004.md): 固定4 schema、単一/2話者・MP3設定・明示長さ、保守的受付の根拠/留保と隔離preview。実上流/生成品質/費用の証拠ではない。
+
 - [M-4のCodexモデル・エフォート選定](m4-codex-model-selection-20261004.md): GPT-6.1 Sol/Highと別セッションを推奨する公式根拠・判断。M-4の実行やモデル設定変更は行わない。
 
 - [M-3通常動画・private stream・Rangeの公式確認](m3-media-video-20261004.md): 固定4 schema、現在のduration/入力、R2 stream/隔離とHTTP境界。実fal/上流保持の証拠ではない。
