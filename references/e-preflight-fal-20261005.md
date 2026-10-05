@@ -47,3 +47,66 @@ ACLのWeb取得はInternal Errorで本文を返さなかった。公開Markdown�
 | [Vite envDir](https://vite.dev/config/shared-options#envdir) | 公開本文でfalseはdotenvファイルの読込を無効にすると確認。E専用ON/OFFローカルfixtureだけへ適用。実Secretファイルの内容を調査した意味ではなく、公開wrangler/5例や本体Vite設定は変更しない |
 
 管理枠の実装はtoken発行4回/追加Bearer診断GET4回へ具体化。回収1tokenと、診断tokenの期限前正常取得・期限後拒否/新tokenの正常取得・自然期限後の新tokenが必要なため。設計時の3回案と区別し、生成回数・30分・M-0の保持条件は変更しない。実費/共有枠の直接再照会は行わない。
+
+## 新規staging案の追加仕様確認（同日）
+
+本人が工程E用stagingを未作成と回答したため、未確定だった作成/終了操作の回数だけを追加具体化した。既存のfal仕様/価格/契約照合と完了済みcheck/監査は再実行していない。公開Cloudflare Docs MCP本文と固定Wrangler 4.141.0の`secret put`/`secret delete`/`d1 migrations apply`のhelpだけを確認。アカウント一覧・実リソース照会/変更なし。
+
+| 一次資料 | 確認・案への反映 |
+| --- | --- |
+| [Secrets](https://developers.cloudflare.com/workers/configuration/secrets/) / [Workers commands](https://developers.cloudflare.com/workers/wrangler/commands/workers/) | `secret put`と`secret delete`は新version作成＋即時deploy。初期OFF/限定ON/終了OFFの3配備と人間の投入/除去2操作で通常計5回。versions secretは別方式だが今回は新しい配備方式を追加しない。固定helpで両Secret操作の`--config`を確認 |
+| [Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/) | 所有zoneとWorkerが必要、Custom Domain追加でDNS/証明書が作られる。既存CNAMEがあるhostnameへ追加できない。新未使用hostname1つ、Access保護を先に確認し、既存レコードの削除/移行を含めない |
+
+[新規作成・配備案](../docs/工程E-制御実装と隔離検証.md#未作成からの新規作成配備案)は未実施・未承認。secret deleteで稼働bindingを除去しても旧version/上流キーの失効を証明しないため、本人による必要照合後の作業用キー失効を別に含める。
+
+## 初期OFF設定例の準備（同日）
+
+本人の「それで進めて」で作成/配備案の実行許可を受領した。対象の実値は未確定。本人記入用の[OFF設定例](../docs/工程E-初期OFF設定例.jsonc)と準備順序を用意し、実操作はまだ行っていない。
+
+| 一次資料 | 確認した内容・限定反映 |
+| --- | --- |
+| [Wrangler configuration](https://developers.cloudflare.com/workers/wrangler/configuration/#r2-buckets) | R2の`r2_buckets`配列/`binding`/`bucket_name`と、ID/bucket名省略時の自動provisioningを確認。新対象を本人が明示し、初回配備による暗黙作成を利用しない。ベース項目は既存公開wranglerとinternal-stagingを保持 |
+| [Self-hosted public application](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/) / [Session management](https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/session-management/) | Zero Trust → Access controls → Applications → Create new application → Self-hosted and private → Add public hostname。対象hostname/Allow policy/IdP/アプリsessionを設定する。hostnameのpathを限定せず、アプリと適用policyを1時間にする。新IdP/global変更や公開経路の先行追加なし |
+
+installed Wrangler schema読取は既存Secret safety guardのsensitive-path拒否で中止。同schemaの別経路読取やフック/例外変更は行っていない。公式公開資料の参照は同じローカルファイルへの再アクセスではなく、テンプレートで使う公開仕様の確認。実設定/生成設定の閲覧・型生成/配備や実対象の互換性確認とは区別する。
+
+## Accessの1時間設定のAPI照合（同日）
+
+Cloudflare API MCPの公開OpenAPIで、[Access application作成](https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/methods/create/)とpolicyの`session_duration`は`2h45m`等のduration文字列を受けると確認した。`1h`はこの形式に従う。採用済み設定を画面の6時間等へ置換しない。実画面で1時間が選択肢に見当たらず、同一新対象への作成3試行はErrorとなった。最後の名前限定lookupは200・0件。公開schemaの適合を実作成成功や実効JWT寿命へ広げず、HTTP status/原因が取得できないエラーを権限拒否と断定しない。[実行記録](../docs/工程E-制御実装と隔離検証.md)の本人画面確認待ちと分ける。
+
+## D1 migrationの実クラウド分割問題（同日）
+
+| 一次資料 | 内容と今回との関係 |
+| --- | --- |
+| [workers-sdk #4727](https://github.com/cloudflare/workers-sdk/issues/4727) | trigger内の括弧なしCASEのENDをtrigger終端と誤認する報告。CASEを括弧で囲む案が示されている。古い報告のclosedを現行環境での解消証拠にはしない |
+| [workers-sdk #15690](https://github.com/cloudflare/workers-sdk/issues/15690) | 2026年9月のLF-only/uppercase BEGIN/multiline triggerを含むD1 `/query`分割失敗のopen報告。単一行化の当該報告時の実リモート検証はなく、参考情報として扱う |
+| [SQLite EXPLAIN](https://www.sqlite.org/lang_explain.html) | EXPLAINは文を実行せずVM命令を返す。今回の新D1で括弧なし失敗/括弧付き成功を確認し、検査trigger未作成もSQLで確認した |
+
+実測: 固定Wrangler4.141.0のremote migrations applyは0001〜0007成功、0008が`incomplete input: SQLITE_ERROR`で停止。新D1に0008の表が残らずrollback、履歴7件を確認した。古い資料だけから原因を断定せず、同じ新D1へのread-only EXPLAINでCASE分割の差を確認した。元SQLの編集/履歴リセット/他DBの再試験はせず、同名のprivate実行用コピーでCASE括弧/式外改行を整理する案を準備。schema/停止/unknown/消費単調性/DDL rollbackは新3 workerd試験で成功。残4本の実適用は本人のprivate設定切替後で、未実施。
+
+
+### 本人ownerを秘密値なしで特定する根拠（同日）
+
+[Cloudflare Application token](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/)の本文で、`sub`はaccount内の本人user IDであることを確認した。Cookie/JWT本体やメールを取得する手順は採用しない。Access認証ログAPIの`fields`指定を使い、専用applicationと当日へ限定して`app_uid,allowed,action,created_at,user_id`だけを取得した。未対応の`user_uid`を含む指定は失敗し、除いた指定は200/成功1/拒否0/本人1名。ownerはteam hostname＋同user IDのアプリ既存形式でツール内だけに保持する。これは管理側の認証ログに基づく特定で、配備後のWorker署名検証/owner一致の実測とは分ける。実ID/個別URL・メール/IP/nonce/鍵は文書へ記録しない。
+
+
+### 登録用Wranglerの指定（同日）
+
+[公式D1 Wrangler commands](https://developers.cloudflare.com/d1/wrangler-commands/#d1-execute)の本文と固定CLIの`d1 execute --help`で、database名またはbindingを指定できること、`--remote --file --yes --config`を確認した。D1 APIコネクターの書込みはerror7500で拒否されたため、本人認証済みで同じ新D1のmigrationに使ったWranglerを採用する。既存のコネクター権限や保護フックを拡張せず、生成済みON設定のDB bindingを対象とし、`--env`を重ねない。登録SQLは管理外/本人限定領域でだけ扱い、実IDや出力全文を公開記録へ含めない。CLI登録は新開始時刻の採用待ちで未実施。
+
+
+### Queue管理アプリルートの差分（同日・実接続後）
+
+[公式JavaScript SDK queue.ts](https://raw.githubusercontent.com/fal-ai/fal-js/main/libs/client/src/queue.ts)のstatus/result/cancel本文と[parseEndpointId](https://raw.githubusercontent.com/fal-ai/fal-js/main/libs/client/src/utils.ts)で、submitは詳細endpointを保つ一方、管理URLはnamespace/owner/aliasに組み立て、詳細pathを含めないことを確認した。現行catalogはnamespaceなしのowner/app形式で、管理URLをこの登録アプリルートへ修正する。返却された未検証URLを信用する変更やSDK導入/自動retryは採用しない。
+
+[Queue説明ページ](https://fal.ai/docs/documentation/model-apis/inference/queue)のREST例は詳細subpathを含む例になっているため、今回の根拠は具体的な公式SDK実装と区別する。実1要求の受理/初回状態取得失敗とURL不一致は確認済み。修正後の実要求はstatus/resultでcompletedを確認したが、受入検証がinvalidとなり画像回収は成功していない。fakeの旧URL前提も是正し、118 workerd成功を実fal成功へ広げない。
+
+### 管理APIとAccess終了の根拠（同日）
+
+| 一次資料 | 採用と制約 |
+| --- | --- |
+| [Fal platform authentication](https://fal.ai/docs/api-reference/platform-apis/authentication) / [Billing events](https://fal.ai/docs/platform-apis/v1/models/billing-events) | 管理APIはADMIN scope、当該request IDで課金イベントを絞り込める。`cost_total`をUSDで照合し、イベントなし/403を0ドルと扱わない。本人の既存ADMINキーで200/一致1/$1以内を報告受領した。最終請求・他基盤費用の証明にはしない |
+| [Request payload deletion](https://fal.ai/docs/platform-apis/v1/models/requests/payloads) | 当該完了要求の入力/出力payloadとCDN出力を管理APIで消去し、CDNは対象別結果を確認する。本人結果200/対象別CDN結果0を消去完了と扱わずunknownを保持。追加削除/再生成なし |
+| [Access session management](https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/session-management/) | 当該applicationの既存トークン取消とAllowからBlockへの変更を採用。logout URLは利用者の全application sessionへ影響するため、旧/共有環境を維持する今回には使わない。実画面の取消成功と既存タブのログイン画面を確認した |
+
+確認日2026-10-05。上流の3600秒自然期限/ACL/token/品質は未確認。管理API報告・画面の取消成功・Worker/D1の直接実測を区別し、秘密値・実ID・個別URLは残さない。

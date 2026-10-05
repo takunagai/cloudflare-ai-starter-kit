@@ -1,0 +1,66 @@
+// 本人記入用の公開例。直接build/deployしない。
+// 承認済みの新対象だけを本人が記入し、リポジトリ直下の
+// .wrangler.standard-staging.local.jsonc に所有者限定で保存する。
+// Secret・本人メール・旧stagingの設定は記入しない。
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "account_id": "REPLACE_WITH_APPROVED_ACCOUNT_ID",
+  "name": "example-e-off-template",
+  "main": "src/server.ts",
+  "compatibility_date": "2026-09-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+  "observability": {
+    "enabled": false
+  },
+  "env": {
+    "staging": {
+      "name": "REPLACE_WITH_NEW_WORKER_NAME",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": {
+        "APP_ENV": "staging",
+        "STAGING_POLICY": "standard",
+        "APP_ORIGIN": "https://e-staging.example.invalid",
+        "AUTH_MODE": "access",
+        "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_ACCESS_TEAM_DOMAIN",
+        "ACCESS_AUD": "REPLACE_WITH_ACCESS_AUD",
+        "LOCAL_DEMO": "false",
+        "AI_MODE": "off",
+        "AI_ALLOWED_MODELS": "[]",
+        "AI_VERIFICATION_ENABLED": "false",
+        "AI_VERIFICATION_START": "",
+        "JEV_MODE": "off",
+        "ENABLE_RAG": "false",
+        "ENABLE_AGENT": "false",
+        "ENABLE_WORKFLOWS": "false",
+        "ENABLE_IMAGES": "false",
+        "ENABLE_MEDIA": "false",
+        "MEDIA_ALLOWED_MODELS": "[]",
+        "MEDIA_VERIFIED_IMAGE_MODELS": "[]",
+        "MEDIA_VERIFIED_VIDEO_MODELS": "[]",
+        "MEDIA_VERIFIED_AUDIO_MODELS": "[]",
+        "ENABLE_MEDIA_PROBE": "false",
+        "MEDIA_PROBE_APPROVAL_VERSION": "e-sunburst-20261005-v1",
+        "ENABLE_BILLING": "false"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "REPLACE_WITH_NEW_DATABASE_NAME",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "MEDIA_BUCKET",
+          "bucket_name": "REPLACE_WITH_NEW_PRIVATE_BUCKET_NAME"
+        }
+      ]
+    }
+  }
+}
