@@ -26,7 +26,10 @@ import {
 } from "./http";
 import { handleMediaSource } from "./media/grants";
 import { type MediaEnv, requireMediaEnabled } from "./media/policy";
-import { requireProbeConfiguration } from "./media/probe-permit";
+import {
+  PROBE_ACCESS_LIFETIME_SECONDS,
+  requireProbeConfiguration,
+} from "./media/probe-permit";
 import { handleMediaProbe } from "./media/probe-routes";
 import { handleMedia, isMediaCreationPath } from "./media/routes";
 import { resolveRuntimePolicy } from "./runtime-policy";
@@ -101,7 +104,9 @@ export async function handleApp(
     const identity = await getIdentity(
       request,
       env,
-      env.ENABLE_MEDIA_PROBE === "true" ? 3600 : undefined,
+      env.ENABLE_MEDIA_PROBE === "true"
+        ? PROBE_ACCESS_LIFETIME_SECONDS
+        : undefined,
     );
     if (path === "/api/session") {
       method(request, ["GET"]);

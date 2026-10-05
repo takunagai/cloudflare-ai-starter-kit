@@ -16,6 +16,15 @@ const EXPECTED_SUBMISSION_HEADERS = {
     initial_acl: { default: "forbid", rules: [] },
   }),
 };
+// 詳細endpointとQueueアプリを分ける。公式SDKのowner/alias単位の管理契約。
+const EXPECTED_QUEUE_APPLICATIONS = [
+  "openai/gpt-image-2.5",
+  "minimax/h3-max",
+  "google/gemini-3.8-flash-tts",
+  "google/gemini-3.8-flash-lite-tts",
+  "elevenlabs/tts",
+  "elevenlabs/music",
+];
 
 // previewへcloudflare:test/Vitestを持ち込まない、固定1024角の合成PNG。
 async function syntheticIntegrationImage() {
@@ -145,7 +154,16 @@ export function createMediaIntegrationFake(
         url.pathname,
       );
       const record = match ? requests.get(match[1]) : undefined;
-      if (!record || !url.pathname.startsWith(`/${record.model}/requests/`))
+      const application = record
+        ? EXPECTED_QUEUE_APPLICATIONS.find(
+            (id) => record.model === id || record.model.startsWith(`${id}/`),
+          )
+        : undefined;
+      if (
+        !record ||
+        !application ||
+        !url.pathname.startsWith(`/${application}/requests/`)
+      )
         throw new Error("TEST_ONLY_queue_path_rejected");
       if (match?.[2] === "cancel") {
         record.isCancelled = true;

@@ -57,6 +57,9 @@ async function fixture(
         `Key ${CONFIG.FAL_KEY}`,
       );
       if (init?.method === "POST") {
+        expect(IMAGE_ENDPOINTS).toContain(
+          url.slice("https://queue.fal.run/".length),
+        );
         const submitted = JSON.parse(String(init.body)) as {
           image_urls?: string[];
           mask_url?: string;
@@ -78,10 +81,17 @@ async function fixture(
           status_url: "https://forged.example.invalid/",
         });
       }
-      if (url.endsWith("/status"))
+      const requestRoot =
+        "https://queue.fal.run/openai/gpt-image-2.5/requests/TEST_ONLY_image_request";
+      if (url.endsWith("/status")) {
+        expect(url).toBe(`${requestRoot}/status`);
         return Response.json({ status: "COMPLETED" });
-      if (url.endsWith("/cancel"))
+      }
+      if (url.endsWith("/cancel")) {
+        expect(url).toBe(`${requestRoot}/cancel`);
         return Response.json({ status: "CANCELLED" });
+      }
+      expect(url).toBe(requestRoot);
       return Response.json({
         images: Array.from({ length: count }, (_, ordinal) => ({
           url:

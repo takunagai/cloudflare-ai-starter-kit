@@ -857,10 +857,42 @@ describe("工程E fixed synthetic probe in workerd/D1/private R2", () => {
       is_stopped: 1,
     });
   });
-  it("probe environment rejects signed Access sessions longer than the adopted hour", async () => {
-    await register();
+  it.each([
+    [3600, 200],
+    [21600, 200],
+    [21605, 200],
+    [21606, 401],
+    [86400, 401],
+  ])(
+    "probe Access lifetime %i seconds returns %i",
+    async (lifetimeSeconds, expectedStatus) => {
+      await register();
+      vi.stubGlobal("fetch", async () => Response.json(keySet));
+      const incoming = request("/api/media-probe");
+      const issuedAt = Math.floor(Date.now() / 1000);
+      incoming.headers.set(
+        "cf-access-jwt-assertion",
+        await new SignJWT({
+          sub: "fixture-subject",
+          email: "probe@example.test",
+          type: "app",
+        })
+          .setProtectedHeader({ alg: "RS256", kid: "TEST_ONLY_probe" })
+          .setIssuer("https://example-probe.cloudflareaccess.com")
+          .setAudience(CONFIGURATION.ACCESS_AUD ?? "")
+          .setIssuedAt(issuedAt)
+          .setExpirationTime(issuedAt + lifetimeSeconds)
+          .sign(keys.privateKey),
+      );
+      expect(
+        (await api.fetch(incoming, CONFIGURATION, createExecutionContext()))
+          .status,
+      ).toBe(expectedStatus);
+    },
+  );
+  it("probe OFF preserves normal Access sessions beyond the probe lifetime limit", async () => {
     vi.stubGlobal("fetch", async () => Response.json(keySet));
-    const incoming = request("/api/media-probe");
+    const incoming = request("/api/session");
     incoming.headers.set(
       "cf-access-jwt-assertion",
       await new SignJWT({
@@ -875,10 +907,19 @@ describe("工程E fixed synthetic probe in workerd/D1/private R2", () => {
         .setExpirationTime("24h")
         .sign(keys.privateKey),
     );
-    expect(
-      (await api.fetch(incoming, CONFIGURATION, createExecutionContext()))
-        .status,
-    ).toBe(401);
+    const normalConfiguration: MediaEnv = {
+      ...CONFIGURATION,
+      ENABLE_MEDIA_PROBE: "false",
+    };
+    const response = await api.fetch(
+      incoming,
+      normalConfiguration,
+      createExecutionContext(),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      identity: { id: IDENTITY.id },
+    });
   });
   it("closed spent state is retained for ninety terminal days and never recreated by expiry", async () => {
     await register();

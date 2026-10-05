@@ -74,7 +74,9 @@ export function queueUrl(
     !/^[A-Za-z0-9_-]{1,100}$/.test(job.provider_id)
   )
     throw new ApiError(400, "media_model_unknown");
-  return `https://queue.fal.run/${job.model_id}/requests/${job.provider_id}${operation}`;
+  // 現行catalogのQueue管理先はowner/app。送信の詳細endpointは変更しない。
+  const application = job.model_id.split("/").slice(0, 2).join("/");
+  return `https://queue.fal.run/${application}/requests/${job.provider_id}${operation}`;
 }
 export function imageProviderInput(
   media: NormalizedMedia,

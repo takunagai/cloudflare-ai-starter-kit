@@ -5,6 +5,7 @@ import type { NormalizedMedia } from "./catalog";
 import type { MediaEnv } from "./policy";
 
 export const PROBE_APPROVAL_VERSION = "e-sunburst-20261005-v1";
+export const PROBE_ACCESS_LIFETIME_SECONDS = 6 * 60 * 60;
 export const PROBE_MODEL = "openai/gpt-image-2.5/sunburst/text-to-image";
 export const PROBE_PROMPT =
   "架空のWebページ用の画像。白い背景に、青い陶器の立方体、黄色い紙の円柱、緑のガラス球を並べた静物。柔らかな斜光、中央に三つの形、周囲に十分な余白。文字、人、ロゴ、実在の商品や建物は描かない。";
