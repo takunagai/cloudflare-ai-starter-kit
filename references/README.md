@@ -1,8 +1,8 @@
 # 公式情報の参照索引
 
-- [工程Eのモデル・セッション選定](e-codex-model-selection-20261005.md): 事前整理後の別セッション推奨と、詳細設計/採用後の同じセッション継続推奨を時点別に記録。GPT-6.1 Sol/Highの公式根拠と作業の性質による判断。実装/実接続の許可やモデル設定変更ではない。
+- [工程Eのモデル・セッション選定](e-codex-model-selection-20261005.md): 事前整理後/実装着手前/制御実装完了後の判断を時点別に保存。次の実環境準備は別セッション・GPT-6.1 Sol/Highを推奨。実fal許可/本人照合済みと未確定環境の引き継ぎを記録し、モデル設定/チャット作成・クラウド操作は行わない。
 
-- [工程E事前整理と限定確認設計の公開根拠](e-preflight-fal-20261005.md): 選択1件の価格/schema/null許容、Store-IO/ACL/3600秒、取消/上流admin削除・個別結果、契約/creditと共有料金、D1 batch/Access session/診断streamの制約。実契約/権限/実挙動は未確認。計画3件と詳細3件は設計採用済み、実装/実行許可は別。
+- [工程Eの公開根拠・本人照合/実確認の区別](e-preflight-fal-20261005.md): 選択1件の価格/schema/null許容、Store-IO/ACL/3600秒、取消/admin削除・契約/credit/共有料金、D1/Access/診断streamとmanual redirect/envDir。制御はローカル実装/検証済み、実falの許可・権限/契約/費用/削除担当は本人照合済み申告。実挙動/配備は未確認、実環境の状態/対象は回答待ち。
 
 - [M-5の固定install・ローカル隔離手順](m5-local-isolation-20261004.md): pnpm12.6.0/Wrangler4.141.0の実help、frozen-lockfileとVite/Wranglerの専用状態。実クラウド・実上流の証拠ではない。
 
