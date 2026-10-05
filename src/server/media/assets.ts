@@ -19,6 +19,7 @@ import {
   requireMediaBucket,
   requireMediaEnabled,
 } from "./policy";
+import { assertProbeJobReadable, closedProbeJobs } from "./probe-permit";
 import { confirmMediaAssetDeletion } from "./retention";
 import { videoFile } from "./video-file";
 
@@ -48,6 +49,8 @@ export async function ownedAsset(
       .first<MediaAsset>(),
   );
   if (!asset) throw new ApiError(404, "not_found");
+  if (asset.source_job_id)
+    await assertProbeJobReadable(database, owner, asset.source_job_id);
   return asset;
 }
 export function assetMetadata(asset: MediaAsset, now = Date.now()) {
@@ -409,8 +412,14 @@ export async function handleAssets(
         .bind(identity.id)
         .all<MediaAsset>(),
     );
+    const closedJobs = await closedProbeJobs(env.DB, identity.id);
     return response({
-      assets: assets.results.map((asset) => assetMetadata(asset)),
+      assets: assets.results
+        .filter(
+          (asset) =>
+            !asset.source_job_id || !closedJobs.has(asset.source_job_id),
+        )
+        .map((asset) => assetMetadata(asset)),
     });
   }
   const match = /^\/api\/media\/assets\/([a-f0-9-]{36})(?:\/(file))?$/.exec(

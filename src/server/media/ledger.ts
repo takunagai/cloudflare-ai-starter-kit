@@ -1,5 +1,11 @@
 import { ApiError } from "../http";
 import { MEDIA_LIMITS, type MediaKind, type NormalizedMedia } from "./catalog";
+import {
+  assertProbeJobReadable,
+  claimProbeDispatch,
+  type MediaProbePermit,
+  probeReservationStatement,
+} from "./probe-permit";
 
 export interface MediaJob {
   id: string;
@@ -84,6 +90,7 @@ export async function mediaDatabase<T>(operation: Promise<T>): Promise<T> {
   }
 }
 export async function ownedMediaJob(db: D1Database, owner: string, id: string) {
+  await assertProbeJobReadable(db, owner, id);
   const row = await mediaDatabase(
     db
       .prepare("SELECT * FROM media_jobs WHERE id=? AND owner_id=?")
@@ -171,6 +178,7 @@ export async function reserveMedia(
   hash: string,
   assets: MediaAsset[],
   now: number,
+  probe?: MediaProbePermit,
 ) {
   if (
     media.request.requestId.slice(0, 10) !==
@@ -231,6 +239,7 @@ export async function reserveMedia(
         ),
     ),
   ];
+  if (probe) statements.push(probeReservationStatement(probe, id, media, hash));
   const result = await mediaDatabase(db.batch(statements));
   // D1のchangesにはAFTER INSERTの利用/容量予約も含まれる。
   if (result[0].meta.changes === 0) {
@@ -248,7 +257,12 @@ export async function claimMediaSubmission(
   db: D1Database,
   job: MediaJob,
   now: number,
+  probe?: MediaProbePermit,
 ) {
+  if (probe) {
+    await claimProbeDispatch(probe, job.id);
+    return ownedMediaJob(db, job.owner_id, job.id);
+  }
   const result = await mediaDatabase(
     db
       .prepare(

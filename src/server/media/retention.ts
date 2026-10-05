@@ -9,6 +9,7 @@ import {
   ownedMediaJob,
 } from "./ledger";
 import type { MediaEnv } from "./policy";
+import { maintainProbeRetention, probeRecoveryWitness } from "./probe-permit";
 import { getMediaJob, mediaMetadata } from "./service";
 
 export async function eraseMediaBody(
@@ -124,6 +125,7 @@ export async function maintainMediaRetention(db: D1Database, now = Date.now()) {
       ),
     ]),
   );
+  await maintainProbeRetention(db, now);
 }
 
 // 稼働DB外の正しい最小台帳/削除記録との照合を要求する内部境界。
@@ -183,6 +185,7 @@ export interface MediaRecoveryWitness {
   legacy: RecoveryLegacy[];
   uploads: unknown[];
   outputObjects: unknown[];
+  probe?: unknown[][];
 }
 const RECOVERY_JOB_COLUMNS =
   "id,owner_id,request_key,input_hash,model_id,quantity,reserved_bytes,created_at,attempt_count,provider_state,provider_id,terminal_at,terminal_outcome,body_erased_at,cancel_requested_at";
@@ -232,6 +235,7 @@ export async function readMediaRecoveryWitness(
     legacy: results[4].results as unknown as RecoveryLegacy[],
     uploads: results[5].results,
     outputObjects: results[6].results,
+    probe: await probeRecoveryWitness(db),
   };
 }
 function sameRecords(left: unknown[], right: unknown[]) {
@@ -259,7 +263,8 @@ export async function reconcileMediaRecovery(
     !sameRecords(current.legacy, witness.legacy) ||
     !sameRecords(current.assets, witness.assets) ||
     !sameRecords(current.uploads, witness.uploads) ||
-    !sameRecords(current.outputObjects, witness.outputObjects)
+    !sameRecords(current.outputObjects, witness.outputObjects) ||
+    JSON.stringify(current.probe) !== JSON.stringify(witness.probe)
   )
     throw new ApiError(503, "media_recovery_manual_reconciliation_required");
   // 巻戻った本文の早期消去と取消意図だけを単調に再適用する。

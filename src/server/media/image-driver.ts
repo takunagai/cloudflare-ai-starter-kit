@@ -10,6 +10,16 @@ import {
 } from "./image-inspection";
 import { type MediaJob, mediaDatabase, ownedMediaJob } from "./ledger";
 import { type MediaEnv, requireMediaBucket } from "./policy";
+import {
+  assertProbePermit,
+  beforeProbeSubmit,
+  checkProbeExecution,
+  type MediaProbePermit,
+  PROBE_CLOCK,
+  PROBE_MODEL,
+  probeDatabase,
+  reserveProbeCall,
+} from "./probe-permit";
 import type { MediaDriver, MediaReceipt } from "./service";
 
 export const IMAGE_MODEL_IDS = MEDIA_MODEL_IDS.slice(0, 4);
@@ -143,18 +153,37 @@ interface OutputObject {
 export function createImageDriver(
   env: MediaEnv,
   transport: typeof fetch = fetch,
+  probe?: MediaProbePermit,
 ): MediaDriver {
-  const call = (
+  let probeJobId = probe?.jobId;
+  const call = async (
     url: string,
     signal: AbortSignal,
     method = "GET",
     body?: unknown,
     headers?: HeadersInit,
-  ) =>
-    transport(url, {
+  ) => {
+    if (probe) {
+      if (method === "POST" && url === `https://queue.fal.run/${PROBE_MODEL}`) {
+        if (!probeJobId) throw new ApiError(403, "media_probe_not_authorized");
+        await beforeProbeSubmit(probe, probeJobId);
+      } else
+        await reserveProbeCall(
+          probe,
+          url.startsWith("https://rest.fal.ai/storage/auth/token?")
+            ? "token"
+            : method === "PUT"
+              ? "cancel"
+              : url.endsWith("/status")
+                ? "status"
+                : "result",
+          probeJobId,
+        );
+    }
+    return transport(url, {
       method,
       signal,
-      redirect: "error",
+      redirect: probe ? "manual" : "error",
       headers: {
         Authorization: `Key ${env.FAL_KEY}`,
         "Content-Type": "application/json",
@@ -162,10 +191,12 @@ export function createImageDriver(
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
+  };
   const guard = (id: string) => {
     if (!IMAGE_MODEL_IDS.includes(id as (typeof MEDIA_MODEL_IDS)[number]))
       throw new ApiError(503, "media_adapter_not_ready");
-    if (!imageAdapterReady(env, id))
+    if (probe) assertProbePermit(probe, env, id);
+    else if (!imageAdapterReady(env, id))
       throw new ApiError(503, "media_upstream_unverified");
   };
   return {
@@ -183,6 +214,7 @@ export function createImageDriver(
         )?.owner_id ?? "",
         context.jobId,
       );
+      probeJobId = job.id;
       const grants = await createReferenceGrants(env, job.owner_id, job.id);
       context.signal.throwIfAborted();
       const acknowledgement = z
@@ -233,6 +265,8 @@ export function createImageDriver(
     },
     async collect(job, signal) {
       guard(job.model_id);
+      if (probe)
+        await checkProbeExecution(probe, env, job.owner_id, job.model_id);
       const bucket = requireMediaBucket(env);
       if (Date.now() >= job.created_at + 3_600_000)
         throw new ApiError(502, "media_output_expired");
@@ -262,6 +296,22 @@ export function createImageDriver(
       }
       if (new Set(urls).size !== urls.length)
         return { assets: [], isComplete: false, hasInvalidOutput: true };
+      if (probe) {
+        await probeDatabase(
+          env.DB.prepare(
+            `INSERT INTO media_probe_output(job_id,url,observed_at) VALUES(?,?,${PROBE_CLOCK}) ON CONFLICT(job_id) DO NOTHING`,
+          )
+            .bind(job.id, urls[0])
+            .run(),
+        );
+        const first = await probeDatabase(
+          env.DB.prepare("SELECT url FROM media_probe_output WHERE job_id=?")
+            .bind(job.id)
+            .first<{ url: string }>(),
+        );
+        if (first?.url !== urls[0])
+          throw new ApiError(502, "media_result_invalid");
+      }
       const auth = z
         .object({
           token: z.string().min(1).max(4096),
@@ -313,7 +363,7 @@ export function createImageDriver(
           const receipt = await imageOperation(async () => {
             const imageResponse = await transport(url, {
               signal,
-              redirect: "error",
+              redirect: probe ? "manual" : "error",
               headers: { Authorization: `Bearer ${auth.data.token}` },
             });
             if (

@@ -20,8 +20,15 @@ export function getAuthMailer(env: AppEnv): AuthMailer | undefined {
 export async function getIdentity(
   request: Request,
   env: AppEnv,
+  maximumAccessLifetimeSeconds?: number,
 ): Promise<Identity | null> {
-  if (env.AUTH_MODE === "access") return verifyAccessIdentity(request, env);
+  if (env.AUTH_MODE === "access")
+    return verifyAccessIdentity(
+      request,
+      env,
+      undefined,
+      maximumAccessLifetimeSeconds,
+    );
   if (env.AUTH_MODE !== "better-auth") return null;
   try {
     const auth = createAuth(env, { mailer: getAuthMailer(env) });

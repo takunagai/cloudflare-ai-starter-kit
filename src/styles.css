@@ -634,6 +634,13 @@ button.conversation-link:hover {
   gap: 16px;
   margin: 24px 0;
 }
+.media-probe-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
 .decision-values > div {
   display: flex;
   justify-content: space-between;

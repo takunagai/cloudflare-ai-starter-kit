@@ -24,6 +24,9 @@ export default defineConfig({
           "MEDIA_ASSET_FAILURE_DB",
           "MEDIA_VIDEO_UPGRADE_DB",
           "MEDIA_VIDEO_FAILURE_DB",
+          "PROBE_MIGRATION_DB",
+          "PROBE_UPGRADE_DB",
+          "PROBE_FAILURE_DB",
         ],
         workflows: {
           SUMMARY_WORKFLOW: {

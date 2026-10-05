@@ -18,6 +18,7 @@ export async function verifyAccessIdentity(
   request: Request,
   env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
   keyResolver?: JWTVerifyGetKey,
+  maximumLifetimeSeconds?: number,
 ): Promise<Identity | null> {
   const issuer = accessIssuer(env.ACCESS_TEAM_DOMAIN);
   const assertion = request.headers.get("cf-access-jwt-assertion");
@@ -56,7 +57,10 @@ export async function verifyAccessIdentity(
       /[\r\n]/.test(payload.email) ||
       payload.type !== "app" ||
       typeof payload.iat !== "number" ||
-      payload.iat > Date.now() / 1000 + 5
+      payload.iat > Date.now() / 1000 + 5 ||
+      (maximumLifetimeSeconds !== undefined &&
+        (typeof payload.exp !== "number" ||
+          payload.exp - payload.iat > maximumLifetimeSeconds + 5))
     )
       return null;
     // issuerも含め、同じsubが別Access teamで衝突しないようにする。

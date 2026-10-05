@@ -55,7 +55,7 @@ describe("M-3 additive0010 preserves0009 grant/unknown/usage/capacity and rollba
     expect(await snapshot(database)).toEqual(before);
     expect(
       await database.prepare("SELECT count(*) AS n FROM d1_migrations").first(),
-    ).toEqual({ n: 10 });
+    ).toEqual({ n: BINDINGS.TEST_MIGRATIONS.length });
     for (const role of ["start", "end"]) {
       await database
         .prepare(

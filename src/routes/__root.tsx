@@ -54,6 +54,7 @@ function Root() {
             <Link to="/help">はじめに</Link>
             <Link to="/decisions">依頼の分類</Link>
             <Link to="/media">画像と素材</Link>
+            <Link to="/media-probe">限定確認</Link>
           </nav>
         </header>
         <Outlet />
