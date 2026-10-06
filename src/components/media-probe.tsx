@@ -270,7 +270,7 @@ export function MediaProbe() {
                   disabled={isBusy}
                   onClick={() => void perform(jobPath(`assets/${asset.id}`))}
                 >
-                  この合成出力を削除
+                  この出力を削除
                 </button>
               </div>
             ))}

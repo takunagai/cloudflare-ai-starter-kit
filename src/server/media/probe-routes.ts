@@ -47,10 +47,10 @@ async function state(environment: MediaEnv, identity: Identity) {
   );
   const attempt = await probeDatabase(
     environment.DB.prepare(
-      "SELECT job_id FROM media_probe_attempts WHERE owner_id=?",
+      "SELECT job_id,invalid_reason FROM media_probe_attempts WHERE owner_id=?",
     )
       .bind(identity.id)
-      .first<{ job_id: string }>(),
+      .first<{ job_id: string; invalid_reason: string | null }>(),
   );
   const detail = attempt
     ? await getMediaJob(environment, identity, attempt.job_id)
@@ -90,6 +90,7 @@ async function state(environment: MediaEnv, identity: Identity) {
           providerState: detail.providerState,
           collectionState: detail.collectionState,
           terminalOutcome: detail.terminalOutcome,
+          invalidReason: attempt?.invalid_reason ?? null,
           isUncertain: detail.isUncertain,
           assets: detail.assets,
         }

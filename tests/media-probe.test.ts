@@ -765,43 +765,132 @@ describe("工程E fixed synthetic probe in workerd/D1/private R2", () => {
       ).first(),
     ).toEqual({ verdict: "unknown" });
   });
-  it("nullable upstream metadata fails after one paid attempt, without relaxed decoding or resubmission", async () => {
-    await register();
-    const base = createMediaIntegrationFake(() => CONFIGURATION);
-    vi.stubGlobal(
-      "fetch",
-      async (resource: RequestInfo | URL, initialization?: RequestInit) => {
-        const result = await base.transport(resource, {
-          ...initialization,
-          redirect: "error",
-        });
-        if (/\/requests\/[^/]+$/.test(String(resource))) {
+  it.each(["published-example", "null", "missing"])(
+    "accepts %s optional upstream metadata only after private byte validation",
+    async (metadata) => {
+      await register();
+      const base = createMediaIntegrationFake(() => CONFIGURATION);
+      let tokenRequests = 0;
+      vi.stubGlobal(
+        "fetch",
+        async (resource: RequestInfo | URL, initialization?: RequestInit) => {
+          if (
+            String(resource).startsWith(
+              "https://rest.fal.ai/storage/auth/token?",
+            )
+          )
+            tokenRequests += 1;
+          const result = await base.transport(resource, {
+            ...initialization,
+            redirect: "error",
+          });
+          if (/\/requests\/[^/]+$/.test(String(resource))) {
+            const body = (await result.json()) as {
+              images: Record<string, unknown>[];
+            };
+            for (const field of ["width", "height", "file_size"])
+              if (metadata === "missing") delete body.images[0][field];
+              else body.images[0][field] = null;
+            if (metadata === "null") body.images[0].content_type = null;
+            if (metadata === "missing") delete body.images[0].content_type;
+            return Response.json(body);
+          }
+          return result;
+        },
+      );
+      const job = await submit();
+      await allowNextMediaPoll(job.id);
+      const refreshed = await handleMediaProbe(
+        request(`/api/media-probe/jobs/${job.id}/refresh`, "POST", {}),
+        CONFIGURATION,
+        IDENTITY,
+      );
+      expect(refreshed.status).toBe(200);
+      expect(await refreshed.json()).toMatchObject({
+        terminalOutcome: "stored",
+      });
+      expect(tokenRequests).toBe(1);
+      expect(base.downloadCount()).toBe(1);
+      await submit();
+      expect(base.submissions).toHaveLength(1);
+      expect(
+        await DATABASE.prepare(
+          "SELECT count(*) AS n FROM media_assets",
+        ).first(),
+      ).toEqual({ n: 1 });
+    },
+  );
+  it.each(["result_shape", "result_count", "url_policy"])(
+    "returns only the fixed %s rejection category without downloading output",
+    async (invalidReason) => {
+      await register();
+      const base = createMediaIntegrationFake(() => CONFIGURATION);
+      let tokenRequests = 0;
+      vi.stubGlobal(
+        "fetch",
+        async (resource: RequestInfo | URL, initialization?: RequestInit) => {
+          if (
+            String(resource).startsWith(
+              "https://rest.fal.ai/storage/auth/token?",
+            )
+          )
+            tokenRequests += 1;
+          const result = await base.transport(resource, {
+            ...initialization,
+            redirect: "error",
+          });
+          if (!/\/requests\/[^/]+$/.test(String(resource))) return result;
           const body = (await result.json()) as {
-            images: { width: number | null }[];
+            images: Record<string, unknown>[] | null;
           };
-          body.images[0].width = null;
+          if (invalidReason === "result_shape") body.images = null;
+          else if (invalidReason === "result_count")
+            body.images?.push({
+              ...body.images[0],
+              url: "https://v3b.fal.media/files/b/TEST_ONLY_store/other.png",
+            });
+          else if (body.images)
+            body.images[0].url = "https://example.invalid/image.png";
           return Response.json(body);
-        }
-        return result;
-      },
-    );
-    const job = await submit();
-    await allowNextMediaPoll(job.id);
-    const refreshed = await handleMediaProbe(
-      request(`/api/media-probe/jobs/${job.id}/refresh`, "POST", {}),
-      CONFIGURATION,
-      IDENTITY,
-    );
-    expect(refreshed.status).toBe(200);
-    expect(await refreshed.json()).toMatchObject({
-      terminalOutcome: "invalid",
-    });
-    await submit();
-    expect(base.submissions).toHaveLength(1);
-    expect(
-      await DATABASE.prepare("SELECT count(*) AS n FROM media_assets").first(),
-    ).toEqual({ n: 0 });
-  });
+        },
+      );
+      const job = await submit();
+      await allowNextMediaPoll(job.id);
+      const refreshed = await handleMediaProbe(
+        request(`/api/media-probe/jobs/${job.id}/refresh`, "POST", {}),
+        CONFIGURATION,
+        IDENTITY,
+      );
+      expect(refreshed.status).toBe(200);
+      expect(await refreshed.json()).toMatchObject({
+        terminalOutcome: "invalid",
+        invalidReason,
+      });
+      const state = await handleMediaProbe(
+        request("/api/media-probe"),
+        CONFIGURATION,
+        IDENTITY,
+      );
+      expect(await state.json()).toMatchObject({
+        job: { invalidReason },
+      });
+      await expect(
+        DATABASE.prepare(
+          "UPDATE media_probe_attempts SET invalid_reason='image_bytes' WHERE job_id=?",
+        )
+          .bind(job.id)
+          .run(),
+      ).rejects.toThrow("MEDIA_PROBE_DENIED");
+      expect(tokenRequests).toBe(0);
+      expect(base.downloadCount()).toBe(0);
+      expect(base.submissions).toHaveLength(1);
+      expect(
+        await DATABASE.prepare(
+          "SELECT count(*) AS n FROM media_assets",
+        ).first(),
+      ).toEqual({ n: 0 });
+    },
+  );
   it("ordinary verified media cannot refresh or retry a probe job", async () => {
     await register();
     installFake();

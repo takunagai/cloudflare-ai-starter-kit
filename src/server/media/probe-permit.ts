@@ -357,6 +357,22 @@ export async function recordProbeEvidence(
   if (verdict === "unknown" || verdict === "fail")
     await stopMediaProbe(permit.environment, permit.owner);
 }
+export async function recordProbeInvalidReason(
+  environment: MediaEnv,
+  owner: string,
+  jobId: string,
+  reason: string,
+) {
+  const result = await probeDatabase(
+    environment.DB.prepare(
+      "UPDATE media_probe_attempts SET invalid_reason=? WHERE job_id=? AND owner_id=? AND invalid_reason IS NULL AND EXISTS(SELECT 1 FROM media_jobs WHERE id=? AND owner_id=? AND terminal_outcome='invalid')",
+    )
+      .bind(reason, jobId, owner, jobId, owner)
+      .run(),
+  );
+  if (result.meta.changes !== 1)
+    throw new ApiError(503, "media_probe_ledger_unavailable");
+}
 export async function closeMediaProbe(environment: MediaEnv, owner: string) {
   await stopMediaProbe(environment, owner);
   const result = await probeDatabase(

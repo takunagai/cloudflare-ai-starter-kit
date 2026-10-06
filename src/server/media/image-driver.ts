@@ -20,7 +20,7 @@ import {
   probeDatabase,
   reserveProbeCall,
 } from "./probe-permit";
-import type { MediaDriver, MediaReceipt } from "./service";
+import type { MediaDriver, MediaInvalidReason, MediaReceipt } from "./service";
 
 export const IMAGE_MODEL_IDS = MEDIA_MODEL_IDS.slice(0, 4);
 export function verifiedImageModels(env: MediaEnv): string[] {
@@ -114,10 +114,10 @@ const RESULT = z.object({
     .array(
       z.object({
         url: z.string(),
-        content_type: z.string(),
-        width: z.number().int().positive(),
-        height: z.number().int().positive(),
-        file_size: z.number().int().positive().optional(),
+        content_type: z.string().nullable().optional(),
+        width: z.number().int().positive().nullable().optional(),
+        height: z.number().int().positive().nullable().optional(),
+        file_size: z.number().int().positive().nullable().optional(),
       }),
     )
     .min(1)
@@ -158,6 +158,15 @@ export function createImageDriver(
   probe?: MediaProbePermit,
 ): MediaDriver {
   let probeJobId = probe?.jobId;
+  const invalidOutput = (
+    invalidReason: MediaInvalidReason,
+    assets: MediaReceipt[] = [],
+  ) => ({
+    assets,
+    isComplete: false,
+    hasInvalidOutput: true,
+    invalidReason,
+  });
   const call = async (
     url: string,
     signal: AbortSignal,
@@ -275,8 +284,9 @@ export function createImageDriver(
       const raw = RESULT.safeParse(
         await responseJson(await call(queueUrl(job), signal)),
       );
-      if (!raw.success || raw.data.images.length !== job.quantity)
-        return { assets: [], isComplete: false, hasInvalidOutput: true };
+      if (!raw.success) return invalidOutput("result_shape");
+      if (raw.data.images.length !== job.quantity)
+        return invalidOutput("result_count");
       const body = await mediaDatabase(
         env.DB.prepare(
           "SELECT input_json FROM media_job_bodies WHERE job_id=? AND owner_id=?",
@@ -294,10 +304,10 @@ export function createImageDriver(
       try {
         urls = raw.data.images.map((image) => privateImageUrl(image.url));
       } catch {
-        return { assets: [], isComplete: false, hasInvalidOutput: true };
+        return invalidOutput("url_policy");
       }
       if (new Set(urls).size !== urls.length)
-        return { assets: [], isComplete: false, hasInvalidOutput: true };
+        return invalidOutput("duplicate_url");
       if (probe) {
         await probeDatabase(
           env.DB.prepare(
@@ -395,10 +405,11 @@ export function createImageDriver(
             const image = await inspectImage(bytes, mime);
             const declared = raw.data.images[ordinal];
             if (
-              image.width !== declared.width ||
-              declared.content_type !== mime ||
-              image.height !== declared.height ||
-              (declared.file_size !== undefined &&
+              (declared.width != null && image.width !== declared.width) ||
+              (declared.content_type != null &&
+                declared.content_type !== mime) ||
+              (declared.height != null && image.height !== declared.height) ||
+              (declared.file_size != null &&
                 image.bytes !== declared.file_size) ||
               (length !== null && image.bytes !== Number(length)) ||
               (input.size !== "auto" &&
@@ -491,11 +502,7 @@ export function createImageDriver(
               "media_file_too_large",
             ].includes(error.code)
           )
-            return {
-              assets: receipts,
-              isComplete: false,
-              hasInvalidOutput: true,
-            };
+            return invalidOutput("image_bytes", receipts);
           // 保存済みreceiptを落とさず、残りだけ同じ要求の回収を試す。
           if (receipts.length)
             return {

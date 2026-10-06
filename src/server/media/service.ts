@@ -30,6 +30,7 @@ import {
   closedProbeJobs,
   isProbeJob,
   type MediaProbePermit,
+  recordProbeInvalidReason,
   stopMediaProbe,
 } from "./probe-permit";
 
@@ -50,6 +51,12 @@ export interface MediaReceipt {
   hasAlpha?: boolean;
   validatedAt: number;
 }
+export type MediaInvalidReason =
+  | "result_shape"
+  | "result_count"
+  | "url_policy"
+  | "duplicate_url"
+  | "image_bytes";
 export interface MediaDriver {
   assertReady?(modelId: string): void;
   submit(
@@ -74,6 +81,7 @@ export interface MediaDriver {
     assets: MediaReceipt[];
     isComplete: boolean;
     hasInvalidOutput: boolean;
+    invalidReason?: MediaInvalidReason;
   }>;
   // 成功はジョブ配下の部分保存・隔離・孤立objectを含む物理削除の確認。
   discard(job: Readonly<MediaJob>, signal: AbortSignal): Promise<void>;
@@ -659,6 +667,7 @@ async function discardCollected(
 }
 export async function advanceMediaJob(context: MediaContext, id: string) {
   const { env, identity, driver } = context;
+  let invalidReason: MediaInvalidReason | undefined;
   let job = await ownedMediaJob(env.DB, identity.id, id);
   await requireJobExecutionAuthority(context, job);
   if (job.terminal_at !== null) return mediaMetadata(job);
@@ -773,6 +782,7 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
       throw error;
     }
     if (collection.hasInvalidOutput) {
+      invalidReason = collection.invalidReason;
       await mediaDatabase(
         env.DB.prepare(
           "UPDATE media_jobs SET collection_state='invalid' WHERE id=? AND owner_id=? AND lease_token=? AND terminal_at IS NULL",
@@ -781,6 +791,8 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
           .run(),
       );
       await discardCollected(context, job, token, "invalid");
+      if (context.probe && invalidReason)
+        await recordProbeInvalidReason(env, identity.id, id, invalidReason);
     } else if (collection.isComplete) {
       const now = Date.now();
       const result = await mediaDatabase(
@@ -854,7 +866,10 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
         .run(),
     );
   }
-  return mediaMetadata(await ownedMediaJob(env.DB, identity.id, id));
+  const metadata = mediaMetadata(await ownedMediaJob(env.DB, identity.id, id));
+  return context.probe && invalidReason
+    ? { ...metadata, invalidReason }
+    : metadata;
 }
 
 /** 同じprovider IDの回収のみ再開。生成POST/受付不明の解放はしない。 */
