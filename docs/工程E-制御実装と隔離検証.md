@@ -1,3 +1,67 @@
+2026-10-06・新隔離実接続の終了操作完了/M-0未達: 採用済み09:30〜10:00 JSTに1要求だけ送信し、上流completed/回収stored、本人の画像品質・作成時ACL/匿名拒否pass。300秒token/3600秒自然期限の各1回の実観測はunknownで再試験しない。本人の管理API報告は課金GET200/一致1/$1以内/available_now、上流DELETE200/1試行/CDN結果0/unknown。消去完了/最終請求/Cloudflare増分費用は未確定。D1は上限2/消費1/停止1/閉鎖1/attempt1/未終端0/本文0/出力参照0/active asset0/容量held0・released1、専用R2 root0。新Access Allow0/Block1、当該token取消は監査成功、旧タブはログイン画面。OFF配備5回目と本人Secret除去の即時6回目後、実WorkerはFAL_KEY不在・probe/通常生成/画像・AI/Jev OFF・通常gate空・新D1/R2一致・workers.dev/preview無効。一時falキー失効は本人報告、既存ADMINキーは対象外。旧run/旧資源を保持し、新OFF Worker/D1/private R2と本文なし台帳を残す。
+
+
+## 終了後の確認TODO（2026-10-06）
+
+- [ ] 300秒tokenと3600秒自然期限の各unknownを、公式仕様と[診断実装](../src/server/media/probe-diagnostics.ts)から切り分ける。今回の台帳には発行/取得の回数だけが残り、個別HTTP状態は残っていない。推測でpassに変えず、閉鎖済み要求への追加取得もしない。次回に備える診断は固定分類だけとし、token・URL・ID・本文を記録しない。
+- [ ] 2026-10-05の回収invalidは、実レスポンス本文がないため具体的拒否項目を確定できない。nullable metadataへの修正と10月6日の回収storedを候補を支える別要求の証拠として扱い、前回の原因確定と書かない。
+- [ ] 上流DELETE200/CDN結果0の本人報告は消去unknownのまま残す。個別消去の証拠が得られなければunknownを維持し、今回の許可で再DELETEしない。CloudflareのR2物理不在とは分ける。
+- [ ] falの最終請求とCloudflare増分費用を明細確定後に照合する。当日GET200/一致1/$1以内は現時点の本人報告であり、最終額と共有利用の帰属は未確定。
+- [ ] OFFの新旧Worker/D1/private R2と本文なし台帳は保持する。終端後90日の条件、D1復元履歴、費用を確認してから退役対象と影響を別に判断する。
+
+工程Eの終了操作自体は完了した。M-0の実受入は未達で、次の有料実接続・再配備・鍵再発行・資源削除は今回の許可に含めない。
+
+
+2026-10-06・本人承認後の終了: 自然期限unknownのまま当該1要求を削除する本人判断を受領。本人の既存ADMINキーによる上流DELETEはHTTP200/1試行/CDN結果0/unknownで、消去完了を証明しない。アプリへ本人報告unknownを記録し、専用R2画像1件を物理削除。R2 root一覧0、D1 active asset0/容量held0・released1/本文0/出力参照0/未終端0を確認し、アプリ内閉鎖1・消費1/停止1。Accessは本人Allow0/Block1、当該token取消の監査成功、旧タブはAccessログイン画面。本人照合済みOFF版を5回目として配備し、実Workerのprobe/通常メディア・AI/Jev OFF、通常gate空、新D1/R2一致を確認。FAL_KEY除去の本人操作と6回目即時配備、一時falキー失効は結果待ち。
+
+2026-10-06・削除判断待ち: 本人は既存ADMINキーで新要求の課金GET200/一致1/$1以内/available_nowを報告した。本人管理API報告とエージェント実測/最終請求を区別し、アプリ台帳へ課金passを記録。自然期限unknownのまま上流DELETEと専用R2画像1件の物理削除を行うか、直前判断を求めている。未回答の間は削除/本文消去/アプリ・Access閉鎖/OFF配備/Secret除去を行わず、実Worker ON・FAL_KEY存在・本人Allow・D1消費1/停止1/閉鎖0・保存画像1を保持。OFF成果物は本人照合true/build/dry-run成功、未配備。
+
+2026-10-06・3600秒後の実判定/終了準備: 最初の出力観測から3600秒後に自然期限を1回照合した。D1のexpiry_observation1・新token発行1・Bearer診断GET1は確認したが、判定unknown。個別HTTP statusを保持していないため、自然失効/上流消去の証拠にしない。再照合なし。今回のprovider要求1件に限定した非公開終了対象を準備し、本人用helperは不明時の上流DELETEを追加承認と明示フラグなしでは拒否する。dummy試験5件は成功。課金GETの本人結果待ちで、上流DELETE/アプリ画像消去/閉鎖は未実施。
+
+2026-10-06・実token観測: 1回の観測は最後まで終了し、D1のtoken発行は回収1＋診断2の計3、Bearer診断GETは3。ただし判定はunknown。期限後token拒否と新token正常取得のどちらが合格条件を外れたかは、本文・個別statusを保存していないため特定できない。再発行/再試験で救済せず、M-0未達を維持。最初の出力観測から3600秒後の2026-10-06 10:31:04 JST以降に自然期限を1回照合する。
+
+2026-10-06・09:30〜10:00 JSTの新隔離実接続: 本人の追加許可でAccess AUDだけを管理外設定で修正し、修正版ONの4回目配備を行った。実Workerと新AccessアプリのAUD一致、FAL_KEY存在、新D1/R2一致を値非表示で照合した。固定run/slot 1・消費0の本人画面を開始前に確認し、開始後に採用済みの1要求だけ送信。消費1・受付自動停止、上流completed、回収stored、private画像表示、ACL/匿名拒否passを確認した。本人は品質合格と報告した。前回の回収invalidは再現しなかったが、前回の実レスポンス本文がないため拒否項目を確定しない。短期token/自然期限、課金/上流削除、消去/閉鎖/OFF/Secret除去は進行中であり、完了扱いしない。旧run/旧資源は変更していない。
+
+2026-10-06・回収invalidの継続調査: [公開OpenAPIと現行driverの照合](../references/e-preflight-fal-20261005.md#回収invalidの公開仕様照合2026-10-06)で、ImageFileの任意nullable metadataを旧driverが必須としていた不整合を確認。欠落/`null`のみを受け入れ、実byte・固定1024角・PNG・容量・private URL検査を維持するローカル修正を行った。さらに、次回の同じ結果取得で拒否した場合に限り、固定5分類を[0012](../migrations/0012_media_probe_invalid_reason.sql)の本文なし台帳へ一度だけ記録し、本人の状態APIへ分類名だけ返す。生の結果本文・URL・ID・tokenは診断へ保存しない。関連試験/型/buildの最終結果は[進捗](plan.md)を参照。今回の実レスポンス本文がないため拒否項目は未特定。新コード/0012は未配備で、既存OFF/閉鎖台帳・消費1・最終請求/上流消去unknown・M-0未達を維持する。次の実確認は新しい対象・要求/費用・固定窓・終了手順の別承認を要し、旧runの再回収/2回目送信/再登録・枠復活はしない。
+
+## 次の実確認の実行条件（10月6日の指定窓は開始条件未達）
+
+本人は**2026-10-06 06:45〜07:15 JST**を指定し、下表の新しい隔離対象での実行を依頼した。開始前にCloudflare APIの新規D1/R2作成が認証関連エラーで止まり、直後の名前限定一覧で新D1/R2各0件を確認した。Worker/Access/Secret/migration/run登録/配備/実fal送信には進んでいない。続いて本人は**同日07:30〜08:00 JST**を再指定したが、07:23時点でも必要な新資源は未作成で、開始まで約7分では環境・本人Secret投入・OFF/ON照合を揃えられない。現在の共通ツール経路ルールに従い、認証拒否を別の操作経路へ無断で切り替えない。両窓とも登録・延長・送信しない。次は現在Chromeで準備する経路の明示指示、またはCloudflare API権限の修正を受け、準備完了後に新しい固定窓を決める。2026-10-05の閉鎖済みrun・消費1・固定窓・OFF Worker/D1/R2/Accessには触れない。
+
+その後、本人は現在Chromeでの準備を明示し、窓を**同日07:45〜08:15 JST**へ変更した。ログイン済みの同じChromeで新しい専用D1とStandard/private R2を各1件作成した。R2は公開開発URL無効・カスタムドメイン0を画面確認。Accessの新アプリ/本人メール完全一致Allow/各6時間は保存前まで設定し、本人によるメール欄入力とポリシー保存待ち。07:34時点でWorker・Access保存、remote migration、本人Secret投入、OFF/ON成果物の照合が未了なので、07:45窓もrun登録/実fal送信に使わない。新D1/R2は準備用に保持し、旧run/旧資源は変更しない。新窓は準備が揃ってから決める。
+
+本人はさらに**同日08:00〜08:30 JST**を指定した。本人がChromeでメール欄を入力して新Allowポリシーを保存し、新Accessアプリの作成ボタンも押した。エージェントはアプリ一覧/設定画面で専用ホスト・本人用ポリシー・アプリ6時間の反映を確認した。R2の非公開設定も維持。新Worker/remote migration/Secret/run登録/実fal送信はまだ0。旧run/旧資源は変更していない。新しい管理外設定は旧設定を上書きせず、[本人用helper](工程E-新隔離設定準備.py)で別ファイルへ作る。本人の`source_prepared`結果待ちで、送信窓は準備が揃うまで登録しない。
+
+08:00時点で新Worker/remote migration/Secret/OFF・ON照合は未了なので、この窓もrun登録/実fal送信には使わない。本人から設定値の探索が分かりにくいとの指摘を受け、[設定準備helper](工程E-新隔離設定準備.py)を修正した。本人の別ターミナルで既存管理外設定の非Secret項目を読み、新D1/R2をWranglerの一覧で照合する。旧設定を変更せず、新AccessアプリのAUDだけを非表示入力して新ファイルを0600で作る。Agentは実値を受け取らない。dummy3件/構文を検証し、本人の`source_prepared`結果待ち。
+
+本人から`source_prepared: true`と`migration_transport_ready: true`を受領した。Agentは公開SQL12本の実行用コピーを新隔離ディレクトリへ作り、固定Wranglerで新D1へ12本を適用した。D1の名前限定/読み取り専用確認で履歴12・run/job/attempt/asset各0。新管理外設定を選ぶ`e-probe-20261006-local`で初期OFF build成功、生成成果物のdry-runもexit0。このCLI操作では設定本文を表示していない。本人による生成設定の全項目照合待ちで、実Worker配備・実Secret・実fal・run登録はまだ0。
+
+Chrome操作ツールの画面状態の自動出力にCloudflareの実ID/AUDが含まれた。値は公開文書・コード・最終説明に転記せず、別送信先へも渡していない。共有・公開時はチャットのツール出力を確認対象にする。以後の画面取得は値なしの判定だけを出す。
+
+本人の初期OFF成果物`all_passed: true`を受領し、同じ成果物を新Workerへ初回配備した。配備exit0の後、Cloudflareの実設定で新D1/R2一致、FAL_KEY不在、probe/通常生成・画像・AI/Jev OFF、通常gate空、workers.dev/Preview URL無効を値非表示で確認した。本人がChromeで新Workerへ、Accessアプリと同じ専用Custom Domainを追加した。Worker一覧に1件反映され、CookieなしHTTPは302。302の遷移先や本人ログイン/OTP、所有者一致はまだ未確認。共有global/IdPと旧Worker/D1/R2/Accessは変更していない。新API scope一時キーの本人発行・Wrangler対話投入待ち。この投入は即時配備2回目となる。新run未登録・実fal0、Cloudflare増分費用は未確定。
+
+本人から一時API scopeキーのWrangler対話投入成功を受領した。Cloudflare実WorkerのbindingでFAL_KEY存在を値なしで確認し、配備履歴2、probe/通常生成・画像・AI/Jev OFF、通常gate空、新D1/R2一致、workers.dev/Preview無効を再確認。専用Custom DomainもWorker一覧に残る。現在Chromeで専用入口を開くとCloudflare Accessのメール入力画面となり、本人のメール/必要OTPの操作待ち。キー値はAgentが読んでいない。新run登録/実fal送信0、08:00〜08:30 JSTの窓は未使用。旧run/旧資源は維持する。
+
+本人のAccess認証成功申告後、現在Chromeで新専用入口の`/media-probe`を開き、「限定接続はOFF」の表示と送信不可を確認した。メール/OTP/Cookie/JWT値は取得せず、認証回数の実数は未確認で上限3を維持する。FAL_KEY存在と新Workerの配備2回を保ち、通常gate空/全生成OFF、run未登録/実fal0。次は新管理外設定のprobeだけをONへ切り替え、ON build/dry-runと本人照合を行う。実配備/新窓登録はその後。
+
+本人のON source準備成功を受領し、同じ新隔離設定でclient/Worker buildとdry-runがexit0。本人のON成果物全項目照合もtrue。実WorkerはまだOFF・配備2回。[新隔離のfal終了helper](工程E-新隔離fal終了操作.py)は旧要求の日時/対象を使わず、私有の1要求JSONを検査してから、本人の既存ADMINキーを非表示入力で受ける。早期失敗には不適合証拠、自然期限後削除には期限観測証拠を要求し、削除前の時刻と最大3試行を維持する。対象ID・URL・鍵・本文は出力しない。私有対象の一度きり準備を含むdummy4件と構文を検証したが、実管理API/新requestは未実行。終了対象JSONは新要求の結果が判明してから作り、旧helper/旧私有領域は変更しない。新run登録/実fal送信0、次の固定窓は未定。
+
+新Accessアプリに限定して認証ログの`app_uid,allowed,action,created_at,user_id`だけを読み、許可1件/本人1名を確認した。Zero Trust組織のteam domainとuser IDからownerを構成する要素はツール内だけに保持し、Cookie/JWT・メール/IP/実IDを公開文書へ出さない。[新run登録準備script](../scripts/prepare-e-registration.mjs)は固定prompt/入力を本体の正規化/入力hash関数で処理し、本人が次の絶対窓を指定した後だけ、私有manifestと追加SQL migration1本を0600で作る。D1のmigration適用はatomic/失敗rollbackを使い、既存run/slotへのUPDATE/UPSERT/リセットはしない。dummy入力のverify-only、Biome/構文確認済み。新run登録SQLはまだ生成/適用していない。
+
+本人からON成果物の`all_passed: true`を受領した。ON build/dry-runを通した同じ成果物を維持し、実配備はまだ初期OFF＋Secret投入の2回だけ。新run/slot登録・実fal送信0。新しい絶対30分窓を本人が採用するまでは私有登録SQLの生成/適用・ON配備を行わない。旧run/旧資源は維持。
+
+新隔離用のbuild mode `e-probe-20261006-local`は旧管理外設定と別の`.wrangler.e-probe-20261006.local.jsonc`だけを選び、Gitから除外する。本人が[設定準備helper](工程E-新隔離設定準備.py)を別ターミナルで実行し、値を表示せず0600で作る。公開SQL12本から[実行形式を作るscript](../scripts/prepare-e-wire.mjs)と、新設定のmigration場所を値なしで照合/切替する[helper](工程E-新隔離SQL切替.py)、probeだけをON/OFFする[helper](工程E-新隔離切替.py)を用意した。公開sourceの検査はbuild-policy34 workerd、設定helperのdummy2件、SQL12本の変換確認、Python構文を通過。実設定の内容・生成成果物・remote適用・配備は未検証。旧管理外設定/SQLコピーは読取・変更していない。
+
+| 項目 | 新runだけの承認対象と上限 |
+| --- | --- |
+| 対象 | 新しい専用Worker・D1・private R2 Standard・Custom Domain・本人限定Access application/policyを各1。既存の共有global/IdP・他staging/元DBを変更しない。本人1名、application/policy各6時間、本人認証と必要OTPは合計最大3回。workers.dev/previewとR2公開配信は無効 |
+| 準備/配備 | 新D1へ履歴0012まで適用。改修版の初期OFF配備、本人による新しい一時fal APIキーの対話投入に伴う即時配備、限定ON配備、終了OFF配備、本人によるSecret除去に伴う即時配備の計**最大5回**。新キーの発行/失効は本人が会話外で担当。追加の修正配備・設定変更はこの案に含めない |
+| 送信 | 固定slot 1の採用済みprompt、Sunburst text-to-image、1024角/medium/PNG/opaque/1枚/sync=false、アップロードなし。新runのD1総上限2/30分を維持し、今回もslot 1の**1要求だけ**。slot 2は登録せず、失敗/unknownでも再POST・再生成・枠復活なし。通常gate空、通常生成/uploadとAI/JevはOFF |
+| 回収/停止 | 送信直後に新規受付を停止。同じrequest IDのstatus/resultだけを既存上限内で照合し、固定private URL・実byte・1024角/PNG/容量を検査。受入不適合・不明・匿名公開なら停止し、条件緩和/別CDN/再回収で救済しない。適合時だけprivate保存・本人の品質/ACL/匿名拒否・300秒token・3600秒自然期限を確認。生の結果本文・URL・token・実IDは診断/記録へ載せない |
+| 費用/終了 | [公開価格](https://fal.ai/models/openai/gpt-image-2.5/sunburst/text-to-image)の1024角/medium画像分は$0.01317で、本文token等と切上げは別。$1は目安で硬い上限ではなく、[R2](https://developers.cloudflare.com/r2/pricing/)と[Workers/D1](https://developers.cloudflare.com/workers/platform/pricing/)の共有枠境界による増分費用もあり得る。購入/自動補充なし。本人が同じ要求の課金を停止後24時間以内に照合。適合時は自然期限を観測してから、失敗時は早期に、本人が既存ADMINキーで当該要求の上流DELETEを行い、個別結果がなければunknownを保持。アプリ出力/本文の物理消去、容量解放、Access Allow閉鎖・当該token取消、OFF/Secret除去・一時キー失効まで確認。OFFの資源と本文なし最小台帳は期限管理のため保持し、削除/退役は別判断 |
+
+上表の範囲は10月6日の指定窓について本人の実行指示を受けたが、開始条件未達で未実施。次の窓へ時刻を自動移行しない。実対象の非公開対応と費用前提、開始時刻、追加操作回数を実行前に値非表示で照合する。旧runの終了状態と、今回の実レスポンス拒否項目が未特定である点は変わらない。
+
 2026-10-05・実falの終了状態: 本人が既存ADMINキーで終了helperを実行し、課金GET 200・当該イベント1件・$1以内の`available_now`を報告した。24時間以内の当該要求照合は実施済み。最終請求・Cloudflare側増分費用は未確定。上流DELETEは200/1試行だがCDN結果0件で`unknown`、消去完了の証明にしない。管理API結果は本人実行の報告で、エージェントの直接実測と区別する。既存ADMINキーの発行・権限変更・Worker投入・失効は行わない。
 
 アプリに課金pass/上流削除unknownを記録し、確認経路を閉鎖した。D1で消費1/総上限2・停止1/閉鎖1・固定1800000 ms・attempt1/未終端0・本文0/参照0/asset0を確認。既存のprovider IDと最小台帳を保持し、再生成・再回収・枠復活なし。専用Access policyはAllow0/Block1、application/policyの6時間を保持し、当該アプリの既存トークン取消成功を画面で確認した。旧ログインのタブ再読込はアプリ画面に届かずAccessログイン画面となった。全アプリの利用者sessionへ影響するlogout URLは実行せず、既存環境を保持する。

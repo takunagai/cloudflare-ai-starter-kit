@@ -1,5 +1,25 @@
 # 工程E事前整理 ─ falの公開契約と費用
 
+## 新隔離での実観測（2026-10-06）
+
+終了時点では専用R2 root0/D1本文・出力参照0、Access Allow0/Block1・当該token取消監査成功、実WorkerのFAL_KEY不在と全生成OFFを確認した。本人は今回の一時fal APIキー失効済みと報告した。これはアプリ/Cloudflare側の閉鎖と本人申告であり、fal上流の全コピー消去、最終請求、Cloudflare増分費用、短期tokenと3600秒自然期限のpassを証明しない。
+
+本人が自然期限unknownを承知して当該1要求の削除・終了を選んだ。既存ADMINキーでの課金GETはHTTP200/一致1/$1以内/available_now、上流DELETEはHTTP200/1試行/CDN結果0/unknownという本人報告である。DELETE200だけからCDN/JSONの消去完了を推定しない。アプリ側のprivate R2画像は物理削除し、R2 root一覧0と容量解放/本文・出力参照0を別に実測した。両方の証拠の範囲を混同しない。
+
+3600秒経過後の実観測は`unknown`だった。新しい所有者token発行1回とBearer取得診断1回は台帳に残ったが、個別HTTP statusは保存していない。[falの保持説明](https://fal.ai/docs/documentation/model-apis/media-expiration)が3600秒の指定を説明していても、今回のファイルが期限切れになったと推定で補わない。観測を再実行せず、上流DELETEと非公開R2の物理削除は終了判断まで保留した。
+
+09:30〜10:00 JSTの固定窓で採用済みSunburst text-to-imageを1要求だけ送信した。上流completed、result1回、private PNG保存、本人画面表示を確認し、前回の回収invalidは再現しなかった。これは修正版の今回の要求が公開schemaと実結果に適合した証拠だが、前回の実レスポンス本文を保持していないため、前回の拒否項目がnullable metadataだったと確定する証拠ではない。実要求の本文・結果URL・ID・tokenは記録しない。
+
+[File ACLs](https://fal.ai/docs/documentation/model-apis/file-access-controls)の公開説明と照合し、作成済み出力のACLはdefault forbid/rules空、匿名GETは403となった。本人は画像品質を合格と報告した。同じ文書はBearer tokenの`expiration_seconds`短縮を説明するが、期限後の個別HTTP statusまでは保証していない。今回の300秒token観測は最後まで実行されたものの判定unknownで、期限後拒否と新token正常取得のどちらが期待から外れたかは記録から特定できない。[Data Retention](https://fal.ai/docs/documentation/model-apis/media-expiration)の3600秒設定に対応する自然期限の実観測は10:31:04 JST以降まで未実施。課金と上流削除、Cloudflare側増分費用も未確定である。
+
+## 回収invalidの公開仕様照合（2026-10-06）
+
+[Sunburst text-to-imageのAPI](https://fal.ai/models/openai/gpt-image-2.5/sunburst/text-to-image/api)と[同endpointの公開OpenAPI](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=openai%2Fgpt-image-2.5%2Fsunburst%2Ftext-to-image)を当日確認した。出力の`images`は必須だが、各`ImageFile`で必須なのは`url`だけ。`content_type`・`width`・`height`・`file_size`は省略可能で、存在しても`null`を許す。[公開モデルページのResult JSON例](https://fal.ai/models/openai/gpt-image-2.5/sunburst/text-to-image)は`file_size`・`width`・`height`が実際に`null`の形を示す。公開例のv3 CDN URLは現行の固定host/path条件に適合する。公開schemaと例は今回の実レスポンスの内容を示さない。
+
+回収1回で上流completed、result取得後に終端invalidとなり、token発行/PNG取得/出力objectは0。現行driverでtoken発行前にinvalidを返すのは、`images`の形・期待件数、固定v3 URL条件、URL重複の検査。今回の期待件数は1なので重複は該当しない。旧driverは上記nullable metadataのうち`content_type`・`width`・`height`を必須、`file_size`を省略のみ可としており、公開schemaどおりの応答を拒否し得た。一方、実レスポンス本文を保持していないため、metadata・件数・URLのどれが今回の拒否項目かは未特定。`Store-IO=0`の今回の結果本文への影響もこの証拠だけでは確定しない。
+
+通常コードはmetadataの欠落/`null`だけを受け入れ、存在する値は実取得したPNGのMIME・寸法・byte数と照合する。固定URL、実byteのdecode/形式・20 MiB上限、要求した1024角、private R2保存の検査は維持する。値や本文、URL、IDをログ・応答へ追加出力しない。新しいworkerd/fake試験はnullable/欠落の双方でtoken・PNGを経て保存し、既存の不正URL・MIME・寸法・破損画像の拒否も確認した。これは実falの原因確定や実接続成功の証拠ではない。旧runは閉鎖済みで、再回収・再生成・枠復活を行わない。
+
 2026-10-05・実装/本人照合の追記: [制御実装と隔離検証](../docs/工程E-制御実装と隔離検証.md)はローカル/fakeの証拠。実fal接続許可・一時Key発行済みと、契約/権限/保持・費用/購入不要・削除担当の3項目の本人照合済み申告を受領した。直接の実アカウント/実挙動の確認ではない。専用stagingの状態/実対象は質問への回答待ち、実fal/課金/配備/実Secretは未実施。
 
 確認日: 2026-10-05 JST。公開一次資料の本文だけを確認。fal/Cloudflareアカウント照会、価格APIの認証呼出し、実生成/課金/設定変更なし。用途・素材・予算の推奨は[事前整理](../docs/工程E-用途と限定接続の事前整理.md)で扱い、2026-10-05に3問は計画として採用されたが、実条件の照合/実行許可とは区別する。
