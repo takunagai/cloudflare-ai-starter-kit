@@ -30,6 +30,11 @@ export function resolveBuildTarget(
       requiredEnvironment = "staging";
       stagingPolicy = "standard";
       break;
+    case "e-probe-20261006-local":
+      configPath = ".wrangler.e-probe-20261006.local.jsonc";
+      requiredEnvironment = "staging";
+      stagingPolicy = "standard";
+      break;
     case "production-local":
       configPath = ".wrangler.production.local.jsonc";
       requiredEnvironment = "production";

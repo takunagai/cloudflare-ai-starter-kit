@@ -17,6 +17,12 @@ const privateTargets = [
     "standard",
   ],
   [
+    "e-probe-20261006-local",
+    "staging",
+    ".wrangler.e-probe-20261006.local.jsonc",
+    "standard",
+  ],
+  [
     "production-local",
     "production",
     ".wrangler.production.local.jsonc",

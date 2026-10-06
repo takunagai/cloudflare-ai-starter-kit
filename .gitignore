@@ -58,6 +58,7 @@ Thumbs.db
 # Local deployment settings and private history recovery (never publish)
 /.wrangler.staging.local.jsonc
 /.wrangler.standard-staging.local.jsonc
+/.wrangler.e-probe-20261006.local.jsonc
 /.wrangler.production.local.jsonc
 /.publication-recovery/
 /.npmrc
