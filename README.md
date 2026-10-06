@@ -1,5 +1,7 @@
 # Cloudflare AI Starter Kit
 
+2026-10-06・工程Eの短期token/自然期限unknownを公式仕様と実装からローカルで切り分けた。次回の別runだけに使う固定分類と[0014](migrations/0014_media_probe_observation_reason.sql)を追加し、関連workerd/型/buildを検証。個別HTTP状態やtoken・URL・ID・本文は記録しない。新コード/0014は未配備で、既存の閉鎖済みD1/Worker/R2とM-0未達を維持する。[未解決事項と次工程](docs/plan.md)を参照。
+
 2026-10-06・工程Eの新隔離実接続と終了操作は完了。09:30〜10:00 JSTにfalへ1要求だけ送信し、上流completed・画像のprivate保存/本人品質/ACL/匿名拒否を確認した。短期tokenと3600秒自然期限は実観測unknownで、M-0条件は未達。本人の課金GETは一致1/$1以内、上流DELETEは200/CDN結果0/unknownという報告で、最終請求・上流消去完了は未確定。専用R2画像/本文/出力参照を消去し、D1は消費1・停止/閉鎖1・容量保持0。Access Allow0/Block1と当該token取消、OFF配備とSecret除去を含む計6配備を確認した。一時falキー失効は本人報告。通常gate/生成はOFFのまま。[確定結果と残る条件](docs/plan.md)を参照。以下は各時点の履歴。
 
 2026-10-06・新隔離ON版はbuild/dry-runと本人の生成設定照合まで完了したが、まだ配備していない。実WorkerはOFFの配備2回、FAL_KEYは本人投入済みで、run/slot登録・実fal送信は0。新しい絶対30分の送信窓を採用後だけ登録・ON配備する。[現在地](docs/plan.md)を参照。

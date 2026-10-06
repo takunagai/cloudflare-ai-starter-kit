@@ -2,6 +2,8 @@
 
 ## 新隔離での実観測（2026-10-06）
 
+同日のローカル追加照合: [falのFile ACLs](https://fal.ai/docs/documentation/model-apis/file-access-controls)はBearer tokenに`expires_at`があり、`expiration_seconds`で短くできると説明する。ACLのforbid/hideは403/404と説明するが、**期限切れtoken**の個別HTTP状態は保証していない。[Data Retention](https://fal.ai/docs/documentation/model-apis/media-expiration)は`expiration_duration_seconds`で媒体の保持を指定し、期限切れファイルを削除すると説明するが、**消去後の取得**が必ず404/410になるとは明記しない。したがって403を自然期限passへ読み替えない。今回の台帳にはtoken観測の期限前/期限後/新tokenの取得3件、自然期限観測の新token/取得1件が残り、各呼出しは行われた。ただし個別HTTP状態はなく、今回どの条件が外れたかは特定不能。将来の別run向けに固定分類だけを保存する[0014](../migrations/0014_media_probe_observation_reason.sql)と関連試験をローカル追加した。既存の閉鎖済みrunへ適用・再取得・再生成していない。
+
 終了時点では専用R2 root0/D1本文・出力参照0、Access Allow0/Block1・当該token取消監査成功、実WorkerのFAL_KEY不在と全生成OFFを確認した。本人は今回の一時fal APIキー失効済みと報告した。これはアプリ/Cloudflare側の閉鎖と本人申告であり、fal上流の全コピー消去、最終請求、Cloudflare増分費用、短期tokenと3600秒自然期限のpassを証明しない。
 
 本人が自然期限unknownを承知して当該1要求の削除・終了を選んだ。既存ADMINキーでの課金GETはHTTP200/一致1/$1以内/available_now、上流DELETEはHTTP200/1試行/CDN結果0/unknownという本人報告である。DELETE200だけからCDN/JSONの消去完了を推定しない。アプリ側のprivate R2画像は物理削除し、R2 root一覧0と容量解放/本文・出力参照0を別に実測した。両方の証拠の範囲を混同しない。

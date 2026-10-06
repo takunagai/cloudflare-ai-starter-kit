@@ -1,5 +1,7 @@
 # 環境・更新・配備・復旧の運用方針
 
+2026-10-06・工程Eの観測unknown向けに[固定分類migration 0014](../migrations/0014_media_probe_observation_reason.sql)と通常コードをローカル追加した。期限切れtoken/媒体の合格条件は緩めず、分類は非権威の診断補足として保持し、復旧witnessの旧列形を維持する。閉鎖済みの10月6日専用runは管理外0013を使用済みで、当時の[SQL準備script](../scripts/prepare-e-wire.mjs)は公開0001〜0012の12本だけに固定した。新0014の実配備・既存D1へのmigration適用は未許可/未実施。次回の実確認には新対象と別承認が必要。[現在地](plan.md)を参照。
+
 2026-10-06・新隔離の限定実接続を終了。1要求は上流completed/回収stored、本人品質・作成時ACL/匿名拒否pass、300秒token/3600秒自然期限unknown。自然期限unknownでも当該要求の削除を行う本人の追加判断を受け、[本人用終了helper](工程E-新隔離fal終了操作.py)の`finish --allow-unverified-expiry`を当該1要求に限り使用した。管理API結果は本人報告で、課金GET200/一致1/$1以内、上流DELETE200/1試行/CDN結果0/unknown。Cloudflare private R2画像1を物理削除しroot0、本文/出力参照0、容量held0/解放1、アプリ閉鎖1。Access Allow0/Block1・当該token取消の監査成功、OFF配備と本人Secret除去の即時配備を含め計6回。実WorkerはFAL_KEY不在/probe・通常生成/画像・AI/Jev OFF、通常gate空、専用D1/R2一致、workers.dev/preview無効。本人の一時falキー失効報告を受領し、既存ADMINキーは変更しない。OFFのWorker/D1/R2と本文なし最小台帳は保持。短期token/自然期限・上流消去/最終請求/Cloudflare増分費用は未確定で、M-0は未達。[結果と証拠の限界](工程E-制御実装と隔離検証.md)を参照。以下は各時点の履歴。
 
 2026-10-06・工程Eの次版はnullable画像metadataの受入と、本文/URLを含まない固定拒否分類の[0012](../migrations/0012_media_probe_invalid_reason.sql)を追加したローカル差分。既存の閉鎖済みD1/Worker/R2へは未適用。[新しい隔離対象の実行条件](工程E-制御実装と隔離検証.md#次の実確認の実行条件10月6日の指定窓は開始条件未達)を具体化したが、06:45〜07:15 JSTの準備ではCloudflare API書込みが認証関連エラーで止まり、新D1/R2各0件を確認。固定窓は登録・延長せず、新規fal送信なし。旧runの再登録・枠復活・2回目送信を行わない。以下は各時点の履歴。
