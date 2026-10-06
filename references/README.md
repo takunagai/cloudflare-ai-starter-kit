@@ -1,8 +1,10 @@
 # 公式情報の参照索引
 
+- [AI Search/R2の現行仕様と非公開RAG](ai-search-rag-20261006.md): 2026-10-06のGA/料金・instance binding・metadata filter・R2データソースを公式資料で再照合。既存のMarkdown/テキスト登録コードとの対応と、実索引・個人資料送信の未確認範囲を区別する。
+
 - [工程Eのモデル・セッション選定](e-codex-model-selection-20261005.md): 事前整理後/実装着手前/制御実装完了後の判断を時点別に保存。次の実環境準備は別セッション・GPT-6.1 Sol/Highを推奨。実fal許可/本人照合済みと未確定環境の引き継ぎを記録し、モデル設定/チャット作成・クラウド操作は行わない。
 
-- [工程Eの公開根拠・本人照合/実確認の区別](e-preflight-fal-20261005.md): 選択1件の価格/schema/null許容、Store-IO/ACL/3600秒、取消/admin削除・契約/credit/共有料金、D1/Access/診断streamとmanual redirect/envDir。制御はローカル実装/検証済み、実falの許可・権限/契約/費用/削除担当は本人照合済み申告。実挙動/配備は未確認、実環境の状態/対象は回答待ち。
+- [工程Eの公開根拠・本人照合/実確認の区別](e-preflight-fal-20261005.md): 選択1件の価格/schema/null許容、Store-IO/ACL/3600秒、取消/admin削除・契約/credit/共有料金、D1/Access/診断streamとmanual redirect/envDir。10月6日の1要求は回収stored/品質・ACL/匿名拒否passだが、短期token/自然期限/上流消去はunknown。本人管理API報告と直接実測を分ける。
 
 - [M-5の固定install・ローカル隔離手順](m5-local-isolation-20261004.md): pnpm12.6.0/Wrangler4.141.0の実help、frozen-lockfileとVite/Wranglerの専用状態。実クラウド・実上流の証拠ではない。
 

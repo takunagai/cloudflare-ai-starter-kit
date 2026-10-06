@@ -1,5 +1,7 @@
 # 任意拡張の導入と確認
 
+2026-10-06・[AI Searchの公式再照合](../references/ai-search-rag-20261006.md)では、既存R2データソース・instance binding・`query`入力・metadata filter・返却chunkの形が公開仕様と整合した。AI Searchは10月1日にGAとなり、従量課金開始予定は11月1日。実索引のmetadata反映・所有者分離・検索品質と個別アカウントの費用は未確認。現行アプリの資料登録はMarkdown/プレーンテキスト本文の入力で、手元のPDF/Wordファイル取込やOCRは未実装。実資料の読取/アップロード、クラウド作成、拡張ONは行っていない。以下の各日付の記述は当時の検証範囲として読む。
+
 2026-10-04・M-4: [音声4件の設定・受付・検査・private再生](M4-音声4モデルとprivate再生.md)を追加。`/media`でGemini単一/2話者、Eleven TTS、Musicを明示選択する。`MEDIA_VERIFIED_AUDIO_MODELS`は独立した既定空gate。完成WAV/MP3だけを扱い、生成streaming/timestamps/raw PCM/composition/音楽seedは拒否。SQLは0001〜0010のまま。M-5と実接続は後続、以下は各工程当時の履歴。
 
 2026-10-04・M-3: [通常動画4件・カメラ・private Range再生](M3-通常動画4モデルとprivate再生.md)を追加。`/media`で動画モデルを明示選択し、始終画像/順序付き参照/カメラを設定する。`MEDIA_VERIFIED_VIDEO_MODELS`は画像と独立の既定空gateで、実上流確認前は生成を拒否。現行migrationは0001〜0010、今回の適用は隔離試験DBだけ。音声4件・M-5全体統合/複製・実接続は後続。以下は各工程当時の履歴。
