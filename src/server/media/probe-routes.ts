@@ -58,10 +58,15 @@ async function state(environment: MediaEnv, identity: Identity) {
   const evidence = attempt
     ? await probeDatabase(
         environment.DB.prepare(
-          "SELECT item,verdict,observed_at FROM media_probe_evidence WHERE job_id=? ORDER BY item",
+          "SELECT item,verdict,observed_at,diagnostic_reason FROM media_probe_evidence WHERE job_id=? ORDER BY item",
         )
           .bind(attempt.job_id)
-          .all<{ item: string; verdict: string; observed_at: number }>(),
+          .all<{
+            item: string;
+            verdict: string;
+            observed_at: number;
+            diagnostic_reason: string | null;
+          }>(),
       )
     : null;
   return {

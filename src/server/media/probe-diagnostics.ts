@@ -5,6 +5,7 @@ import {
   checkProbeExecution,
   type MediaProbePermit,
   PROBE_MODEL,
+  type ProbeDiagnosticReason,
   probeDatabase,
   recordProbeEvidence,
   reserveProbeCall,
@@ -183,8 +184,15 @@ export async function observeProbeToken(
         credential.value,
         signal,
       )) !== 200
-    )
-      throw new ApiError(502, "media_probe_observation_unknown");
+    ) {
+      await recordProbeEvidence(
+        permit,
+        "token",
+        "unknown",
+        "initial_owner_unreadable",
+      );
+      return { token: "unknown" };
+    }
     await clock.sleep(credential.expiresAt - clock.now() + 1000, signal);
     const expiredStatus = await observeFile(
       permit,
@@ -201,14 +209,22 @@ export async function observeProbeToken(
       current.value,
       signal,
     );
-    const verdict =
-      (expiredStatus === 401 || expiredStatus === 403) && currentStatus === 200
-        ? "pass"
-        : "unknown";
-    await recordProbeEvidence(permit, "token", verdict);
+    let reason: ProbeDiagnosticReason | null = null;
+    if (currentStatus !== 200) reason = "fresh_token_unreadable";
+    else if (expiredStatus === 200 || expiredStatus === 206)
+      reason = "expired_token_readable";
+    else if (expiredStatus !== 401 && expiredStatus !== 403)
+      reason = "expired_token_other";
+    const verdict = reason === null ? "pass" : "unknown";
+    await recordProbeEvidence(permit, "token", verdict, reason);
     return { token: verdict };
   } catch {
-    await recordProbeEvidence(permit, "token", "unknown").catch(() => {});
+    await recordProbeEvidence(
+      permit,
+      "token",
+      "unknown",
+      "observation_error",
+    ).catch(() => {});
     throw new ApiError(502, "media_probe_observation_unknown");
   }
 }
@@ -231,16 +247,25 @@ export async function observeProbeExpiry(
       transport,
       credential.value,
     );
+    let reason: ProbeDiagnosticReason | null = null;
+    if (status === 200 || status === 206) reason = "media_still_readable";
+    else if (status === 401 || status === 403) reason = "owner_token_denied";
+    else if (status !== 404 && status !== 410) reason = "other_response";
     const verdict =
-      status === 404 || status === 410
+      reason === null
         ? "pass"
-        : status === 200 || status === 206
+        : reason === "media_still_readable"
           ? "fail"
           : "unknown";
-    await recordProbeEvidence(permit, "expiry", verdict);
+    await recordProbeEvidence(permit, "expiry", verdict, reason);
     return { expiry: verdict };
   } catch {
-    await recordProbeEvidence(permit, "expiry", "unknown").catch(() => {});
+    await recordProbeEvidence(
+      permit,
+      "expiry",
+      "unknown",
+      "observation_error",
+    ).catch(() => {});
     throw new ApiError(502, "media_probe_observation_unknown");
   }
 }

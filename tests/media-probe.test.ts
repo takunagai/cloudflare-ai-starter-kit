@@ -32,6 +32,7 @@ import {
   PROBE_APPROVAL_VERSION,
   PROBE_CLOCK,
   probeInput,
+  probeRecoveryWitness,
   readProbeRun,
   reserveProbeCall,
   stopMediaProbe,
@@ -726,6 +727,118 @@ describe("工程E fixed synthetic probe in workerd/D1/private R2", () => {
     expect(publicState).not.toContain("v3b.fal.media");
     expect(base.submissions).toHaveLength(1);
   });
+  it.each([
+    { statuses: [200, 200, 200], reason: "expired_token_readable" },
+    { statuses: [200, 403, 403], reason: "fresh_token_unreadable" },
+    { statuses: [200, 418, 200], reason: "expired_token_other" },
+  ])(
+    "keeps unknown token evidence with only fixed category $reason",
+    async ({ statuses, reason }) => {
+      await register();
+      installFake();
+      const job = await complete(),
+        permit = await permitFor(job.id);
+      let time = Date.now(),
+        reads = 0,
+        issued = 0;
+      const transport: typeof fetch = async (resource) => {
+        const url = String(resource);
+        if (url.includes("/storage/auth/token?"))
+          return Response.json({
+            token: `TEST_ONLY_secret_${++issued}`,
+            expires_at: new Date(time + 300000).toISOString(),
+          });
+        if (url.startsWith("https://v3b.fal.media/"))
+          return new Response(null, { status: statuses[reads++] });
+        throw new Error("TEST_ONLY_unexpected_endpoint");
+      };
+      const clock = {
+        now: () => time,
+        sleep: async (milliseconds: number) => {
+          time += milliseconds;
+        },
+      };
+      expect(
+        await observeProbeToken(
+          permit,
+          new AbortController().signal,
+          transport,
+          clock,
+        ),
+      ).toEqual({ token: "unknown" });
+      expect(reads).toBe(3);
+      expect(issued).toBe(2);
+      expect(
+        await DATABASE.prepare(
+          "SELECT verdict,diagnostic_reason FROM media_probe_evidence WHERE item='token'",
+        ).first(),
+      ).toEqual({ verdict: "unknown", diagnostic_reason: reason });
+      const state = await handleMediaProbe(
+        request("/api/media-probe"),
+        CONFIGURATION,
+        IDENTITY,
+      );
+      const publicBody = await state.text();
+      expect(publicBody).toContain(reason);
+      expect(publicBody).not.toContain("TEST_ONLY_secret_");
+      expect(publicBody).not.toContain("v3b.fal.media");
+      expect(
+        JSON.stringify(await probeRecoveryWitness(DATABASE)),
+      ).not.toContain(reason);
+      await expect(
+        DATABASE.prepare(
+          "UPDATE media_probe_evidence SET diagnostic_reason='TEST_ONLY_invalid' WHERE item='token'",
+        ).run(),
+      ).rejects.toThrow();
+      await expect(
+        DATABASE.prepare(
+          "UPDATE media_probe_evidence SET diagnostic_reason=? WHERE item='token'",
+        )
+          .bind(
+            reason === "fresh_token_unreadable"
+              ? "expired_token_other"
+              : "fresh_token_unreadable",
+          )
+          .run(),
+      ).rejects.toThrow("MEDIA_PROBE_DENIED");
+    },
+  );
+  it.each([
+    { status: 403, verdict: "unknown", reason: "owner_token_denied" },
+    { status: 200, verdict: "fail", reason: "media_still_readable" },
+    { status: 418, verdict: "unknown", reason: "other_response" },
+  ])(
+    "does not treat expiry status $status as deletion proof",
+    async ({ status, verdict, reason }) => {
+      await register();
+      installFake();
+      const job = await complete(),
+        permit = await permitFor(job.id);
+      const time = Date.now() + 3600001;
+      const transport: typeof fetch = async (resource) => {
+        const url = String(resource);
+        if (url.includes("/storage/auth/token?"))
+          return Response.json({
+            token: "TEST_ONLY_fresh_token",
+            expires_at: new Date(time + 300000).toISOString(),
+          });
+        if (url.startsWith("https://v3b.fal.media/"))
+          return new Response(null, { status });
+        throw new Error("TEST_ONLY_unexpected_endpoint");
+      };
+      expect(
+        await observeProbeExpiry(permit, transport, {
+          now: () => time,
+          sleep: async () => {},
+        }),
+      ).toEqual({ expiry: verdict });
+      expect(
+        await DATABASE.prepare(
+          "SELECT verdict,diagnostic_reason FROM media_probe_evidence WHERE item='expiry'",
+        ).first(),
+      ).toEqual({ verdict, diagnostic_reason: reason });
+    },
+  );
   it("anonymous readable output is failure, not made private afterward", async () => {
     await register();
     installFake();
@@ -761,9 +874,9 @@ describe("工程E fixed synthetic probe in workerd/D1/private R2", () => {
     ).rejects.toMatchObject({ code: "media_probe_observation_unknown" });
     expect(
       await DATABASE.prepare(
-        "SELECT verdict FROM media_probe_evidence WHERE item='token'",
+        "SELECT verdict,diagnostic_reason FROM media_probe_evidence WHERE item='token'",
       ).first(),
-    ).toEqual({ verdict: "unknown" });
+    ).toEqual({ verdict: "unknown", diagnostic_reason: "observation_error" });
   });
   it.each(["published-example", "null", "missing"])(
     "accepts %s optional upstream metadata only after private byte validation",

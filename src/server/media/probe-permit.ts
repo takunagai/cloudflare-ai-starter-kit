@@ -335,10 +335,20 @@ export async function closedProbeJobs(database: D1Database, owner: string) {
   );
   return new Set(rows.results.map((row) => row.job_id));
 }
+export type ProbeDiagnosticReason =
+  | "initial_owner_unreadable"
+  | "expired_token_readable"
+  | "expired_token_other"
+  | "fresh_token_unreadable"
+  | "owner_token_denied"
+  | "media_still_readable"
+  | "other_response"
+  | "observation_error";
 export async function recordProbeEvidence(
   permit: MediaProbePermit,
   item: string,
   verdict: string,
+  diagnosticReason: ProbeDiagnosticReason | null = null,
 ) {
   if (!permit.jobId) throw new ApiError(403, "media_probe_not_authorized");
   await checkProbeExecution(
@@ -349,9 +359,9 @@ export async function recordProbeEvidence(
   );
   await probeDatabase(
     permit.environment.DB.prepare(
-      `INSERT INTO media_probe_evidence(job_id,item,verdict,observed_at) VALUES(?,?,?,${PROBE_CLOCK}) ON CONFLICT(job_id,item) DO UPDATE SET verdict=excluded.verdict,observed_at=excluded.observed_at WHERE media_probe_evidence.verdict!='fail'`,
+      `INSERT INTO media_probe_evidence(job_id,item,verdict,observed_at,diagnostic_reason) VALUES(?,?,?,${PROBE_CLOCK},?) ON CONFLICT(job_id,item) DO UPDATE SET verdict=excluded.verdict,observed_at=excluded.observed_at,diagnostic_reason=excluded.diagnostic_reason WHERE media_probe_evidence.verdict!='fail'`,
     )
-      .bind(permit.jobId, item, verdict)
+      .bind(permit.jobId, item, verdict, diagnosticReason)
       .run(),
   );
   if (verdict === "unknown" || verdict === "fail")
@@ -409,8 +419,9 @@ export async function probeRecoveryWitness(database: D1Database) {
       database.prepare(
         "SELECT * FROM media_probe_calls ORDER BY job_id,operation LIMIT 30",
       ),
+      // 診断理由は非権威の補足。旧witnessの列形を変えず、復旧判定を維持する。
       database.prepare(
-        "SELECT * FROM media_probe_evidence ORDER BY job_id,item LIMIT 20",
+        "SELECT job_id,item,verdict,observed_at FROM media_probe_evidence ORDER BY job_id,item LIMIT 20",
       ),
       database.prepare(
         "SELECT job_id,observed_at FROM media_probe_output ORDER BY job_id LIMIT 3",

@@ -1,11 +1,14 @@
-import { open, mkdir, readdir, readFile } from "node:fs/promises";
+import { mkdir, open, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { renderD1Wire } from "./d1-wire.ts";
 
 const sourceDirectory = "migrations";
 const targetDirectory = ".wrangler/e-20261006/migrations";
 const names = (await readdir(sourceDirectory))
-  .filter((name) => /^\d{4}_.*\.sql$/.test(name))
+  // 閉鎖済みの10月6日runは0012まで。後続の公開migrationを混ぜない。
+  .filter(
+    (name) => /^\d{4}_.*\.sql$/.test(name) && Number(name.slice(0, 4)) <= 12,
+  )
   .sort();
 
 if (
@@ -22,7 +25,9 @@ const files = await Promise.all(
 );
 
 if (process.argv[2] === "--verify-only") {
-  process.stdout.write(JSON.stringify({ sourceReady: true, fileCount: files.length }) + "\n");
+  process.stdout.write(
+    JSON.stringify({ sourceReady: true, fileCount: files.length }) + "\n",
+  );
 } else if (process.argv.length !== 2) {
   throw new Error("argument_invalid");
 } else {
@@ -39,5 +44,7 @@ if (process.argv[2] === "--verify-only") {
       await descriptor.close();
     }
   }
-  process.stdout.write(JSON.stringify({ wireReady: true, fileCount: files.length }) + "\n");
+  process.stdout.write(
+    JSON.stringify({ wireReady: true, fileCount: files.length }) + "\n",
+  );
 }

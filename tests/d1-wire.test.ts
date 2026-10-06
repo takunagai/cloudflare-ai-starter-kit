@@ -46,7 +46,7 @@ describe("D1 SQL wire compatibility", () => {
         await database
           .prepare("SELECT count(*) AS n FROM d1_migrations")
           .first(),
-      ).toEqual({ n: 12 });
+      ).toEqual({ n: 13 });
       expect(
         await database
           .prepare("SELECT count(*) AS n FROM media_probe_run")
