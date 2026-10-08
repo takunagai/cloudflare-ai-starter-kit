@@ -641,6 +641,44 @@ describe("B-2 authenticated standard staging on workerd/D1", () => {
     ).toEqual({ active_request_id: null });
     expect((await ledger()).results).toHaveLength(1);
     expect(run).not.toHaveBeenCalled();
+    // 受付記録はWorker入口経由で所有者だけが読める。推論前の失敗は再送可能と分類する。
+    const receipt = await call(
+      req(`/api/chat/requests/${body.requestId}`, headers),
+    );
+    expect(receipt.status).toBe(200);
+    expect(receipt.headers.get("Cache-Control")).toBe("no-store");
+    expect(await receipt.json()).toMatchObject({
+      requestId: body.requestId,
+      conversationId: id,
+      status: "failed",
+      failureCode: "request_preparation_failed",
+      inference: "not_started",
+      canRetry: true,
+    });
+    expect(
+      (await call(req(`/api/chat/requests/${crypto.randomUUID()}`, headers)))
+        .status,
+    ).toBe(404);
+    expect(
+      (
+        await call(
+          req(`/api/chat/requests/${body.requestId}`, headers, {}, "POST"),
+        )
+      ).status,
+    ).toBe(405);
+    expect(
+      (await call(req(`/api/chat/requests/${body.requestId}`))).status,
+    ).toBe(401);
+    expect(
+      (
+        await call(
+          req(
+            `/api/chat/requests/${body.requestId}`,
+            await signIn("access", "mallory"),
+          ),
+        )
+      ).status,
+    ).toBe(404);
   });
 
   it("checks invalid policy and residual legacy settings, without using them as recovery guards", async () => {
