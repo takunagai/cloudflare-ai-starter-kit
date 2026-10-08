@@ -64,3 +64,7 @@ Thumbs.db
 /.npmrc
 /docs/phase1-preview.png
 /docs/phase2-preview.png
+
+# 別セッション用の引き継ぎ指示書と Superset ワークスペース設定（追跡しない）
+/.superset/
+/handover/
