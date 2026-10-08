@@ -138,6 +138,24 @@ WRANGLER_SEND_METRICS=false pnpm exec wrangler deploy --config dist/server/wrang
 
 配備時には対象環境、ソースのrevisionまたは内容識別子、lockfile、compatibility date、Worker version、migration状態を対応付けて記録する。公開ページ・API・認証境界・webhook到達性を確認し、実LLM疎通は承認した回数と費用内に限定する。
 
+## 複製先の実配備で確認した注意点
+
+確認日: 2026-10-09。最初の用途別複製先（非公開の資料検索チャット、本人1名・Access保護の通常staging）が2026-10-06〜08に実配備で踏んだ事項。根拠は複製先リポジトリの配備履歴・運用文書で、スターター自身の実環境では再現していない。個人・社内向けの通常stagingを作るときの既定手順として扱う。
+
+| 段階 | 注意点 | 対処 |
+| --- | --- | --- |
+| リモートmigration | 複数文のtriggerを含む0008以降で、WranglerのリモートSQL分割により`incomplete input`（7500）が出た。0001〜0007は成功し、途中で止まった | 正本SQLは編集せず、[SQL実行形式の変換](../scripts/d1-wire.ts)で生成した送信用SQLを未適用分だけ適用する。管理画面のテーブル数は更新前表示のことがあり、部分適用なしの証拠にしない |
+| 実D1の照合 | `wrangler d1 migrations list`は対象DBに管理テーブルを作り得る | 実DBの適用状況は読み取り専用のSELECTで履歴表とschemaを照合する |
+| 失敗・結果不明 | 送信後に応答が不明なmigrationを同じ内容で再送すると二重適用の恐れがある | 再送せず、SELECTで履歴・列・初期行を確認してから次を決める。1回の操作で1本ずつ適用する |
+| リモート認証 | 対象ID一致でもリモートD1操作が認可エラー（7403）になった | 既存OAuthの再認証と同一対象への`SELECT 1`成功を確認して進めた。因果は未確定のため、再発時は対象アカウントと権限を先に照合する |
+| build | 通常stagingの実設定ON buildで`/help`事前生成後にprocessが終了しなかった | スターターも通常stagingだけ`/help`をSSRにした（`build-policy.ts`の`prerenderHelpFor`）。本人用の事前確認には段階表示と時間上限（build 120秒、dry-run 60秒）を付ける |
+| deploy | build用の`CLOUDFLARE_ENV=staging`をdeployへ引き継いだ結果、意図しない別名Workerが作られ、削除が必要になった | 環境はbuildだけに指定し、deployは生成設定と既存Worker名を明示する。`--env`も重ねない。dry-run成功を配備成功と扱わない |
+| 初回公開 | ― | 公開経路なし・全OFFで配備 → 管理画面でURLなし/workers.dev・preview無効/想定bindingを確認 → Access保護 → 専用ホスト接続、の順を守った |
+| 停止 | Access policyをBlockにしても、発行済みセッションではアプリへ到達できた | 停止はOFF版配備、Access policyのBlock、対象アプリ単位の既存トークン取消の3操作に分ける。自然期限を取消の証拠にしない |
+| ログアウト | Accessのlogout URLは全アプリのセッションに効く | アプリ単位の停止・終了操作に使わない |
+
+RAG拡張に固有の事項（AI Search同期の30秒cooldown、結果不明時に自動再同期しない原則、検索専用の限定試行台帳）は複製先の文書で管理し、スターターの標準手順には含めない。受入と本番前の確認項目は[公開前チェック](launch-checklist.md)で管理する。
+
 ## 復旧
 
 不具合時は影響を確認し、必要に応じて有料処理・拡張の実行を止める。リクエスト本文や認証情報を追加ログへ丸ごと記録しない。

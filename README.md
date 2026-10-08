@@ -7,6 +7,7 @@ Cloudflare WorkersとTanStack Startを使い、別プロジェクトへ複製す
 - **開発を再開する:** [現在地と次の作業](docs/current-state.md)を読む。全履歴の再読は不要。
 - **仕様を確認する:** [合意済み構成と受け入れ条件](docs/architecture-proposal.md)の該当節を読む。
 - **問題を調べる:** [診断と次の確認](docs/diagnostics.md)、[開発運用の改善記録](docs/development-workflow.md)を参照する。
+- **配備を準備する:** [公開前チェック](docs/launch-checklist.md)と[複製先の実配備で確認した注意点](docs/operations.md#複製先の実配備で確認した注意点)を読む。
 - **経緯を調べる:** [開発履歴](docs/plan.md)を対象の工程だけ参照する。
 
 ## 用途を選んで始める
