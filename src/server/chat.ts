@@ -4,9 +4,7 @@ import { FAILURE_MESSAGES } from "../lib/reliability";
 import { noteTools } from "./agent-tools";
 import { getModel, listModels } from "./ai/providers";
 import {
-  chatModelAllowed,
   chatSystemPrompt,
-  checkChatRuntimePolicy,
   checkVerificationInput,
   type VerificationEnv,
   verificationSettings,
@@ -21,6 +19,7 @@ import {
 import { type Identity, isEnabled } from "./env";
 import { retrieveRag } from "./extensions/rag";
 import { ApiError, json, readJson } from "./http";
+import { chatModelAllowed, checkChatRuntimePolicy } from "./runtime-guards";
 
 const chatSchema = z
   .object({

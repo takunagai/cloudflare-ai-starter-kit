@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { assertResolvedBuildTarget, resolveBuildTarget } from "../build-policy";
+import {
+  assertResolvedBuildTarget,
+  prerenderHelpFor,
+  resolveBuildTarget,
+} from "../build-policy";
 import internalProduction from "../examples/presets/internal-production.jsonc?raw";
 import internalStaging from "../examples/presets/internal-staging.jsonc?raw";
 import local from "../examples/presets/local.jsonc?raw";
@@ -31,6 +35,26 @@ const privateTargets = [
 ] as const;
 
 describe("B-4 build target boundary", () => {
+  it("通常stagingだけ/helpをSSRにしてbuild後のprerender待機を避ける", () => {
+    expect(
+      prerenderHelpFor(
+        resolveBuildTarget("standard-staging-local", "staging", () => true),
+      ),
+    ).toBe(false);
+    expect(
+      prerenderHelpFor(resolveBuildTarget("production", undefined, () => true)),
+    ).toBe(true);
+    expect(
+      prerenderHelpFor(
+        resolveBuildTarget("production-local", "production", () => true),
+      ),
+    ).toBe(true);
+    expect(
+      prerenderHelpFor(
+        resolveBuildTarget("staging-local", "staging", () => true),
+      ),
+    ).toBe(true);
+  });
   it.each(["development", "production", "test"])(
     "%sは公開local設定を選び、Vite modeをAPP_ENVへ流用しない",
     (mode) => {

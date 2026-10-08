@@ -1,6 +1,6 @@
-import { requireExtensionEnabled } from "../ai-verification";
 import type { AppEnv, Identity } from "../env";
 import { json, readJson } from "../http";
+import { requireExtensionEnabled } from "../runtime-guards";
 import {
   cancelImage,
   getImage,

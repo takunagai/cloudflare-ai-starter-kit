@@ -17,7 +17,6 @@ import * as agentTools from "../src/server/agent-tools";
 import { createLocalDemoModel } from "../src/server/ai/local-demo";
 import * as providers from "../src/server/ai/providers";
 import {
-  checkRuntimeBoundary,
   type VerificationEnv,
   verificationModelId,
 } from "../src/server/ai-verification";
@@ -25,6 +24,7 @@ import api from "../src/server/api";
 import type { ChatInput } from "../src/server/chat-store";
 import * as chatStore from "../src/server/chat-store";
 import type { Identity, PublicModel } from "../src/server/env";
+import { checkRuntimeBoundary } from "../src/server/runtime-guards";
 
 const ledgerQuery = "SELECT 1 AS present FROM ai_verification LIMIT 1";
 const issuer = "https://example-b2.cloudflareaccess.com";

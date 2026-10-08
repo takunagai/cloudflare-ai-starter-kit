@@ -1,9 +1,9 @@
+import type { AppEnv } from "../env";
+import { ApiError } from "../http";
 import {
   checkExtensionRuntimePolicy,
   requireExtensionEnabled,
-} from "../ai-verification";
-import type { AppEnv } from "../env";
-import { ApiError } from "../http";
+} from "../runtime-guards";
 import type { RuntimePolicyInput } from "../runtime-policy";
 import { MEDIA_MODEL_IDS, type MediaModelId } from "./catalog";
 

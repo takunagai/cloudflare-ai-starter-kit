@@ -1,5 +1,5 @@
-import { checkExtensionRuntimePolicy } from "../ai-verification";
 import { ApiError } from "../http";
+import { checkExtensionRuntimePolicy } from "../runtime-guards";
 import { ownedAsset } from "./assets";
 import { IMAGE_MIMES } from "./image-inspection";
 import { mediaDatabase, ownedMediaJob } from "./ledger";

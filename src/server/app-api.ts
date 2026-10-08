@@ -1,14 +1,7 @@
 import { z } from "zod";
 import { decideNote } from "./agent-tools";
 import { listModels } from "./ai/providers";
-import {
-  chatModelAllowed,
-  checkChatRuntimePolicy,
-  checkExtensionRuntimePolicy,
-  requireExtensionEnabled,
-  type VerificationEnv,
-  verificationStatus,
-} from "./ai-verification";
+import { type VerificationEnv, verificationStatus } from "./ai-verification";
 import { getIdentity, handleAuth } from "./auth";
 import { handleBilling } from "./billing";
 import { handleChat } from "./chat";
@@ -32,6 +25,12 @@ import {
 } from "./media/probe-permit";
 import { handleMediaProbe } from "./media/probe-routes";
 import { handleMedia, isMediaCreationPath } from "./media/routes";
+import {
+  chatModelAllowed,
+  checkChatRuntimePolicy,
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "./runtime-guards";
 import { resolveRuntimePolicy } from "./runtime-policy";
 
 function method(request: Request, allowed: string[]) {

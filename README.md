@@ -51,7 +51,7 @@ pnpm未導入なら、Nodeを合わせてからユーザー自身の環境設定
 
 | 区分 | 内容 | 詳細 |
 | --- | --- | --- |
-| 公開ページ | `/`はSSR、`/help`だけbuild時に事前生成 | `vite.config.ts` |
+| 公開ページ | `/`はSSR、`/help`だけbuild時に事前生成。通常stagingは`/help`もSSR（事前生成後のbuild停止を回避） | `vite.config.ts`、`build-policy.ts` |
 | 認証 | Better Authのメール＋パスワード、Cloudflare Email Service、Google追加可能。社内・個人用途はAccessに切替 | [認証](docs/auth.md) |
 | AIチャット | Workers AI / OpenAI / Anthropic / Google / OpenRouter / LM Studio。サーバーの許可モデルだけ選択可 | [モデル接続](docs/providers.md) |
 | 型付き判断 | Jev固定版・Choice/Score/Noul。既定OFF、分類POSTと本人metadata GET | [Jev契約・設定メモ](docs/Jev-B3J-実装前契約.md) |

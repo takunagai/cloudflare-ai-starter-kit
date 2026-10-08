@@ -2,10 +2,6 @@ import { Buffer } from "node:buffer";
 import { Polar } from "@polar-sh/sdk";
 import { Webhook } from "standardwebhooks";
 import { z } from "zod";
-import {
-  checkExtensionRuntimePolicy,
-  requireExtensionEnabled,
-} from "./ai-verification";
 import type { AppEnv, Identity } from "./env";
 import {
   ApiError,
@@ -14,6 +10,10 @@ import {
   readJson,
   requireSameOrigin,
 } from "./http";
+import {
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "./runtime-guards";
 
 type Server = "sandbox" | "production";
 export interface BillingProvider {

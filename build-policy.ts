@@ -6,6 +6,13 @@ export type BuildTarget = Readonly<{
   stagingPolicy: "verification" | "standard" | undefined;
 }>;
 
+// 通常stagingは/helpをSSRにする。複製先の実設定ON buildで/help事前生成後に
+// build processが終了しない事例があったため（2026-10-06、根因未確定）。
+// local/productionの事前生成は維持する。
+export function prerenderHelpFor(target: BuildTarget): boolean {
+  return target.stagingPolicy !== "standard";
+}
+
 export function resolveBuildTarget(
   mode: string,
   environment: string | undefined,

@@ -1,10 +1,10 @@
 import { z } from "zod";
+import type { AppEnv, Identity } from "../env";
+import { ApiError } from "../http";
 import {
   checkExtensionRuntimePolicy,
   requireExtensionEnabled,
-} from "../ai-verification";
-import type { AppEnv, Identity } from "../env";
-import { ApiError } from "../http";
+} from "../runtime-guards";
 
 export type RagSearchBinding = Pick<AiSearchInstance, "search">;
 

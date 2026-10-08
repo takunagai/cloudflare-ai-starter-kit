@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { checkExtensionRuntimePolicy } from "../ai-verification";
 import type { Identity } from "../env";
 import { ApiError, json, readJson } from "../http";
+import { checkExtensionRuntimePolicy } from "../runtime-guards";
 import { MEDIA_LIMITS } from "./catalog";
 import {
   boundedBytes,

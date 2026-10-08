@@ -13,7 +13,6 @@ import {
   selectableChatModelIds,
 } from "../src/server/ai/catalog";
 import { getModel, listModels } from "../src/server/ai/providers";
-import * as runtime from "../src/server/ai-verification";
 import {
   type VerificationEnv,
   verificationModelId,
@@ -46,6 +45,7 @@ import {
   type SummaryParams,
   startSummary,
 } from "../src/server/extensions/workflows";
+import * as runtime from "../src/server/runtime-guards";
 
 const database = env.DB;
 if (!database) throw new Error("TEST_ONLY_missing_database");

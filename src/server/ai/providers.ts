@@ -5,12 +5,9 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModel } from "ai";
 import { createWorkersAI } from "workers-ai-provider";
-import {
-  chatModelAllowed,
-  type VerificationEnv,
-  verificationSettings,
-} from "../ai-verification";
+import { type VerificationEnv, verificationSettings } from "../ai-verification";
 import { type AppEnv, isLocalDevelopment, type PublicModel } from "../env";
+import { chatModelAllowed } from "../runtime-guards";
 import { resolveRuntimePolicy } from "../runtime-policy";
 import { chatModelCatalog as catalog } from "./catalog";
 import { createLocalDemoModel } from "./local-demo";

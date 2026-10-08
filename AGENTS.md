@@ -29,6 +29,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `src/router.tsx` | ルーター生成と型登録 |
 | `src/server.ts` | Worker入口。`/api`と`/api/*`をAPIへ、それ以外をStartへ渡す |
 | `src/server/api.ts` / `app-api.ts` | health・入力検証・認証済みAPIのdispatch。未知APIはJSONの404 |
+| `src/server/runtime-policy.ts` / `runtime-guards.ts` | 設定の純粋判定 / 入口から呼ぶ実行時ガード。旧検証専用の判定は`ai-verification.ts` |
 | `src/server/auth/` / `db/` | Better Auth・Access・認証schema |
 | `src/server/chat*.ts` / `agent-tools.ts` | 生成・履歴・原子的枠予約・人間承認 |
 | `src/server/extensions/` / `billing.ts` | 任意拡張、外部API境界 |
@@ -54,7 +55,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `pnpm lint` | 整形・import・推奨lintの検査 |
 | `pnpm typecheck` | binding型・route型を生成して型検査 |
 | `pnpm test` | Cloudflare Vitest pluginでAPIをworkerd内で検証 |
-| `pnpm build` | client/Workerのビルドと`/help`の事前生成。`/`はSSR |
+| `pnpm build` | client/Workerのビルドと`/help`の事前生成（通常stagingはSSR）。`/`はSSR |
 | `pnpm check` | lint → typecheck → test → build |
 | `pnpm preview` | build済み成果物を127.0.0.1:4173で起動 |
 | `pnpm smoke` / `pnpm smoke 3000` | 起動中のpreview / devをHTTP検証 |

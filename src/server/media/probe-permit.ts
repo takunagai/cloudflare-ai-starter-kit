@@ -1,6 +1,6 @@
-import { checkExtensionRuntimePolicy } from "../ai-verification";
 import type { Identity } from "../env";
 import { ApiError } from "../http";
+import { checkExtensionRuntimePolicy } from "../runtime-guards";
 import type { NormalizedMedia } from "./catalog";
 import type { MediaEnv } from "./policy";
 

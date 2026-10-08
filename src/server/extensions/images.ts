@@ -1,11 +1,11 @@
 import { z } from "zod";
-import {
-  checkExtensionRuntimePolicy,
-  requireExtensionEnabled,
-} from "../ai-verification";
 import type { AppEnv, Identity } from "../env";
 import { ApiError } from "../http";
 import { mediaDatabase, requireMediaRecoveryReady } from "../media/ledger";
+import {
+  checkExtensionRuntimePolicy,
+  requireExtensionEnabled,
+} from "../runtime-guards";
 import { digest } from "./rag";
 
 export const imageInputSchema = z.strictObject({

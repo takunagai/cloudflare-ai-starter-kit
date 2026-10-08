@@ -1,7 +1,5 @@
 import type { RequestReceipt } from "../lib/reliability";
 import {
-  chatModelAllowed,
-  checkChatRuntimePolicy,
   checkVerificationInput,
   type VerificationEnv,
   verificationModelId,
@@ -9,6 +7,7 @@ import {
 } from "./ai-verification";
 import type { AppEnv, Identity } from "./env";
 import { ApiError } from "./http";
+import { chatModelAllowed, checkChatRuntimePolicy } from "./runtime-guards";
 
 export async function rateLimit(
   env: AppEnv,

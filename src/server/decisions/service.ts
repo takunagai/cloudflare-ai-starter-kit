@@ -1,6 +1,7 @@
-import { checkRuntimeBoundary, type VerificationEnv } from "../ai-verification";
+import type { VerificationEnv } from "../ai-verification";
 import type { Identity } from "../env";
 import { ApiError } from "../http";
+import { checkRuntimeBoundary } from "../runtime-guards";
 import { resolveRuntimePolicy } from "../runtime-policy";
 import { DecisionTransportError, fetchDecision } from "./adapter";
 import {

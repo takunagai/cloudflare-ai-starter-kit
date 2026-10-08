@@ -6,14 +6,14 @@ import {
 import { generateText } from "ai";
 import { z } from "zod";
 import { getModel } from "../ai/providers";
+import type { AppEnv, Identity } from "../env";
+import { ApiError } from "../http";
 import {
   chatModelAllowed,
   checkChatRuntimePolicy,
   checkExtensionRuntimePolicy,
   requireExtensionEnabled,
-} from "../ai-verification";
-import type { AppEnv, Identity } from "../env";
-import { ApiError } from "../http";
+} from "../runtime-guards";
 import { digest } from "./rag";
 
 export const summaryInputSchema = z.strictObject({

@@ -7,6 +7,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import {
   assertResolvedBuildTarget,
+  prerenderHelpFor,
   resolveBuildTarget,
 } from "./build-policy.ts";
 
@@ -23,6 +24,7 @@ export default defineConfig(({ mode, isPreview }) => {
     },
     isPreview,
   );
+  const prerenderHelp = prerenderHelpFor(target);
   return {
     plugins: [
       cloudflare({
@@ -44,11 +46,13 @@ export default defineConfig(({ mode, isPreview }) => {
       }),
       tanstackStart({
         prerender: {
-          enabled: true,
+          enabled: prerenderHelp,
           autoStaticPathsDiscovery: false,
           crawlLinks: false,
         },
-        pages: [{ path: "/help", prerender: { enabled: true } }],
+        pages: prerenderHelp
+          ? [{ path: "/help", prerender: { enabled: true } }]
+          : [],
       }),
       react(),
       tailwindcss(),
