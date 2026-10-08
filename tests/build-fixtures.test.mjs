@@ -64,7 +64,7 @@ function command(mode, environment, preview = false) {
 
 async function build(dir, mode, environment) {
   try {
-    await run("/bin/zsh", ["-f", "-c", command(mode, environment)], {
+    await run("/bin/sh", ["-c", command(mode, environment)], {
       cwd: dir,
       timeout: 60000,
       maxBuffer: 2 * 1024 * 1024,
@@ -77,11 +77,10 @@ async function build(dir, mode, environment) {
 }
 
 async function preview(dir, mode, expected) {
-  const child = spawn(
-    "/bin/zsh",
-    ["-f", "-c", command(mode, undefined, true)],
-    { cwd: dir, stdio: "ignore" },
-  );
+  const child = spawn("/bin/sh", ["-c", command(mode, undefined, true)], {
+    cwd: dir,
+    stdio: "ignore",
+  });
   const exited = once(child, "exit");
   try {
     let response;

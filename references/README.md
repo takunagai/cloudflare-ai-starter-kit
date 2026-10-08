@@ -1,5 +1,7 @@
 # 公式情報の参照索引
 
+- [CI依存脆弱性とCIシェルの修正](ci-dependencies-20261008.md): 2026-10-08のCI失敗2件（zsh不在、source-map-js/sharpのGHSA）の根拠と、複製先private-rag-chatからの逆輸入。実アプリへの影響は断定しない。
+
 - [AI Search/R2の現行仕様と非公開RAG](ai-search-rag-20261006.md): 2026-10-06のGA/料金・instance binding・metadata filter・R2データソースを公式資料で再照合。既存のMarkdown/テキスト登録コードとの対応と、実索引・個人資料送信の未確認範囲を区別する。
 
 - [工程Eのモデル・セッション選定](e-codex-model-selection-20261005.md): 事前整理後/実装着手前/制御実装完了後の判断を時点別に保存。次の実環境準備は別セッション・GPT-6.1 Sol/Highを推奨。実fal許可/本人照合済みと未確定環境の引き継ぎを記録し、モデル設定/チャット作成・クラウド操作は行わない。

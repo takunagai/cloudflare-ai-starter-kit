@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   boundedBytes,
   imageOperation,
@@ -12,6 +12,12 @@ import {
   syntheticPng,
 } from "./media-image-fixtures";
 import { LARGE_JPEG, LARGE_WEBP } from "./media-large-image-fixtures";
+
+let maximumPixelPng: Awaited<ReturnType<typeof syntheticPng>>;
+beforeAll(async () => {
+  // fixtureの圧縮時間を検査時間と分ける。実デコードと拒否条件は各試験で確認する。
+  maximumPixelPng = await syntheticPng(4096, 2025);
+});
 
 describe("M-2 workerd actual image decoding", () => {
   it.each([
@@ -96,7 +102,7 @@ describe("M-2 workerd actual image decoding", () => {
     );
   });
   it("accepts the 8,294,400 pixel boundary in real workerd and rejects bigger header before decode", async () => {
-    const bytes = await syntheticPng(4096, 2025);
+    const bytes = maximumPixelPng;
     expect(await inspectImage(bytes, "image/png")).toMatchObject({
       width: 4096,
       height: 2025,
