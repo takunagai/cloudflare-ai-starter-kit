@@ -624,7 +624,9 @@ describe("B-2 authenticated standard staging on workerd/D1", () => {
     const body = input(id);
     const response = await call(req("/api/chat", headers, body));
     expect(response.status).toBe(200);
-    expect(await response.text()).toContain('"code":"generation_failed"');
+    expect(await response.text()).toContain(
+      '"code":"request_preparation_failed"',
+    );
     expect(
       await config.DB.prepare("SELECT status FROM chat_requests WHERE id=?")
         .bind(body.requestId)

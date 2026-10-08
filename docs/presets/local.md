@@ -22,7 +22,7 @@
 | チャット | `LOCAL_DEMO="true"`、`AI_MODE=local-demo`、`AI_ALLOWED_MODELS`は省略。`local/demo`の固定応答だけ |
 | Jev | 標準コードは搭載済み、`JEV_MODE=off`。`JEV_MODEL`と`TYPESAFE_API_KEY`は不要 |
 | 任意拡張 | RAG、agent、Workflows、画像、決済の5種ともOFF。未使用binding・アカウントを要求しない |
-| D1 | 公開設定の`DB`をローカルで使用。対象SQLは現行の全migration（0001〜0012・0014。0013は管理外の欠番）。実DBや旧検証台帳を持ち込まない |
+| D1 | 公開設定の`DB`をローカルで使用。対象SQLは現行の全migration（0001〜0012・0014・0015。0013は管理外の欠番）。実DBや旧検証台帳を持ち込まない |
 
 設定例は[local.jsonc](../../examples/presets/local.jsonc)、設定の正本は[公開プリセットとbuild境界](../公開プリセットとbuild境界.md)です。local例はtop-levelへ適用するJSONC断片で、単独deploy用ではありません。既存の公開`wrangler.jsonc`でも同じローカル開始が可能なので、起動のために断片をコピー・上書きする必要はありません。公開wranglerは従来のAI_MODE省略→local-demo互換を保持し、local例では明示しています。
 

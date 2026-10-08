@@ -1,3 +1,4 @@
+import type { RequestReceipt } from "../lib/reliability";
 import {
   chatModelAllowed,
   checkChatRuntimePolicy,
@@ -152,8 +153,8 @@ export async function reserveChat(
             ]
           : []),
       ),
-      env.DB.prepare(`INSERT INTO chat_requests(id,owner_id,conversation_id,model_id,input_hash,status,created_at)
-      SELECT ?,?,?,?,?, 'pending',? WHERE EXISTS(SELECT 1 FROM conversations WHERE id=? AND owner_id=? AND active_request_id=?)`).bind(
+      env.DB.prepare(`INSERT INTO chat_requests(id,owner_id,conversation_id,model_id,input_hash,status,created_at,inference_started)
+      SELECT ?,?,?,?,?, 'pending',?,0 WHERE EXISTS(SELECT 1 FROM conversations WHERE id=? AND owner_id=? AND active_request_id=?)`).bind(
         input.requestId,
         identity.id,
         input.conversationId,
@@ -220,9 +221,10 @@ export async function finishChat(
   content: string,
   status: "complete" | "failed" | "cancelled",
   sources: unknown[] = [],
+  failureCode: string | null = null,
 ) {
   const now = Date.now();
-  await env.DB.batch([
+  const saved = await env.DB.batch([
     env.DB.prepare(
       "UPDATE messages SET content=?,status=?,sources_json=? WHERE request_id=? AND role='assistant' AND status='pending'",
     ).bind(content, status, JSON.stringify(sources), input.requestId),
@@ -230,12 +232,54 @@ export async function finishChat(
       "UPDATE messages SET status=? WHERE request_id=? AND role='user' AND status='pending'",
     ).bind(status, input.requestId),
     env.DB.prepare(
-      "UPDATE chat_requests SET status=?,finished_at=? WHERE id=? AND owner_id=? AND status='pending'",
-    ).bind(status, now, input.requestId, identity.id),
+      "UPDATE chat_requests SET status=?,finished_at=?,failure_code=? WHERE id=? AND owner_id=? AND status='pending'",
+    ).bind(status, now, failureCode, input.requestId, identity.id),
     env.DB.prepare(
       "UPDATE conversations SET active_request_id=NULL,lock_until=NULL,updated_at=? WHERE id=? AND owner_id=? AND active_request_id=?",
     ).bind(now, input.conversationId, identity.id, input.requestId),
   ]);
+  // 完了なのに台帳が更新されない場合は、完了表示せず保存不明として扱う。
+  if (status === "complete" && !saved[2].meta.changes)
+    throw new ApiError(409, "history_save_failed");
+}
+
+export async function chatRequestStatus(
+  env: AppEnv,
+  identity: Identity,
+  id: string,
+): Promise<RequestReceipt> {
+  const row = await env.DB.prepare(
+    "SELECT id,conversation_id,status,inference_started,failure_code,created_at FROM chat_requests WHERE id=? AND owner_id=?",
+  )
+    .bind(id, identity.id)
+    .first<{
+      id: string;
+      conversation_id: string | null;
+      status: string;
+      inference_started: number | null;
+      failure_code: string | null;
+      created_at: number;
+    }>();
+  if (!row) throw new ApiError(404, "request_not_found");
+  const isStale =
+    row.status === "pending" && row.created_at < Date.now() - 120_000;
+  return {
+    requestId: row.id,
+    conversationId: row.conversation_id,
+    status: isStale ? "unknown" : row.status,
+    failureCode: row.failure_code,
+    // 1は推論が始まった可能性で、課金済みの証明ではない。NULLの旧要求は推論なしと推定しない。
+    inference:
+      row.inference_started === 0
+        ? "not_started"
+        : row.inference_started === 1
+          ? "may_have_run"
+          : "unknown",
+    canRetry:
+      row.status !== "pending" &&
+      row.status !== "complete" &&
+      row.inference_started === 0,
+  };
 }
 
 export async function chatHistory(

@@ -295,7 +295,9 @@ describe("staging verification admission and upstream boundary", () => {
         return history;
       },
     );
-    expect(await chat(await input())).toContain('"code":"generation_failed"');
+    expect(await chat(await input())).toContain(
+      '"code":"request_preparation_failed"',
+    );
     expect(await attempts()).toBe(1);
     expect(run).not.toHaveBeenCalled();
   });
@@ -305,7 +307,7 @@ describe("staging verification admission and upstream boundary", () => {
     run.mockRejectedValueOnce(new Error("synthetic-provider-error"));
     await chat(value);
     expect(await chat({ ...value, requestId: crypto.randomUUID() })).toContain(
-      '"code":"generation_failed"',
+      '"code":"history_read_failed"',
     );
     expect(await attempts()).toBe(2);
     expect(run).toHaveBeenCalledTimes(1);
@@ -392,7 +394,7 @@ describe("staging verification admission and upstream boundary", () => {
       ),
     ).toEqual(["system", "user", "assistant", "user"]);
     expect(await chat({ ...second, requestId: crypto.randomUUID() })).toContain(
-      '"code":"generation_failed"',
+      '"code":"history_read_failed"',
     );
     expect(run).toHaveBeenCalledTimes(2);
     expect(await attempts()).toBe(3);
@@ -403,7 +405,7 @@ describe("staging verification admission and upstream boundary", () => {
     const value = await input();
     await chat(value);
     expect(await chat({ ...value, requestId: crypto.randomUUID() })).toContain(
-      '"code":"generation_failed"',
+      '"code":"history_read_failed"',
     );
     expect(run).toHaveBeenCalledTimes(1);
     expect(await attempts()).toBe(2);
@@ -455,7 +457,7 @@ describe("staging verification admission and upstream boundary", () => {
       await vi.advanceTimersByTimeAsync(remaining - 1);
       expect(upstreamSignal?.aborted).toBe(false);
       await vi.advanceTimersByTimeAsync(1);
-      expect(await response).toContain('"code":"generation_failed"');
+      expect(await response).toContain('"code":"generation_timeout"');
       expect(upstreamSignal?.aborted).toBe(true);
       expect(run).toHaveBeenCalledTimes(1);
       expect(await attempts()).toBe(1);

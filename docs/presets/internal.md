@@ -22,7 +22,7 @@
 | チャット | `LOCAL_DEMO="true"`、`AI_MODE=local-demo` | `LOCAL_DEMO="false"`、`AI_MODE=off`。許可モデルは省略、AI binding・provider Secretなし |
 | Jev | `JEV_MODE=off` | 同じくoff。`JEV_MODEL`と`TYPESAFE_API_KEY`は不要。AI選択とは独立 |
 | 任意拡張 | RAG/agent/Workflows/画像/決済すべてOFF | 同じく5種OFF。AI_MODEはこれらを止める一括スイッチではない |
-| D1・公開経路 | ローカルDB、現行の全migration（0001〜0012・0014。0013は管理外の欠番） | 各環境専用DB。公開例はダミーDB、routeなし、workers.dev/preview URL無効 |
+| D1・公開経路 | ローカルDB、現行の全migration（0001〜0012・0014・0015。0013は管理外の欠番） | 各環境専用DB。公開例はダミーDB、routeなし、workers.dev/preview URL無効 |
 
 ローカルの架空登録成功はAccess認証の成功ではありません。AccessモードはBetter Auth cookieや認証APIを受け付けません。所有者IDは認証方式別で、メール一致による自動統合やローカルsessionの移送をしません。
 
@@ -45,7 +45,7 @@
 | --- | --- |
 | Access | `ACCESS_TEAM_DOMAIN`と`ACCESS_AUD`は公開例では空。実設定は本人がZero Trust → Access → Applicationsで管理。実ID/AUD/個別URLを文書・Gitへ記録しない |
 | 利用者・保護範囲・session | `/app`と保護APIの範囲、公開トップ/ヘルプ、有効なwebhookの扱いを決める。新環境の1時間sessionは既存計画の推奨案で未確定。既存の本人限定検証環境から無断コピーしない |
-| Worker・DB・origin | 新しい通常stagingとproductionそれぞれの専用リソース・HTTPS origin・現行の全migration（0001〜0012・0014。0013は管理外の欠番）の適用計画。作成・remote migrationは別承認 |
+| Worker・DB・origin | 新しい通常stagingとproductionそれぞれの専用リソース・HTTPS origin・現行の全migration（0001〜0012・0014・0015。0013は管理外の欠番）の適用計画。作成・remote migrationは別承認 |
 | チャットprovider | 初期OFF。必要時だけ`AI_MODE=selected`、非空の`AI_ALLOWED_MODELS`、選んだproviderのSecretまたはAI bindingを準備。資格情報だけではONにならない |
 | Jev remote | 選ぶ場合だけ固定`jev-1.13.0`・専用Secret・実契約と運用条件を確認。チャットと別に承認。既定OFFで起動できる |
 | 費用・終了方法 | 人数、総予算、回数、期間、共有利用、外部接続ごとの停止操作を未確定として残す。過去の検証予算を流用しない |

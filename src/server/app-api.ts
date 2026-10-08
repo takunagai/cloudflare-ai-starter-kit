@@ -12,7 +12,7 @@ import {
 import { getIdentity, handleAuth } from "./auth";
 import { handleBilling } from "./billing";
 import { handleChat } from "./chat";
-import { ownedConversation, rateLimit } from "./chat-store";
+import { chatRequestStatus, ownedConversation, rateLimit } from "./chat-store";
 import { handleDecisions } from "./decisions/routes";
 import { isEnabled, isLocalDevelopment } from "./env";
 import { handleExtensions } from "./extensions/routes";
@@ -214,6 +214,11 @@ export async function handleApp(
           sources: JSON.parse(String(sources_json)),
         })),
       });
+    }
+    const chatRequest = /^\/api\/chat\/requests\/([a-f0-9-]{36})$/.exec(path);
+    if (chatRequest) {
+      method(request, ["GET"]);
+      return json(await chatRequestStatus(env, identity, chatRequest[1]));
     }
     if (path === "/api/chat") {
       method(request, ["POST"]);

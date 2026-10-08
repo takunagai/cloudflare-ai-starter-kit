@@ -14,7 +14,7 @@ describe("工程E isolated migration", () => {
     const before = await database
       .prepare("SELECT * FROM d1_migrations ORDER BY id")
       .all();
-    expect(before.results).toHaveLength(13);
+    expect(before.results).toHaveLength(14);
     expect(
       await database
         .prepare("SELECT count(*) AS n FROM media_probe_run")

@@ -22,7 +22,7 @@
 | チャット | `LOCAL_DEMO="true"`、`AI_MODE=local-demo` | `LOCAL_DEMO="false"`、`AI_MODE=off`。許可モデル省略、AI binding・provider Secretなし |
 | Jev | `JEV_MODE=off` | 同じくoff。`JEV_MODEL`と`TYPESAFE_API_KEY`は不要。チャットモデルとは独立 |
 | 任意拡張 | RAG/agent/Workflows/画像/決済すべてOFF | 同じく5種OFF。公開用途を選んでも決済やGoogleを自動で有効にしない |
-| D1・公開経路 | ローカルDB、現行の全migration（0001〜0012・0014。0013は管理外の欠番） | 各環境専用DB。公開例はダミーDB、routeなし、workers.dev/preview URL無効 |
+| D1・公開経路 | ローカルDB、現行の全migration（0001〜0012・0014・0015。0013は管理外の欠番） | 各環境専用DB。公開例はダミーDB、routeなし、workers.dev/preview URL無効 |
 
 ローカルのメール確認省略・ダミーSecret・利用者/sessionを非localへ持ち込みません。staging/productionのBetter Authに必要な設定が不足すると認証処理は503で停止し、Accessや別方式へ自動切替しません。所有権は認証後もアプリで確認します。
 
@@ -48,7 +48,7 @@ mode/環境省略・不一致、必要ファイル不在、解決後の環境節
 | 認証Secret | `BETTER_AUTH_SECRET`は32文字以上の実Secretが必要。投入は別承認後に本人が会話外で行う。localダミーを転用しない |
 | 実メール | `EMAIL` binding、`EMAIL_FROM`、送信ドメインのonboard/DNS、テスト送信先・回数・費用。本人がEmail Serviceで管理。public例のbinding形だけでは送信成功にならない |
 | セッション・利用者 | 現行Better Authは7日/更新間隔1日。初版基準とする既存案を示し、公開前の用途別再確認を残す。新しく期間や許可対象を変更しない |
-| Worker・DB・origin・公開経路 | 各環境専用リソース・現行の全migration（0001〜0012・0014。0013は管理外の欠番）の適用計画、HTTPS origin、公開/保護APIとwebhookの到達性。作成・remote migration・公開切替は別承認 |
+| Worker・DB・origin・公開経路 | 各環境専用リソース・現行の全migration（0001〜0012・0014・0015。0013は管理外の欠番）の適用計画、HTTPS origin、公開/保護APIとwebhookの到達性。作成・remote migration・公開切替は別承認 |
 | チャットprovider | 初期OFF。必要時だけ`AI_MODE=selected`、非空の`AI_ALLOWED_MODELS`、選んだproviderのSecretまたはAI bindingを準備。資格情報だけではONにならない |
 | Jev remote | 選ぶ場合だけ固定`jev-1.13.0`・専用Secret・実契約と運用条件を確認。チャットとは別承認、初期OFFを維持 |
 | Google・決済等 | Googleは`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`の両方。Polarや他拡張は必要時だけ。標準起動やメール認証に要求しない |

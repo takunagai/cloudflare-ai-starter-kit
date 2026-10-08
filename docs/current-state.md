@@ -1,6 +1,6 @@
 # 現在地と次の作業
 
-更新日: 2026-10-08。再開時の入口はこの文書。実クラウドの最終確認は2026-10-06で、今回再照会していない。2026-10-08にCodexからClaude Codeへ担当を引き継いだ。ローカルD1は0014まで適用済み。
+更新日: 2026-10-08。再開時の入口はこの文書。実クラウドの最終確認は2026-10-06で、今回再照会していない。2026-10-08にCodexからClaude Codeへ担当を引き継いだ。ローカルD1は0015まで適用済み。
 
 ## 成果物と残件
 
@@ -11,7 +11,7 @@
 | 工程Eの限定fal接続 | 10月6日の1要求で画像のprivate保存、本人品質、ACL/匿名拒否を確認。終了処理も完了 | 短期token・自然期限はunknown、M-0条件未達。最終費用・上流消去完了は未確定 |
 | 失敗理由の診断 | 回収拒否と観測不明の固定分類を追加し、関連ローカル試験済み | 0014と診断修正は未配備。過去runの原因を後から確定できない |
 | 最初の用途別複製 | 別プロジェクトへ複製し、空DB/固定依存/ローカル検証を確認 | 複製先固有の機能・運用状態は複製先自身の文書で管理する |
-| 複製先からの逆輸入 | private-rag-chat（2026-10-06複製、Ver.0.1運用中）の差分を分類。Wave 1（CIシェル修正、source-map-js/sharpのoverride、画像fixtureのbeforeAll）を取り込み、check・audit 0件・preview smokeを確認。[根拠](../references/ci-dependencies-20261008.md) | Wave 2候補のチャット要求台帳・復旧（`inference_started`/`failure_code`、再送抑止、クライアント失敗分類、migration新設）は未適用。`prerenderHelpFor`はスターターで必要か未検証 |
+| 複製先からの逆輸入 | private-rag-chat（2026-10-06複製、Ver.0.1運用中）の差分を分類。Wave 1（CIシェル修正、source-map-js/sharpのoverride、画像fixtureのbeforeAll）と Wave 2（チャット要求台帳・復旧: 0015で`inference_started`/`failure_code`、`GET /api/chat/requests/:id`、ブラウザの要求ID記録と再送抑止、`api()`の失敗分類）を取り込み、check・audit 0件・preview smokeを確認。設計は[チャット設計](chat.md#要求台帳と再送2026-10-08複製先private-rag-chatから逆輸入)、根拠は[CI依存](../references/ci-dependencies-20261008.md) | RAG専用（rag-*、trial台帳、rag_sync、索引UI）は逆輸入しない。`prerenderHelpFor`はスターターで必要か未検証。0015は実環境に未配備 |
 
 ## 今回の改善と有効な許可
 

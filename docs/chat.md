@@ -1,6 +1,6 @@
 # チャット・履歴・承認付きツール
 
-確認日: 2026-09-27。`src/server/chat.ts`、`chat-store.ts`、`agent-tools.ts`が実装の正本。通常CIは外部AIを呼ばず、Workers内でD1とSDK経路を検証する。
+確認日: 2026-10-08。`src/server/chat.ts`、`chat-store.ts`、`agent-tools.ts`が実装の正本。通常CIは外部AIを呼ばず、Workers内でD1とSDK経路を検証する。
 
 ## データと権限
 
@@ -29,6 +29,16 @@
 自動モデルretryは0回。通信断・中断・deadline後も上流処理や課金が止まる保証はない。プロバイダー側の予算・請求上限も設定する。日次回数は金額上限ではなく、toolモードの1要求には最大3回のモデル呼出しが含まれる。
 
 SSEは`start`→`delta`→`finish`。失敗時は固定の`error`コードを送り、途中本文をfailed/cancelledで保存する。履歴保存に失敗した場合は完了表示せず`history_save_failed`とし、残った予約は期限後に回復する。SDK例外、入力、認証情報はログへ出さない。ページ再読込によるストリーム途中からの再開は対象外。
+
+## 要求台帳と再送（2026-10-08、複製先private-rag-chatから逆輸入）
+
+通信断やストリーム中断の後に同じ入力を再送して二重に推論・課金しないよう、要求ごとの台帳と失敗分類を持つ。管理場所は`migrations/0015_chat_reliability.sql`、`src/lib/reliability.ts`、`src/components/request-recovery.ts`。
+
+- 台帳`chat_requests`は`inference_started`（新規要求は0、モデル呼出し直前に1）と`failure_code`を持つ。1は推論が始まった可能性で、課金済みの証明ではない。印を永続化できなければモデルを呼ばない。0015適用前の既存要求はNULLのまま残し、推論なしと推定しない。
+- 失敗は段階ごとに固定分類する。推論前: `history_read_failed`、`request_preparation_failed`。推論後: `generation_failed`、`generation_cancelled`、`generation_timeout`。保存不明: `history_save_failed`。再利用: `request_in_progress`、`request_already_used`、`request_id_conflict`。文言の正本は`FAILURE_MESSAGES`で、上流の生エラー・本文・資格情報を含めない。
+- `GET /api/chat/requests/:requestId`は認証済み所有者の受付記録だけを返す（`status`、`inference`、`failureCode`、`canRetry`）。120秒を超えたpendingは`unknown`。`canRetry`は推論前の失敗だけtrue。検索・推論は呼ばない。
+- ブラウザは送信前に利用者ごとの要求IDと会話IDだけをlocalStorageへ記録する。本文・回答・出典は保存しない。再読込後も結果未確認なら新しい送信を止め、「要求の状態と履歴を確認」で台帳と履歴を照合する。完了確認、または推論前失敗を確認した本人の入力再開で記録を消す。記録できないブラウザでは送信しない。受付前に確定した4xx（入力不正・未知モデル・上限等）は台帳に残らないため記録を消す。
+- `api()`はfetch失敗を`network_unconfirmed`、401/redirectを`authentication_required`、非JSON応答を`unexpected_response`に分類する。
 
 履歴APIは最新1,000メッセージを返す。長大な履歴のページングや検索は複製先で追加する。日次枠台帳を不用意に削除しない。分単位のAPI counterは期限後のリクエストで掃除する。
 

@@ -11,6 +11,16 @@ import {
 } from "../components/api-client";
 import { AuthPanel } from "../components/auth-panel";
 import { ExtensionsPanel } from "../components/extensions-panel";
+import {
+  forgetRequest,
+  pendingRequest,
+  rememberRequest,
+} from "../components/request-recovery";
+import {
+  failureMessage,
+  type PendingRequest,
+  type RequestReceipt,
+} from "../lib/reliability";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -108,12 +118,65 @@ function Workspace() {
   const [revision, setRevision] = useState(0);
   const [extensionVersion, setExtensionVersion] = useState(0);
   const [notice, setNotice] = useState("");
+  const [pending, setPending] = useState<PendingRequest | null>(null);
+  const [receipt, setReceipt] = useState<RequestReceipt | null>(null);
+  const [isCheckingRequest, setCheckingRequest] = useState(false);
+  const [isRecoveryReady, setRecoveryReady] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const end = useRef<HTMLDivElement | null>(null);
   const currentConversation = conversations.find(
     (item) => item.id === selected,
   );
   const identityId = resetMode ? undefined : session?.identity?.id;
+  useEffect(() => {
+    setRecoveryReady(false);
+    if (!identityId) return;
+    const restore = () => {
+      try {
+        setPending(pendingRequest(identityId));
+        setReceipt(null);
+        setRecoveryReady(true);
+      } catch (caught) {
+        setError(errorCode(caught));
+      }
+    };
+    restore();
+    window.addEventListener("storage", restore);
+    return () => window.removeEventListener("storage", restore);
+  }, [identityId]);
+
+  async function reconcileRequest() {
+    if (!pending || !identityId) return;
+    setCheckingRequest(true);
+    setError("");
+    try {
+      const result = await api<RequestReceipt>(
+        `/api/chat/requests/${pending.requestId}`,
+      );
+      setReceipt(result);
+      if (result.conversationId) {
+        const history = await api<{ messages: Message[] }>(
+          `/api/conversations/${result.conversationId}`,
+        );
+        setSelected(result.conversationId);
+        setMessages(history.messages);
+        setSources([]);
+      }
+      if (result.status === "complete") {
+        forgetRequest(identityId, pending.requestId);
+        setPending(null);
+        setNotice(
+          result.conversationId
+            ? "保存済みの回答を復元しました。再生成していません。"
+            : "要求の完了記録を確認しました。会話は削除済みです。再生成していません。",
+        );
+      }
+    } catch (caught) {
+      setError(errorCode(caught));
+    } finally {
+      setCheckingRequest(false);
+    }
+  }
 
   const loadSession = useCallback(async () => {
     const data = await api<Session>("/api/session");
@@ -226,7 +289,27 @@ function Workspace() {
   async function send(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const message = draft.trim();
-    if (!message || sending || !modelId || loadingHistory) return;
+    if (
+      !message ||
+      controller.current ||
+      sending ||
+      !modelId ||
+      loadingHistory ||
+      !identityId ||
+      !isRecoveryReady ||
+      pending
+    )
+      return;
+    try {
+      const outstanding = pendingRequest(identityId);
+      if (outstanding) {
+        setPending(outstanding);
+        return;
+      }
+    } catch (caught) {
+      setError(errorCode(caught));
+      return;
+    }
     const abort = new AbortController();
     controller.current = abort;
     setSending(true);
@@ -236,6 +319,7 @@ function Workspace() {
     let conversationId = selected;
     const assistantId = crypto.randomUUID();
     let finished = false;
+    const requestId = crypto.randomUUID();
     try {
       if (!conversationId) {
         const created = await api<{ conversation: Conversation }>(
@@ -247,6 +331,11 @@ function Workspace() {
         setConversations((items) => [created.conversation, ...items]);
       }
       if (abort.signal.aborted) return;
+      // 送信前に要求IDだけを記録し、結果未確認のまま再送しない。
+      const recovery = { requestId, conversationId };
+      rememberRequest(identityId, recovery);
+      setPending(recovery);
+      setReceipt(null);
       setMessages((items) => [
         ...items,
         {
@@ -270,16 +359,39 @@ function Workspace() {
         signal: abort.signal,
         body: JSON.stringify({
           conversationId,
-          requestId: crypto.randomUUID(),
+          requestId,
           modelId,
           message,
           ...(useRag && session?.features.rag ? { rag: true } : {}),
           ...(useAgent && session?.features.agent ? { agent: true } : {}),
         }),
+      }).catch(() => {
+        throw new ClientError("network_unconfirmed");
       });
+      if (response.redirected || response.status === 401)
+        throw new ClientError("authentication_required");
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new ClientError(responseError(data));
+        const code = responseError(data);
+        // 受付前に確定した4xxは要求が台帳に残らないため、記録を消して入力を再開できる。
+        if (
+          [
+            "invalid_input",
+            "invalid_json",
+            "payload_too_large",
+            "unsupported_media_type",
+            "unknown_model",
+            "model_unavailable",
+            "feature_disabled",
+            "conversation_not_found",
+            "quota_or_concurrency_limit",
+            "rate_limit_exceeded",
+          ].includes(code)
+        ) {
+          forgetRequest(identityId, requestId);
+          setPending(null);
+        }
+        throw new ClientError(code);
       }
       if (response.headers.get("Content-Type")?.includes("application/json")) {
         const data = await response.json();
@@ -292,6 +404,10 @@ function Workspace() {
           throw new ClientError("invalid_chat_response");
         finished = true;
       } else {
+        if (
+          !response.headers.get("Content-Type")?.includes("text/event-stream")
+        )
+          throw new ClientError("unexpected_response");
         await consumeEvents(response, (item) => {
           if (item.type === "delta" && typeof item.text === "string")
             setMessages((items) =>
@@ -314,6 +430,8 @@ function Workspace() {
         });
       }
       if (!finished) throw new ClientError("stream_interrupted");
+      forgetRequest(identityId, requestId);
+      setPending(null);
     } catch (caught) {
       if (abort.signal.aborted)
         setNotice("応答を中断しました。履歴を再取得します。");
@@ -399,13 +517,54 @@ function Workspace() {
       </div>
       {error && (
         <p className="app-error" role="alert">
-          処理できませんでした：{error}
+          {failureMessage(error)}
         </p>
       )}
       {notice && (
         <p className="app-notice" role="status">
           {notice}
         </p>
+      )}
+      {pending && !sending && (
+        <section className="resource-card" aria-label="送信結果の確認">
+          <h2>再送前に、前の要求を確認してください</h2>
+          <p>要求ID：{pending.requestId}</p>
+          <p>確認は保存済み台帳と履歴だけを読みます。回答生成は行いません。</p>
+          {receipt && (
+            <p>
+              {receipt.status === "pending"
+                ? "処理中です。時間を置いて確認してください。"
+                : receipt.canRetry
+                  ? "推論開始前の失敗を確認しました。"
+                  : "処理結果または課金が不明です。新しい要求として再送しないでください。"}
+            </p>
+          )}
+          {receipt?.failureCode && <p>{failureMessage(receipt.failureCode)}</p>}
+          <button
+            type="button"
+            disabled={isCheckingRequest}
+            onClick={() => void reconcileRequest()}
+          >
+            要求の状態と履歴を確認
+          </button>
+          {receipt?.canRetry && receipt.requestId === pending.requestId && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!identityId) return;
+                try {
+                  forgetRequest(identityId, pending.requestId);
+                  setPending(null);
+                  setReceipt(null);
+                } catch (caught) {
+                  setError(errorCode(caught));
+                }
+              }}
+            >
+              推論前の失敗を確認して、入力を再開
+            </button>
+          )}
+        </section>
       )}
       <div className="chat-layout">
         <aside className="conversation-sidebar" aria-label="会話履歴">
@@ -619,7 +778,13 @@ function Workspace() {
               ) : (
                 <button
                   type="submit"
-                  disabled={!draft.trim() || !modelId || loadingHistory}
+                  disabled={
+                    !draft.trim() ||
+                    !modelId ||
+                    loadingHistory ||
+                    !!pending ||
+                    !isRecoveryReady
+                  }
                 >
                   送信する →
                 </button>

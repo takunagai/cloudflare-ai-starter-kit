@@ -28,8 +28,16 @@ export async function api<T>(
       body === undefined ? undefined : { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(30000),
+  }).catch(() => {
+    throw new ClientError("network_unconfirmed");
   });
-  const data = await response.json().catch(() => ({}));
+  if (response.status === 401 || response.redirected)
+    throw new ClientError("authentication_required");
+  if (!response.headers.get("Content-Type")?.includes("application/json"))
+    throw new ClientError("unexpected_response");
+  const data = await response.json().catch(() => {
+    throw new ClientError("unexpected_response");
+  });
   if (!response.ok) throw new ClientError(responseError(data));
   return data as T;
 }
