@@ -99,7 +99,7 @@ Cloudflareの`wrangler secret put`は即時deployを伴う外部変更として�
 
 `migrations/`の連番SQLを履歴管理する。認証はDrizzle schemaとSQLの列・制約一致を実D1テストで確認する。チャットと拡張の枠予約・冪等処理は明示SQLとD1の原子的batchを使う。自動schema pushは使わず、変更ごとに次番号のSQLを追加してレビューする。適用済みSQLを編集しない。空DBへの全適用・再適用と、既存データを保持した追加migrationを検証する。
 
-ローカルは`pnpm db:migrate:local`。認証・会話・資料metadata・ジョブ・課金台帳・Jev要求metadata・共通メディア/限定確認基盤を同じ環境のD1へ保存し、現行は0001〜0011。工程Eではこの通常コマンドを元DBへ実行せず、新しい専用`--persist-to`/Vite `persistState`の隔離DBだけへ全11本を適用した。リモートは別承認後に対象の管理外設定・環境・DB bindingを明示して適用する。公開wranglerのダミーIDや旧verificationの設定を新しい通常stagingへ流用しない。productionも対象を明示して別に適用する。M-1〜M-4の隔離検証とC-1の未適用記録は各時点の結果として保持する。
+ローカルは`pnpm db:migrate:local`。認証・会話・資料metadata・ジョブ・課金台帳・Jev要求metadata・共通メディア/限定確認基盤を同じ環境のD1へ保存し、現行は0001〜0012と0014（0013は管理外の欠番、公開13本）。工程Eではこの通常コマンドを元DBへ実行せず、新しい専用`--persist-to`/Vite `persistState`の隔離DBだけへ全11本を適用した。リモートは別承認後に対象の管理外設定・環境・DB bindingを明示して適用する。公開wranglerのダミーIDや旧verificationの設定を新しい通常stagingへ流用しない。productionも対象を明示して別に適用する。M-1〜M-4の隔離検証とC-1の未適用記録は各時点の結果として保持する。
 
 リモート適用前に対象環境とDBを照合し、バックアップ/復旧可能点、既存コードとの互換性、適用順を確認する。staging検証後にproductionへ進む。削除・rename・型変更など既存データへの影響がある変更は、追加→移行→削除の段階的変更を優先する。SQL生成や型検査が成功しても、DBへ適用済みとは扱わない。
 

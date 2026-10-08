@@ -10,6 +10,8 @@
       "!!.wrangler.staging.local.jsonc",
       "!!.wrangler.standard-staging.local.jsonc",
       "!!.wrangler.production.local.jsonc",
+      "!!.wrangler.e-probe-20261006.local.jsonc",
+      "!!.superset",
       "!!.publication-recovery",
       "!!.tanstack"
     ]
