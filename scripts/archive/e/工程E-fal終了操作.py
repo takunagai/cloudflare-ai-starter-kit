@@ -60,7 +60,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=["billing", "finish"])
     args = parser.parse_args()
-    directory = Path(__file__).resolve().parent.parent / ".wrangler/e-live"
+    directory = Path(__file__).resolve().parents[3] / ".wrangler/e-live"
     try:
         target = read_private(directory / "終了対象.txt")
         matches = re.findall(r"^request ID: ([0-9a-fA-F-]{36})$", target, re.M)

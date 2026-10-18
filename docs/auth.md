@@ -75,6 +75,6 @@ Drizzle adapterではD1が対応しないinteractive transactionを無効化し�
 
 `tests/auth.test.ts` はworkerd＋D1で登録・ログイン・ログアウト・失効・cookie属性・Origin拒否・永続rate limit・認証方式分離・メール確認・一度だけのパスワード再設定を検証します。`tests/auth-access.test.ts` は実RSA署名とJOSE検証を使い、署名/issuer/audience/期限/不正claims/鍵/方式を検証します。Access JWKS取得とメール配送だけをfake化します。
 
-アプリの実メール配送、Google認証、新しい通常staging/productionのCloudflare Accessは未接続です。旧本人限定検証stagingでは過去のAccessログイン確認を実施済みですが、新環境の実Access/JWKS/OTP・公開サービスのメール確認には流用しません。ローカル/fakeのテスト合格を実疎通成功と読み替えないでください。[B-4までの証拠](B4完了-次セッション開始プロンプト.md)と[C-1文書検証](C1完了-次セッション開始プロンプト.md)を区別します。
+アプリの実メール配送、Google認証、新しい通常staging/productionのCloudflare Accessは未接続です。旧本人限定検証stagingでは過去のAccessログイン確認を実施済みですが、新環境の実Access/JWKS/OTP・公開サービスのメール確認には流用しません。ローカル/fakeのテスト合格を実疎通成功と読み替えないでください。[B-4までの証拠](archive/B4完了-次セッション開始プロンプト.md)と[C-1文書検証](archive/C1完了-次セッション開始プロンプト.md)を区別します。
 
 一次資料: [Better Auth Email & Password](https://better-auth.com/docs/authentication/email-password)、[Drizzle adapter](https://better-auth.com/docs/adapters/drizzle)、[Security](https://better-auth.com/docs/reference/security)、[Rate Limit](https://better-auth.com/docs/concepts/rate-limit)、[Cloudflare Access JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)。確認日: 2026-09-27。

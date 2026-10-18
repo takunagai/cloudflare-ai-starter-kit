@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def main():
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parents[3]
     try:
         source = json.loads(
             (root / ".wrangler.standard-staging.local.jsonc").read_text()

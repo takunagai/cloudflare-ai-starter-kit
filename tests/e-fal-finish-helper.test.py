@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-HELPER = runpy.run_path(str(ROOT / "docs/工程E-新隔離fal終了操作.py"))
+HELPER = runpy.run_path(str(ROOT / "scripts/archive/e/工程E-新隔離fal終了操作.py"))
 VALIDATE = HELPER["validate_target"]
 FINISH_OVERRIDE_MATCHES = HELPER["finish_override_matches"]
 NOW = datetime(2026, 10, 6, 1, 30, tzinfo=timezone.utc).timestamp()

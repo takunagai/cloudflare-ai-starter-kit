@@ -107,9 +107,9 @@ def build_config(template, values):
 
 
 def main():
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parents[3]
     path = root / CONFIG_NAME
-    template_path = root / "docs/工程E-初期OFF設定例.jsonc"
+    template_path = root / "scripts/archive/e/工程E-初期OFF設定例.jsonc"
     try:
         if path.exists() or path.is_symlink():
             raise ValueError("target_exists")

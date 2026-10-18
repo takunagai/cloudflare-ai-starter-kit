@@ -9,7 +9,7 @@
 | [Models: GPT-6.1 Sol](https://learn.chatgpt.com/docs/models#gpt-6.1-sol) | Codex desktop/CLIでの対象プランとモデルID、モデル/エフォートの設定がプラン・クライアント・workspace設定等に依存することを確認。この環境ではhighを含む選択肢が提示されているが、別環境の利用可否は保証しない |
 | [Model selection](https://developers.openai.com/api/docs/guides/model-selection#when-to-consider-gpt-61-sol) | 費用も考慮する複雑なプロジェクトでSolを検討し、Astraとは同じ課題で比較して品質/費用を判断する指針。今回その比較試験は行っていない |
 
-別セッションでの開始方法と作業範囲は[M-1指示書](../handover/指示書_M1共通ジョブ開始.md)を参照。選定記録だけでM-1の実装や外部操作の許可を与えない。
+別セッションでの開始方法と作業範囲はM-1指示書（`handover/指示書_M1共通ジョブ開始.md`、Vaultへアーカイブ済み）を参照。選定記録だけでM-1の実装や外部操作の許可を与えない。
 
 ## M-1完了後のM-2向け再確認
 

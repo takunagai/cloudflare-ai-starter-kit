@@ -16,7 +16,7 @@ def main():
     parser.add_argument("--verify-generated", action="store_true")
     parser.add_argument("--build-and-verify", action="store_true")
     arguments = parser.parse_args()
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parents[3]
     path = root / ".wrangler.standard-staging.local.jsonc"
     try:
         metadata = path.lstat()

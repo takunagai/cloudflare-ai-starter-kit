@@ -4,7 +4,7 @@
 
 公式[文書索引](https://docs.typesafe.ai/llms.txt)、[API](https://docs.typesafe.ai/api)、[Choice](https://docs.typesafe.ai/primitives/choice)、[Score](https://docs.typesafe.ai/primitives/score)、[Noul](https://docs.typesafe.ai/primitives/noul)、[Intent routing](https://docs.typesafe.ai/patterns/intent-routing)を再照合した。`.md`形式の一部取得は失敗したが通常ページの取得を完了。固定endpoint/Bearer・state/model/questions、3型のanswer/usageに採用契約の変更が必要な差異は確認しなかった。公式SDKの既定retry/backoffへ切り替えず、アプリ契約の固定版・retry0を維持した。アカウント/Legalの実適用条件・実料金/日本語品質は今回再確認していない。
 
-ローカル実装は固定fetch/3型検証・独立要求台帳/1claim/90日/unknown停止まで完了。公式のCloudflare互換保証や実接続成功とは区別し、[対象版のworkerd/D1/fake検証](../docs/B3J完了-次セッション開始プロンプト.md)を根拠とする。以下の「新migration/コード未作成」「実装許可前」は設計セッションの履歴。
+ローカル実装は固定fetch/3型検証・独立要求台帳/1claim/90日/unknown停止まで完了。公式のCloudflare互換保証や実接続成功とは区別し、[対象版のworkerd/D1/fake検証](../docs/archive/B3J完了-次セッション開始プロンプト.md)を根拠とする。以下の「新migration/コード未作成」「実装許可前」は設計セッションの履歴。
 
 確認日: 2026-10-02。公開公式文書の読取だけ。アカウントAPI/実推論/SDK導入/Secret/実クラウドへ接続していない。[従来の標準採用記録](typesafe-jev-20261002.md)を保持し、[実装前契約](../docs/Jev-B3J-実装前契約.md)のアプリ独自の採用値と公式仕様を分ける。
 

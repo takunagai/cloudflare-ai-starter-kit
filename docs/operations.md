@@ -2,9 +2,9 @@
 
 現在の進捗・有効な許可・次の担当は[current-state.md](current-state.md)を参照する。本書の各日付付き追記は当時の記録であり、新しい実行許可ではない。失敗時の固定分類と確認順は[診断手順](diagnostics.md)を使う。
 
-2026-10-06・工程Eの観測unknown向けに[固定分類migration 0014](../migrations/0014_media_probe_observation_reason.sql)と通常コードをローカル追加した。期限切れtoken/媒体の合格条件は緩めず、分類は非権威の診断補足として保持し、復旧witnessの旧列形を維持する。閉鎖済みの10月6日専用runは管理外0013を使用済みで、当時の[SQL準備script](../scripts/prepare-e-wire.mjs)は公開0001〜0012の12本だけに固定した。新0014の実配備・既存D1へのmigration適用は未許可/未実施。次回の実確認には新対象と別承認が必要。[現在地](plan.md)を参照。
+2026-10-06・工程Eの観測unknown向けに[固定分類migration 0014](../migrations/0014_media_probe_observation_reason.sql)と通常コードをローカル追加した。期限切れtoken/媒体の合格条件は緩めず、分類は非権威の診断補足として保持し、復旧witnessの旧列形を維持する。閉鎖済みの10月6日専用runは管理外0013を使用済みで、当時の[SQL準備script](../scripts/prepare-e-wire.mjs)は公開0001〜0012の12本だけに固定した。新0014の実配備・既存D1へのmigration適用は未許可/未実施。次回の実確認には新対象と別承認が必要。[現在地](current-state.md)を参照。
 
-2026-10-06・新隔離の限定実接続を終了。1要求は上流completed/回収stored、本人品質・作成時ACL/匿名拒否pass、300秒token/3600秒自然期限unknown。自然期限unknownでも当該要求の削除を行う本人の追加判断を受け、[本人用終了helper](工程E-新隔離fal終了操作.py)の`finish --allow-unverified-expiry`を当該1要求に限り使用した。管理API結果は本人報告で、課金GET200/一致1/$1以内、上流DELETE200/1試行/CDN結果0/unknown。Cloudflare private R2画像1を物理削除しroot0、本文/出力参照0、容量held0/解放1、アプリ閉鎖1。Access Allow0/Block1・当該token取消の監査成功、OFF配備と本人Secret除去の即時配備を含め計6回。実WorkerはFAL_KEY不在/probe・通常生成/画像・AI/Jev OFF、通常gate空、専用D1/R2一致、workers.dev/preview無効。本人の一時falキー失効報告を受領し、既存ADMINキーは変更しない。OFFのWorker/D1/R2と本文なし最小台帳は保持。短期token/自然期限・上流消去/最終請求/Cloudflare増分費用は未確定で、M-0は未達。[結果と証拠の限界](工程E-制御実装と隔離検証.md)を参照。以下は各時点の履歴。
+2026-10-06・新隔離の限定実接続を終了。1要求は上流completed/回収stored、本人品質・作成時ACL/匿名拒否pass、300秒token/3600秒自然期限unknown。自然期限unknownでも当該要求の削除を行う本人の追加判断を受け、[本人用終了helper](../scripts/archive/e/工程E-新隔離fal終了操作.py)の`finish --allow-unverified-expiry`を当該1要求に限り使用した。管理API結果は本人報告で、課金GET200/一致1/$1以内、上流DELETE200/1試行/CDN結果0/unknown。Cloudflare private R2画像1を物理削除しroot0、本文/出力参照0、容量held0/解放1、アプリ閉鎖1。Access Allow0/Block1・当該token取消の監査成功、OFF配備と本人Secret除去の即時配備を含め計6回。実WorkerはFAL_KEY不在/probe・通常生成/画像・AI/Jev OFF、通常gate空、専用D1/R2一致、workers.dev/preview無効。本人の一時falキー失効報告を受領し、既存ADMINキーは変更しない。OFFのWorker/D1/R2と本文なし最小台帳は保持。短期token/自然期限・上流消去/最終請求/Cloudflare増分費用は未確定で、M-0は未達。[結果と証拠の限界](工程E-制御実装と隔離検証.md)を参照。以下は各時点の履歴。
 
 2026-10-06・工程Eの次版はnullable画像metadataの受入と、本文/URLを含まない固定拒否分類の[0012](../migrations/0012_media_probe_invalid_reason.sql)を追加したローカル差分。既存の閉鎖済みD1/Worker/R2へは未適用。[新しい隔離対象の実行条件](工程E-制御実装と隔離検証.md#次の実確認の実行条件10月6日の指定窓は開始条件未達)を具体化したが、06:45〜07:15 JSTの準備ではCloudflare API書込みが認証関連エラーで止まり、新D1/R2各0件を確認。固定窓は登録・延長せず、新規fal送信なし。旧runの再登録・枠復活・2回目送信を行わない。以下は各時点の履歴。
 
@@ -26,11 +26,11 @@
 
 2026-10-04・M-1: [共通ジョブ・新旧合算・本文30日/台帳90日・容量解放・復旧gate](M1-共通メディアジョブと保持.md)を実装した。0008は隔離したローカル試験DBだけへ適用し、元利用DB/実環境は未変更。新旧の受付は0008適用後の共有上限を通る。復元前は全書込み/外部送信を止め、正しい台帳/削除記録と上流を照合するまで再有効化しない。検証/完了状態はplanを参照。以下は各工程当時の履歴。
 
-2026-10-02・C-1: [local](presets/local.md)・[個人/社内](presets/internal.md)・[公開サービス](presets/public.md)の文書3入口と本書の停止条件を整合しました。実設定・認証方針・費用条件は変更せず、実接続/配備を許可していません。[C-1の文書検証と引き継ぎ](C1完了-次セッション開始プロンプト.md)を参照してください。以下のB-4/B-3J等は当時の実施記録です。
+2026-10-02・C-1: [local](presets/local.md)・[個人/社内](presets/internal.md)・[公開サービス](presets/public.md)の文書3入口と本書の停止条件を整合しました。実設定・認証方針・費用条件は変更せず、実接続/配備を許可していません。[C-1の文書検証と引き継ぎ](archive/C1完了-次セッション開始プロンプト.md)を参照してください。以下のB-4/B-3J等は当時の実施記録です。
 
-2026-10-02・B-4: [公開5設定例とbuild境界](公開プリセットとbuild境界.md)を実装/ローカル検証した。旧staging-localの解決先を保持し、通常staging/productionを新しい管理外設定へ明示選択する。mode/環境不一致・必要ファイル不在・解決後のAPP_ENV/ポリシー不一致で停止。全例Jev/任意拡張OFF。実設定/旧台帳・依存/lockfile/0001〜0007は変更なし。[今回の証拠と最終Git](B4完了-次セッション開始プロンプト.md)を参照。以下のB-4未実装/次工程は過去の記録で、現在の配備/実接続許可ではない。
+2026-10-02・B-4: [公開5設定例とbuild境界](公開プリセットとbuild境界.md)を実装/ローカル検証した。旧staging-localの解決先を保持し、通常staging/productionを新しい管理外設定へ明示選択する。mode/環境不一致・必要ファイル不在・解決後のAPP_ENV/ポリシー不一致で停止。全例Jev/任意拡張OFF。実設定/旧台帳・依存/lockfile/0001〜0007は変更なし。[今回の証拠と最終Git](archive/B4完了-次セッション開始プロンプト.md)を参照。以下のB-4未実装/次工程は過去の記録で、現在の配備/実接続許可ではない。
 
-2026-10-02・B-3J実装/ローカル適用: [0007](../migrations/0007_decision_requests.sql)は本文/結果/hashなしの専用要求台帳1tableとindex/CHECKだけの追加です。既存ローカルD1へ1件適用、再適用0件。空DB/0006からの追加/再適用と合成の既存チャット・旧消費台帳保持をworkerd/D1で確認しました。0001〜0006・既存配備設定・実リソースは変更なし。未適用tableは503、HTTPでschema自動作成しません。rollbackで新台帳をDROPせず、unknownを自動解放/再送/削除しません。復元時はJev OFF/受付停止と照合完了までの再有効化禁止を維持します。[保持・削除遅延・復旧の契約](Jev-B3J-実装前契約.md#保持期限migrationの条件)、[最終検証](B3J完了-次セッション開始プロンプト.md)を参照。以下の実装許可待ちの節は履歴です。
+2026-10-02・B-3J実装/ローカル適用: [0007](../migrations/0007_decision_requests.sql)は本文/結果/hashなしの専用要求台帳1tableとindex/CHECKだけの追加です。既存ローカルD1へ1件適用、再適用0件。空DB/0006からの追加/再適用と合成の既存チャット・旧消費台帳保持をworkerd/D1で確認しました。0001〜0006・既存配備設定・実リソースは変更なし。未適用tableは503、HTTPでschema自動作成しません。rollbackで新台帳をDROPせず、unknownを自動解放/再送/削除しません。復元時はJev OFF/受付停止と照合完了までの再有効化禁止を維持します。[保持・削除遅延・復旧の契約](Jev-B3J-実装前契約.md#保持期限migrationの条件)、[最終検証](archive/B3J完了-次セッション開始プロンプト.md)を参照。以下の実装許可待ちの節は履歴です。
 
 2026-10-02・B-3Jの採用済み設定メモ: 本人の3組への回答で[API/独立枠/全数値/本文なし台帳/保持・削除/復元契約](Jev-B3J-実装前契約.md)を確定しました。終端90日・結果非保存/再表示なし、unknownの消費/同時枠保持と自動再送/削除/枠返却なし、metadata回復の独立を採用。unknown3件で環境停止し得る点、停止環境での物理削除遅延、backup復元によるclaim巻戻りを維持します。新SQLは別の実装許可後に次空き番号へ追加し、現在0001〜0006と配備設定を維持。上流契約の本文/派生情報/backup保持・不明要求の修復、実料金/失敗課金/credit自動補充は実接続前の別確認です。今回コード/SDK/migration/Cron/automation・実環境操作は行っていません。
 

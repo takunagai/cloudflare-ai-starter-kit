@@ -57,7 +57,7 @@ HTTP smokeはSSR本文・meta、ヘルプ、未知ページの404、未知APIの
 1. 起動中のローカルプレビュー `http://127.0.0.1:4173` を開く。停止している場合はREADMEの固定Node/pnpmで `pnpm build` → `pnpm preview`。
 2. 接続確認ボタンで成功表示、ヘルプへの移動を確認する。
 3. 必要に応じて `pnpm check` と、別ターミナルで `pnpm smoke`。
-4. 環境を確認後、Codexで `/init 日本語で` を実行する。共通ルールの材料は [development-rules.md](development-rules.md)。
+4. 環境を確認後、Codexで `/init 日本語で` を実行する。共通ルールの材料は [development-rules.md](archive/development-rules.md)。
 5. 第2段階の再開を明示する。その時点で生成された指示ファイルを読み直す。
 
 第1段階完了後は元の指示に従ってGoalをpausedにする。Goal全体は未完了。AGENTS.md / CLAUDE.mdは先行生成しない。

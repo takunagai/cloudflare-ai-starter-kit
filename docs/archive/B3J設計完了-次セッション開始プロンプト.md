@@ -10,7 +10,7 @@
 
 後続セッション開始時の実Gitは初回設計終了と一致した。main、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更29＋未追跡14＝43件。元40件＋初回追加3文書の一覧に不足/追加なし。remote再照会なし。共通ルール6文書を実読し、共通公開保護フックのstatus3項目ともtrueを確認。設定/例外/baselineは変更していない。
 
-本人から次の3組の採用回答をそれぞれ受領し、[実装前契約](Jev-B3J-実装前契約.md)を採用済みへ変更した。
+本人から次の3組の採用回答をそれぞれ受領し、[実装前契約](../Jev-B3J-実装前契約.md)を採用済みへ変更した。
 
 | 採用回答 | 確定した契約と影響 |
 | --- | --- |
@@ -18,7 +18,7 @@
 | 質問2: 契約表の独立枠・数値上限を採用 | 所有者20/UTC日・5/直近60秒・同時1、環境200/UTC日・同時3。入力2,000 code points/8,000 bytes、body16 KiB、fetch15秒/全処理20秒、retry0と契約表の他の全数値。既存チャット枠とは独立 |
 | 質問3: 台帳・保持・unknown停止を採用 | 本文/結果/入力hashなし、終端90日、結果再表示なし、同キー再実行拒否。unknownは消費/同時枠を保持し自動再送/削除/解放しない。3件で環境停止し得る |
 
-推奨案から数値・schema・API範囲の変更はなく、決定状態だけを確定した。公開公式ページでAPI/3型/固定版/料金/Legal/D1を再照合し、Confidenceページの取得成功、既知のモデル限界、Telemetry/backup保持・credit自動補充の条項を[公式記録](../references/jev-service-contract-20261002.md#採用回答再確認セッションでの再照合2026-10-02)へ追記した。input本文に含まれる情報は自動除去されず送信対象になること、日本語の否定/複合目的/分類誘導の評価が必要なことを契約へ補足した。
+推奨案から数値・schema・API範囲の変更はなく、決定状態だけを確定した。公開公式ページでAPI/3型/固定版/料金/Legal/D1を再照合し、Confidenceページの取得成功、既知のモデル限界、Telemetry/backup保持・credit自動補充の条項を[公式記録](../../references/jev-service-contract-20261002.md#採用回答再確認セッションでの再照合2026-10-02)へ追記した。input本文に含まれる情報は自動除去されず送信対象になること、日本語の否定/複合目的/分類誘導の評価が必要なことを契約へ補足した。
 
 今回更新したのは11文書だけ: `README.md`、`docs/plan.md`、`docs/architecture-proposal.md`、`docs/用途別プリセット-開発計画.md`、`docs/providers.md`、`docs/operations.md`、`docs/Jev-B3J-実装前契約.md`、本書、`references/README.md`、`references/typesafe-jev-20261002.md`、`references/jev-service-contract-20261002.md`。新規ファイルは追加しない。B-2/B-3 handoff・M-0・コード/テストを編集しない。
 
@@ -38,7 +38,7 @@
 
 ## 初回設計の成果物と未決（履歴）
 
-設計・公開公式調査・文書更新だけを完了した。[Jev実装前契約](Jev-B3J-実装前契約.md)にservice/HTTP API、固定4候補の初回利用例、3型の検証、入力/質問/timeout、所有者/環境の独立原子的枠、CASによる送信1回、本文/結果/hashなしの要求台帳schema、日付付き要求キー、終端90日・unknown・削除/復元条件、次空き番号migration案、実装後の受け入れ条件を具体化した。[公式再確認](../references/jev-service-contract-20261002.md)には現行API/Choice/Score/Noul/固定版・料金・Legal/DPA/MCA/PrivacyとD1 batchを記録した。
+設計・公開公式調査・文書更新だけを完了した。[Jev実装前契約](../Jev-B3J-実装前契約.md)にservice/HTTP API、固定4候補の初回利用例、3型の検証、入力/質問/timeout、所有者/環境の独立原子的枠、CASによる送信1回、本文/結果/hashなしの要求台帳schema、日付付き要求キー、終端90日・unknown・削除/復元条件、次空き番号migration案、実装後の受け入れ条件を具体化した。[公式再確認](../../references/jev-service-contract-20261002.md)には現行API/Choice/Score/Noul/固定版・料金・Legal/DPA/MCA/PrivacyとD1 batchを記録した。
 
 次の3組を本人へ質問したが回答未受領。推奨案として保存し、採用へ読み替えていない。
 

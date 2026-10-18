@@ -2,7 +2,7 @@
 
 # staging初回配備の実行前計画
 
-作成日: 2026-09-27。ユーザーは `staging.example.invalid` アカウントと `staging.example.invalid`、Access限定公開、既存Workers Paid料金を除く月$5の追加費用上限を了承し、後続で専用D1・Worker・Accessアプリ作成、remote migration、Custom Domain/DNS変更を明示許可した。専用D1の作成とremote migrationは実施済み。Worker配備以降の状態と失敗は[作業ログ](staging-work-log.md)を参照。初回は任意拡張と実AI呼び出しを全OFFにする。
+作成日: 2026-09-27。ユーザーは `staging.example.invalid` アカウントと `staging.example.invalid`、Access限定公開、既存Workers Paid料金を除く月$5の追加費用上限を了承し、後続で専用D1・Worker・Accessアプリ作成、remote migration、Custom Domain/DNS変更を明示許可した。専用D1の作成とremote migrationは実施済み。Worker配備以降の状態と失敗は[作業ログ](../staging-work-log.md)を参照。初回は任意拡張と実AI呼び出しを全OFFにする。
 
 ## 推奨する初回の範囲
 
@@ -55,6 +55,6 @@ Cloudflare OneのZero Trust Freeは、規約と無料枠超過分の毎月請求
 
 後続のDashboard読み取りでは、Workers Paid activeと請求可能使用量$0を確認。Cloudflare Oneは当初プラン未選択で、Free申込みの最後に規約同意と無料枠超過分の毎月請求許可が必要だった。エージェントは操作せず本人に引き継ぎ、本人が有効化した後にZero Trust Free表示を確認した。
 
-ローカル準備としてmigration 5本を再確認。`DROP`/`TRUNCATE`/データ削除文はなく、`0005`は課金予約テーブルへの列追加である。最初のD1新規作成試行は自動承認レビューで拒否された。その後ユーザーが対象を列挙して明示許可し、新規の空staging DBを作成してremote適用した。Worker・Access・Custom Domainは未作成。実施結果は[作業ログ](staging-work-log.md)を参照。
+ローカル準備としてmigration 5本を再確認。`DROP`/`TRUNCATE`/データ削除文はなく、`0005`は課金予約テーブルへの列追加である。最初のD1新規作成試行は自動承認レビューで拒否された。その後ユーザーが対象を列挙して明示許可し、新規の空staging DBを作成してremote適用した。Worker・Access・Custom Domainは未作成。実施結果は[作業ログ](../staging-work-log.md)を参照。
 
-公式根拠と採否は[staging配備調査](../references/staging-deployment.md)、一般の手順は[運用方針](operations.md)。
+公式根拠と採否は[staging配備調査](../../references/staging-deployment.md)、一般の手順は[運用方針](../operations.md)。

@@ -41,6 +41,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `wrangler.jsonc` / `vite.config.ts` | Worker環境・ビルド・事前生成設定 |
 | `.github/workflows/ci.yml` | 品質チェック。自動deployなし |
 | `docs/` / `references/` | 設計・進捗・検証記録・運用手順 / 公式根拠 |
+| `docs/archive/` / `scripts/archive/` | 役目を終えた文書・旧工程の操作script。通常の再開では読まない |
 
 `src/routeTree.gen.ts`、`worker-configuration.d.ts`、`dist/`、`.wrangler/`、`.tanstack/`は生成物。手編集せずコマンドで再生成する。公開ページの事前生成は`vite.config.ts`で明示し、非公開データをHTMLや共有キャッシュへ含めない。
 

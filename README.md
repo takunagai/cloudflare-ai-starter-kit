@@ -116,4 +116,4 @@ Git管理する`wrangler.jsonc`はローカル用・配備用のテンプレー�
 - **モデルが選べない**: [モデル接続](docs/providers.md)に従い設定します。設定済み表示は資格情報や残高の有効性を保証しません。
 - **429**: 利用回数または同時処理上限です。失敗・中断した生成も日次枠を消費します。
 
-共通開発ルールは[AGENTS.md](AGENTS.md)、公式根拠は[references/README.md](references/README.md)、進捗と合意は[docs/plan.md](docs/plan.md)にあります。
+共通開発ルールは[AGENTS.md](AGENTS.md)、公式根拠は[references/README.md](references/README.md)、現在地と次の作業は[docs/current-state.md](docs/current-state.md)、合意した仕様は[docs/architecture-proposal.md](docs/architecture-proposal.md)、過去の経緯は[docs/plan.md](docs/plan.md)にあります。

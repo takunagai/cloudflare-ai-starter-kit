@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parent.parent
-HELPER = runpy.run_path(str(ROOT / "docs/工程E-新隔離設定準備.py"))
+HELPER = runpy.run_path(str(ROOT / "scripts/archive/e/工程E-新隔離設定準備.py"))
 VALUES = {
     "ACCOUNT_ID": "a" * 32,
     "WORKER_NAME": "test-only-e-worker",
@@ -50,7 +50,7 @@ class EConfigHelperTests(unittest.TestCase):
         self.assertTrue(HELPER["valid"](VALUES))
         template = "\n".join(
             line
-            for line in (ROOT / "docs/工程E-初期OFF設定例.jsonc")
+            for line in (ROOT / "scripts/archive/e/工程E-初期OFF設定例.jsonc")
             .read_text()
             .splitlines()
             if not line.lstrip().startswith("//")

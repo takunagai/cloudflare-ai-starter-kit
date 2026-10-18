@@ -20,7 +20,7 @@
 | API依頼 | 既存ログインと入力検証後、明示操作でUTC日付きキーを1つ作り1回POST。二重操作抑止、redirect/retry/fallbackなし。未接続を説明 |
 | 回復 | 手動本人GETだけ、5秒以内連続確認抑止・自動pollなし。応答紛失/処理中/unknownはロック。同じキーのsucceeded/failed以外はロック解除なし、結果再表示不可 |
 | 保存 | 本文・結果・要求キーは画面メモリのみ。ブラウザstorage/URL/チャット履歴へ保存なし。再読み込み/画面移動で非復元。別依頼には明示確認と再課金の可能性を表示 |
-| 文書 | [標準利用例と設定メモ](Jev標準利用例.md)、README、plan、構成資料、用途別計画、3用途文書を整合。C-1の過去証拠と今回を区別 |
+| 文書 | [標準利用例と設定メモ](../Jev標準利用例.md)、README、plan、構成資料、用途別計画、3用途文書を整合。C-1の過去証拠と今回を区別 |
 
 実装は`src/routes/decisions.tsx`、`src/components/decision-example.tsx`、`src/lib/decision-example.ts`、ナビへの入口は`src/routes/__root.tsx`。`src/server.ts`は新画面のno-storeだけ、`src/styles.css`は分類表示とナビの狭幅対応、`scripts/smoke.mjs`はSSR/非共有確認を追加。既存`src/routes/app.tsx`のC-2差分は追加していない。
 

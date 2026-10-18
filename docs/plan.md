@@ -36,7 +36,7 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 **2026-10-06・新run登録の準備:** 新Accessアプリに限定した認証ログで許可1件・本人1名を値なしで確認し、ownerの構成要素はツール内だけに保持した。Cookie/JWT/メール/IPを取得していない。[登録準備script](../scripts/prepare-e-registration.mjs)は採用済みの固定prompt/設定を本体の正規化・入力ハッシュ関数で処理し、新しい絶対窓を受け取ったときだけ私有manifestと原子的な追加migration1本を0600で用意する。dummyのverify-onlyとBiome/構文は成功。実窓・私有登録ファイル・D1 run/slotはまだ作っていない。新WorkerはOFF配備2回、ON成果物はbuild/dry-run成功・本人照合待ち。
 
-**2026-10-06・ON成果物と新要求の終了準備:** 本人の`source_prepared: true`を受領し、新管理外設定のprobeだけONへ切替。新専用targetでclient/Worker buildとdeploy dry-runはexit0、実配備はまだOFFの2回。本人の生成成果物`all_passed`照合済み。旧固定日付/要求先を持つ終了helperは再利用せず、[新隔離用helper](工程E-新隔離fal終了操作.py)を用意した。対象モデル/request ID、課金照合の起点、早期失敗または自然期限観測後の削除gateを私有ファイルで一度だけ準備し、既存ADMINキーを本人が非表示入力する。dummy4件・Python構文成功、実管理API/新requestでは未実行。新run登録/実fal送信0、次の固定窓は未定。
+**2026-10-06・ON成果物と新要求の終了準備:** 本人の`source_prepared: true`を受領し、新管理外設定のprobeだけONへ切替。新専用targetでclient/Worker buildとdeploy dry-runはexit0、実配備はまだOFFの2回。本人の生成成果物`all_passed`照合済み。旧固定日付/要求先を持つ終了helperは再利用せず、[新隔離用helper](../scripts/archive/e/工程E-新隔離fal終了操作.py)を用意した。対象モデル/request ID、課金照合の起点、早期失敗または自然期限観測後の削除gateを私有ファイルで一度だけ準備し、既存ADMINキーを本人が非表示入力する。dummy4件・Python構文成功、実管理API/新requestでは未実行。新run登録/実fal送信0、次の固定窓は未定。
 
 **2026-10-06・本人ログインとOFF画面確認:** 本人のAccess認証成功報告後、現在Chromeの新専用入口から`/media-probe`へ到達し、「限定接続はOFF」の表示と送信不可を確認した。本人メール/OTP/Cookie/JWTの値は取得していない。新Worker配備2回・FAL_KEY存在/生成OFF・新D1/R2一致と専用ドメインを維持。新run未登録、実fal0。次は本人が管理外設定のprobeだけをONへ切り替え、AgentがON build/dry-runを行う。新固定窓は成果物照合後に決める。
 
@@ -46,9 +46,9 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 **2026-10-06・新隔離D1/初期OFF成果物:** 本人の`source_prepared: true`と`migration_transport_ready: true`を受領。公開SQL12本の専用実行用コピーはAgentが生成し、Wranglerの新D1に12本を適用した。読み取り専用確認でmigration12、run/job/attempt/asset各0。新管理外設定を対象とする初期OFFのclient/Worker buildとdeploy dry-runはexit0。本人の生成設定照合待ちで実配備0、実Secret/実fal0、固定窓未登録。旧run/旧資源は変更していない。
 
-**2026-10-06・08:00〜08:30 JSTの窓も送信せず準備継続:** 開始時点で新Worker/remote migration/実Secret/OFF・ON照合が未了なのでrunを登録していない。新D1・private R2・本人限定Accessは準備用に保持。本人から設定項目を探す手順が分かりにくいとの指摘を受け、[新設定helper](工程E-新隔離設定準備.py)を旧管理外設定の非Secret項目とWranglerの新D1/R2一覧から値非表示で導く方式へ修正した。本人の手入力は新AccessアプリのAUDだけ。helperのdummy3件とPython構文、公開SQL12本の実行形式確認は成功。実管理外設定は本人の結果待ちで、Agentは内容を読まない。次の固定窓は配備・認証・費用/終了条件の照合後に決める。
+**2026-10-06・08:00〜08:30 JSTの窓も送信せず準備継続:** 開始時点で新Worker/remote migration/実Secret/OFF・ON照合が未了なのでrunを登録していない。新D1・private R2・本人限定Accessは準備用に保持。本人から設定項目を探す手順が分かりにくいとの指摘を受け、[新設定helper](../scripts/archive/e/工程E-新隔離設定準備.py)を旧管理外設定の非Secret項目とWranglerの新D1/R2一覧から値非表示で導く方式へ修正した。本人の手入力は新AccessアプリのAUDだけ。helperのdummy3件とPython構文、公開SQL12本の実行形式確認は成功。実管理外設定は本人の結果待ちで、Agentは内容を読まない。次の固定窓は配備・認証・費用/終了条件の照合後に決める。
 
-**2026-10-06・新隔離資源の準備継続:** 本人の現在Chromeを使う指示に基づき、新D1/private R2に続いて本人限定Access application/policyを作成した。専用ホスト、本人メール完全一致のAllow、アプリ/ポリシー各6時間を保存後の画面で確認した。R2は公開URL無効/カスタムドメインなし。旧Worker/D1/R2/Accessは変更していない。新しい管理外設定は[本人用の入力helper](工程E-新隔離設定準備.py)で作る方針で、本人の結果待ち。新Worker配備・D1 migration・実Secret・run登録・実fal送信は未実施。08:00〜08:30 JSTの提案窓も開始までに照合が揃わなければ使用しない。
+**2026-10-06・新隔離資源の準備継続:** 本人の現在Chromeを使う指示に基づき、新D1/private R2に続いて本人限定Access application/policyを作成した。専用ホスト、本人メール完全一致のAllow、アプリ/ポリシー各6時間を保存後の画面で確認した。R2は公開URL無効/カスタムドメインなし。旧Worker/D1/R2/Accessは変更していない。新しい管理外設定は[本人用の入力helper](../scripts/archive/e/工程E-新隔離設定準備.py)で作る方針で、本人の結果待ち。新Worker配備・D1 migration・実Secret・run登録・実fal送信は未実施。08:00〜08:30 JSTの提案窓も開始までに照合が揃わなければ使用しない。
 
 **2026-10-06・07:45〜08:15 JSTへの変更と準備:** 本人はCloudflareの現在Chromeで準備する経路を明示し、送信窓を07:45〜08:15 JSTへ変更した。既存ログイン済みChromeで新しい専用D1とStandard/private R2を各1件作成。R2の公開開発URL無効・カスタムドメインなしを画面確認した。Accessの新アプリでは本人メール完全一致・アプリ/ポリシー6時間を保存前まで設定し、本人のメール入力とポリシー保存待ち。07:34時点でWorker/Access保存、remote migration、本人Secret投入、OFF/ON照合が残るため、この窓もrun登録/実fal送信には使わない。旧run/資源は未変更。準備完了後に新しい固定窓を決める。
 
@@ -60,7 +60,7 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 **2026-10-05・工程Eの今回の終了操作完了/M-0未達:** 本人の既存ADMINキーによるfinish結果は課金GET200/当該イベント1/$1以内・`available_now`、DELETE200/1試行/CDN結果0・`unknown`。アプリの判定を課金pass/上流削除unknownとして閉鎖し、D1の消費1/上限2・停止/閉鎖1・固定30分・attempt1/未終端0・本文/参照/asset0を確認。専用AccessをBlock1/Allow0へ変更し、当該アプリのトークン取消成功と旧タブのAccessログイン画面を確認。全アプリのsessionへ影響するlogoutは実行しない。本人OFF build/照合true後に5回目OFF配備exit0。本人のFAL_KEY除去即時配備6回目と今回の一時fal APIキー失効済みを受領後、実WorkerのFAL_KEY不在・通常拡張/probe OFF・gate空・AI/Jev OFF・専用D1/R2・代替ホスト閉鎖を確認した。既存ADMINキーは対象外。実1要求はcompleted/回収invalid、画像保存0。画像品質/ACL/token/3600秒自然期限・上流消去は未確認、M-0未達。24時間以内の当該要求課金照合は済んだが、最終請求/Cloudflare増分費用と保持資源の退役は未確定。[終了状態/設定メモ](工程E-制御実装と隔離検証.md)を参照。再生成・枠復活・既存check/M-5/D-2・remote/CI再照会・Git送信なし。以下は各時点の記録。
 
-**2026-10-05・実fal1要求completed/回収invalid・終了処理中:** 追加ON1回を本人許可/照合trueで配備（4/6）。同じ要求のstatus2/result1で上流completedを確認したが、受入検証に適合せず回収試行1でinvalid終端。画像/出力参照0、token/PNG取得0、D1出力object0・容量解放、専用R2root一覧0。消費1/受付停止・通常gate空/生成OFFを保持。具体的な受入拒否項目、画像品質/ACL/token/3600秒自然期限・実費/上流削除は未確認で、M-0条件を達成扱いにしない。本人限定の対象ファイルとgetpassによる[本人終了helper](工程E-fal終了操作.py)を用意し、当該要求の課金GET/20:20以降の削除DELETEだけ案内（agentは実行しない）。キー/実ID/個別URLの公開なし。本文消去はD1本文0/参照0・provider保持/消費1を確認済み。本人課金helperは403/unknownで削除未実行。falのauthorization_errorを確認後、本人からScopeはAPIとの回答を受領し、管理API要求ADMIN scopeとの不足を確認。本人は既存ADMINキーの本人利用を選択し、当該要求の課金/削除finishを1回案内、結果を報告待ちとする。新規キー/権限拡張は未許可/未実施。報告後に台帳保持/アプリとAccess閉鎖・OFF5回目/本人Secret除去6回目へ進む。再生成・緩和・枠復活、既存check/M-5/D-2/remote/CI/Git送信なし。以下は各時点の記録。
+**2026-10-05・実fal1要求completed/回収invalid・終了処理中:** 追加ON1回を本人許可/照合trueで配備（4/6）。同じ要求のstatus2/result1で上流completedを確認したが、受入検証に適合せず回収試行1でinvalid終端。画像/出力参照0、token/PNG取得0、D1出力object0・容量解放、専用R2root一覧0。消費1/受付停止・通常gate空/生成OFFを保持。具体的な受入拒否項目、画像品質/ACL/token/3600秒自然期限・実費/上流削除は未確認で、M-0条件を達成扱いにしない。本人限定の対象ファイルとgetpassによる[本人終了helper](../scripts/archive/e/工程E-fal終了操作.py)を用意し、当該要求の課金GET/20:20以降の削除DELETEだけ案内（agentは実行しない）。キー/実ID/個別URLの公開なし。本文消去はD1本文0/参照0・provider保持/消費1を確認済み。本人課金helperは403/unknownで削除未実行。falのauthorization_errorを確認後、本人からScopeはAPIとの回答を受領し、管理API要求ADMIN scopeとの不足を確認。本人は既存ADMINキーの本人利用を選択し、当該要求の課金/削除finishを1回案内、結果を報告待ちとする。新規キー/権限拡張は未許可/未実施。報告後に台帳保持/アプリとAccess閉鎖・OFF5回目/本人Secret除去6回目へ進む。再生成・緩和・枠復活、既存check/M-5/D-2/remote/CI/Git送信なし。以下は各時点の記録。
 
 **2026-10-05・Access保存/初期OFF build・D1分割問題:** 本人メール入力/保存報告後、policy 1/Allow/6時間/メール完全一致1件・追加条件なしを値非表示で確認。エージェントがapplicationを保存し、専用hostname/Self-hosted/6時間/policy1件を確認した。管理外OFF設定0600/Git除外、staging build exit0/dist0700、Wrangler認証/対象account・Worker/D1 write scope・account override unsetを確認。remote migrationは0001〜0007成功、0008の`incomplete input`でrollback/残4未適用。read-only EXPLAINでCASE括弧により分割失敗が解消することを確認し、新3 workerd試験で制約/unknown/消費単調・rollback保持を検証。canonical SQLは変更せず、CASE括弧/改行だけのprivate実行用コピー11本を作成。generated設定読取/private `migrations_dir`更新は保護拒否で中止。[本人用の2コマンド](工程E-制御実装と隔離検証.md)の切替/配備前照合待ち。既に照合済みなら取り直さない。新D1/R2/application/policy各1、remote migration7/11・初回1操作、Worker配備0/5・Secret/fal/OTP0、開始窓未登録。元SQL/旧環境/固定版/フック/Git禁止を保持する。
 
@@ -164,7 +164,7 @@ M-2終了点検: 公開設定の既定OFFで最終buildを再生成し、同じ�
 
 Node26.10.0/pnpm12.6.0の最終checkはlint96・型生成/型検査・実workerd29ファイル560試験（M-1追加73）＋7合成build/HTTP・client/Worker build/help事前生成がexit0。隔離D1で空DB8本・0007済み合成DB/旧画像/検証消費/Jev unknown保持・再適用・失敗DDL rollbackを確認。最終SQLの専用空DBへ8本適用/再適用0、同じ最終buildの隔離4173 previewでメディアOFF/認証済み履歴/private no-storeを含むHTTP smokeが成功した。画面未変更のためGUI試験はなし。自身のpreviewは終了済み、4173/4194の待受なし、既存3000プロセスを保持。
 
-開始/終了Gitはmain/HEAD `da558c9`、ローカルorigin/main `66fd90f3`、ahead9/behind0・空indexで一致。既存の未追跡モデル選定記録を保持し、指示書を更新した。公開コードのshell作成は秘密保護フックの誤検出で一度停止し、本人の「構造化apply_patchでの作成を許可」を受領して再開。共通フック/例外を変更していない。元利用DB・実設定・固定依存/lockfile・AGENTS/CLAUDE・D-2複製先を保持。未commit/未送信で、M-2以降・実接続/課金/クラウド/Secret・配備・Git stage/commit/送信・remote再照会・CI/auditは未実施。[実行指示書](../handover/指示書_M1共通ジョブ開始.md)と[公式確認](../references/m1-media-foundation-20261004.md)に詳細を残す。以下は各工程時点の履歴。
+開始/終了Gitはmain/HEAD `da558c9`、ローカルorigin/main `66fd90f3`、ahead9/behind0・空indexで一致。既存の未追跡モデル選定記録を保持し、指示書を更新した。公開コードのshell作成は秘密保護フックの誤検出で一度停止し、本人の「構造化apply_patchでの作成を許可」を受領して再開。共通フック/例外を変更していない。元利用DB・実設定・固定依存/lockfile・AGENTS/CLAUDE・D-2複製先を保持。未commit/未送信で、M-2以降・実接続/課金/クラウド/Secret・配備・Git stage/commit/送信・remote再照会・CI/auditは未実施。実行指示書（`handover/指示書_M1共通ジョブ開始.md`、Vaultへアーカイブ済み）と[公式確認](../references/m1-media-foundation-20261004.md)に詳細を残す。以下は各工程時点の履歴。
 
 **2026-10-04・M-0文書のローカルコミット依頼:** 本人の「コミットして」により、検証済みのM-0採用/保持/文書整合9件を本追記とともに1つの文書コミットへまとめる許可を受領した。対象はREADME、本書、構成資料、用途別計画、fal初版設計/M-0設定メモ、運用/拡張手順、fal公式根拠。既存の作者/署名設定と保護フックを保持し、push/PR/remote再照会、M-1以降の実装、実接続/課金/クラウド/Secret操作は対象外。新しい共通AGENTSの案内指示を受領したが、ここで共通/プロジェクトAGENTSの修正は行わない。以下の未commit・Git禁止は各確認時点の履歴で、今回の追加許可はこの9件のstage/ローカルcommitだけに限定する。
 
@@ -176,31 +176,31 @@ Node26.10.0/pnpm12.6.0の最終checkはlint96・型生成/型検査・実workerd
 
 **2026-10-03・追加のコミット依頼:** 本人が検証済みの現行31件（C-1/C-J/D-1/D-2、handoverを含む）すべてを、3つの論理単位に分けてローカルコミットする推奨案を採用した。分類画面/関連回帰/利用例9件は`c6d429a`、両認証と判断APIの統合テスト1件は`ffd477b`で記録済み。残る導入・検証・引き継ぎ21文書は、この追記を含む文書コミットの対象。既存の作者/署名設定と保護フックを維持し、push・remote再照会・実接続/クラウドは対象外。D-2当時のGit禁止/未実施と、C-1の未回答コミット範囲は下記の履歴で、この追加許可の対象だけ解消した。最新headとclean状態はGitで確認する。次の開発はM-0の未決2組の採用判断を確定し、別の実装許可後にM-1へ進める。
 
-**2026-10-03・D-2完了:** 許可済み158件の別名複製・固定install・空DB7本/再適用0・合成データ保持に続き、本人のポート停止後、Node26.10.0/pnpm12.6.0を明示してcheck（lint83・型・487 workerd＋7合成build/HTTP）と最終buildを確認した。複製先自身のdev/最終preview HTTP、現在Chromeの登録・固定応答の送信中表示・履歴復元・会話削除/logout、分類3合成例・初期OFFの404/代替なし・本人手動GET・再読み込み非復元も成功。自身のサーバー・確認タブ/CDP補助を終了し、元環境・既存差分・Git・文書を点検した。追加フック例外は除去済み、元コード・固定依存/override・migration・5公開例・実設定/DBを保持。Git stage/commit/送信・実接続/クラウドは未実施。[完了結果](D2-実行記録と再開.md#ポート解放後の完了結果)と[完了指示書](../handover/指示書_D2再開.md)を参照する。C-2・M-0と工程E前の未回答/未検証は未解消で、後続を先行しない。以下は各確認時点の履歴。
+**2026-10-03・D-2完了:** 許可済み158件の別名複製・固定install・空DB7本/再適用0・合成データ保持に続き、本人のポート停止後、Node26.10.0/pnpm12.6.0を明示してcheck（lint83・型・487 workerd＋7合成build/HTTP）と最終buildを確認した。複製先自身のdev/最終preview HTTP、現在Chromeの登録・固定応答の送信中表示・履歴復元・会話削除/logout、分類3合成例・初期OFFの404/代替なし・本人手動GET・再読み込み非復元も成功。自身のサーバー・確認タブ/CDP補助を終了し、元環境・既存差分・Git・文書を点検した。追加フック例外は除去済み、元コード・固定依存/override・migration・5公開例・実設定/DBを保持。Git stage/commit/送信・実接続/クラウドは未実施。[完了結果](D2-実行記録と再開.md#ポート解放後の完了結果)と完了指示書（`handover/指示書_D2再開.md`、Vaultへアーカイブ済み）を参照する。C-2・M-0と工程E前の未回答/未検証は未解消で、後続を先行しない。以下は各確認時点の履歴。
 
-**2026-10-03・D-2再開後、HTTP/画面がポート解放待ち:** 本人が限定フック差分の適用・追加例外の除去を明示許可した。設置後30回帰と通常env.ts読取りが成功し、本人限定の新規指定先へ158件を全内容一致で複製。複製先のpackage/Worker/D1名だけ変更し、Node26.10.0/pnpm12.6.0の固定install、空ローカルDB7本/再適用0と合成データ保持、check（lint83・型・487 workerd＋7合成build/HTTP）・最終buildが成功。生成設定はlocal・Jev/拡張OFF・ダミーDB/remoteなし、lockfile/override・5公開例・migration不変。3000/4173は別プロジェクトが占有し、本人が停止する予定との回答を受領したが解放は未確認。dev/preview HTTP・画面は未実施でD-2未完了。追加例外は除去済み・修正前コード一致・19回帰成功。元環境とGitのstage/commit・送信禁止を保持。[今回の結果と残る検証](D2-実行記録と再開.md#同日の再開結果と残る検証)と[指示書](../handover/指示書_D2再開.md)を参照する。次はポートの実際の解放後、作成済み複製先で残るHTTP/画面・終了点検を行う。以下は各確認時点の履歴。
+**2026-10-03・D-2再開後、HTTP/画面がポート解放待ち:** 本人が限定フック差分の適用・追加例外の除去を明示許可した。設置後30回帰と通常env.ts読取りが成功し、本人限定の新規指定先へ158件を全内容一致で複製。複製先のpackage/Worker/D1名だけ変更し、Node26.10.0/pnpm12.6.0の固定install、空ローカルDB7本/再適用0と合成データ保持、check（lint83・型・487 workerd＋7合成build/HTTP）・最終buildが成功。生成設定はlocal・Jev/拡張OFF・ダミーDB/remoteなし、lockfile/override・5公開例・migration不変。3000/4173は別プロジェクトが占有し、本人が停止する予定との回答を受領したが解放は未確認。dev/preview HTTP・画面は未実施でD-2未完了。追加例外は除去済み・修正前コード一致・19回帰成功。元環境とGitのstage/commit・送信禁止を保持。[今回の結果と残る検証](D2-実行記録と再開.md#同日の再開結果と残る検証)と指示書（`handover/指示書_D2再開.md`、Vaultへアーカイブ済み）を参照する。次はポートの実際の解放後、作成済み複製先で残るHTTP/画面・終了点検を行う。以下は各確認時点の履歴。
 
-**2026-10-03・D-2許可受領、実複製前で停止:** 本人からenv.ts1件の会話外確認済み申告と限定4操作、別にD-2実行許可を受領した。開始Gitは前回の最終29件とref・全一覧まで一致。157候補は通常ファイル/非symlinkで、準備時点との差異は既知の8文書だけ。指定先は不存在、親アクセス可能。env.ts閲覧1回がPreToolUse秘密保護フックの`sensitive-path`で実行前に拒否され、本文/型/hashは未取得。実複製・install/migration・check/build・起動/HTTP/画面は未実施。共通フックを変更・迂回せず、元環境とGitのstage/commit・送信禁止を保持した。[実行記録・再開条件](D2-実行記録と再開.md)と[指示書](../handover/指示書_D2再開.md)を参照する。次は限定した共通フック修正の別作業で、同じenv/D-2許可を再質問しない。M-0と工程E前の条件は未解消。以下は各工程時点の履歴。
+**2026-10-03・D-2許可受領、実複製前で停止:** 本人からenv.ts1件の会話外確認済み申告と限定4操作、別にD-2実行許可を受領した。開始Gitは前回の最終29件とref・全一覧まで一致。157候補は通常ファイル/非symlinkで、準備時点との差異は既知の8文書だけ。指定先は不存在、親アクセス可能。env.ts閲覧1回がPreToolUse秘密保護フックの`sensitive-path`で実行前に拒否され、本文/型/hashは未取得。実複製・install/migration・check/build・起動/HTTP/画面は未実施。共通フックを変更・迂回せず、元環境とGitのstage/commit・送信禁止を保持した。[実行記録・再開条件](D2-実行記録と再開.md)と指示書（`handover/指示書_D2再開.md`、Vaultへアーカイブ済み）を参照する。次は限定した共通フック修正の別作業で、同じenv/D-2許可を再質問しない。M-0と工程E前の条件は未解消。以下は各工程時点の履歴。
 
-**2026-10-02・受領済み回答の再引き継ぎ（更新回答なし）:** 開始Gitは判断確認メモの最終29件とref・ahead5/behind0・index空・全一覧まで一致した。更新回答と対象を限定したGit変更の別許可はなく、A候補と不足条件3組の受領済み回答・保留/確定状態を保持し、再質問していない。現在の9文書を照合し、判断確認メモに残った「最新」の参照先2箇所を再点検節へ整合した。今回の編集は本書と判断確認メモだけ。相対リンク353件・見出し参照83件の欠落/未照合0、行末空白0、値非表示の内容ルール検出0。開始29ファイルは27件が内容一致し、相違はこの2文書だけ。既存の開始プロンプトと過去本文を保持し、再点検で許可範囲の残作業なし。保存先の存在確認・実複製/install/migration/起動・Git変更/送信等は行わず、C-1コミット範囲未回答・M-0未回答・工程E前の未検証条件を保持する。[同日の再引き継ぎ確認](D2-env依存-判断確認と次セッション.md#同日の再引き継ぎ確認更新回答なし)と[次の開始プロンプト](D2-env依存-判断確認と次セッション.md#次セッション用開始プロンプト)を参照。以下は前回の再点検と回答受領時・各工程当時の記録。
+**2026-10-02・受領済み回答の再引き継ぎ（更新回答なし）:** 開始Gitは判断確認メモの最終29件とref・ahead5/behind0・index空・全一覧まで一致した。更新回答と対象を限定したGit変更の別許可はなく、A候補と不足条件3組の受領済み回答・保留/確定状態を保持し、再質問していない。現在の9文書を照合し、判断確認メモに残った「最新」の参照先2箇所を再点検節へ整合した。今回の編集は本書と判断確認メモだけ。相対リンク353件・見出し参照83件の欠落/未照合0、行末空白0、値非表示の内容ルール検出0。開始29ファイルは27件が内容一致し、相違はこの2文書だけ。既存の開始プロンプトと過去本文を保持し、再点検で許可範囲の残作業なし。保存先の存在確認・実複製/install/migration/起動・Git変更/送信等は行わず、C-1コミット範囲未回答・M-0未回答・工程E前の未検証条件を保持する。[同日の再引き継ぎ確認](archive/D2-env依存-判断確認と次セッション.md#同日の再引き継ぎ確認更新回答なし)と[次の開始プロンプト](archive/D2-env依存-判断確認と次セッション.md#次セッション用開始プロンプト)を参照。以下は前回の再点検と回答受領時・各工程当時の記録。
 
-**2026-10-02・受領済み回答の引き継ぎ再点検:** 開始Gitは判断確認メモの最終29件とref・ahead5/behind0・index空・全一覧まで一致した。今回の指示は回答状態の再提示で、保留を変更する更新回答や操作許可はない。A候補と不足条件3組を回答受領済みとして保持し、同じ質問を繰り返していない。会話外確認は「未確認・回答保留」、原本4操作は「保留」、保存先の一時領域・本人限定・外部共有なしは確定済みで、存在/空状態/アクセス権は未検査。現在の9文書を照合し、判断確認メモの表見出しを「残る条件」へ修正した。今回の編集は本書と判断確認メモだけ。過去の準備記録・内容識別JSON・コード/試験を保持し、禁止対象・実複製/install/migration/起動・Git変更/送信等は扱わない。M-0未回答・工程E前の未検証条件・C-1コミット範囲未回答を維持する。[今回の再点検と次の開始プロンプト](D2-env依存-判断確認と次セッション.md#受領済み回答の引き継ぎ再点検2026-10-02)を参照。以下は回答受領時と各工程当時の記録。
+**2026-10-02・受領済み回答の引き継ぎ再点検:** 開始Gitは判断確認メモの最終29件とref・ahead5/behind0・index空・全一覧まで一致した。今回の指示は回答状態の再提示で、保留を変更する更新回答や操作許可はない。A候補と不足条件3組を回答受領済みとして保持し、同じ質問を繰り返していない。会話外確認は「未確認・回答保留」、原本4操作は「保留」、保存先の一時領域・本人限定・外部共有なしは確定済みで、存在/空状態/アクセス権は未検査。現在の9文書を照合し、判断確認メモの表見出しを「残る条件」へ修正した。今回の編集は本書と判断確認メモだけ。過去の準備記録・内容識別JSON・コード/試験を保持し、禁止対象・実複製/install/migration/起動・Git変更/送信等は扱わない。M-0未回答・工程E前の未検証条件・C-1コミット範囲未回答を維持する。[今回の再点検と次の開始プロンプト](archive/D2-env依存-判断確認と次セッション.md#受領済み回答の引き継ぎ再点検2026-10-02)を参照。以下は回答受領時と各工程当時の記録。
 
-**2026-10-02・env依存の判断確認と文書整合:** 判断確認メモの最終Gitとbranch・HEAD・ローカルorigin/main・ahead/behind・index・29件一覧が一致し、差異なしを最初に報告した。今回は別判断の説明・本人回答の確認・文書整合だけ。Aを候補とする受領済み回答を保持し、選択は再質問していない。不足条件3組を一度確認し、本人から会話外確認は「未確認・回答保留」、原本への4操作は「保留」、保存先は候補の一時領域・本人限定・外部共有なしで確定という回答を受領。禁止解除・実複製/install/migration/起動は未許可のまま。[判断確認メモ](D2-env依存-判断確認と次セッション.md)に対象/操作/保存先/共有範囲、判断と実行許可の区別、最終Gitと次の開始プロンプトを残す。既存8文書と判断確認メモの回答状態を整合し、元のコード・試験・固定依存/migration・実設定は変更しない。M-0未回答・工程E前の未検証条件・C-1コミット範囲の未回答とGit変更/送信の除外を保持。内容識別JSONは準備完了時点の記録で、初回判断確認以降の8文書更新と判断確認メモは識別しない。以下のD-2準備以前は履歴。
+**2026-10-02・env依存の判断確認と文書整合:** 判断確認メモの最終Gitとbranch・HEAD・ローカルorigin/main・ahead/behind・index・29件一覧が一致し、差異なしを最初に報告した。今回は別判断の説明・本人回答の確認・文書整合だけ。Aを候補とする受領済み回答を保持し、選択は再質問していない。不足条件3組を一度確認し、本人から会話外確認は「未確認・回答保留」、原本への4操作は「保留」、保存先は候補の一時領域・本人限定・外部共有なしで確定という回答を受領。禁止解除・実複製/install/migration/起動は未許可のまま。[判断確認メモ](archive/D2-env依存-判断確認と次セッション.md)に対象/操作/保存先/共有範囲、判断と実行許可の区別、最終Gitと次の開始プロンプトを残す。既存8文書と判断確認メモの回答状態を整合し、元のコード・試験・固定依存/migration・実設定は変更しない。M-0未回答・工程E前の未検証条件・C-1コミット範囲の未回答とGit変更/送信の除外を保持。内容識別JSONは準備完了時点の記録で、初回判断確認以降の8文書更新と判断確認メモは識別しない。以下のD-2準備以前は履歴。
 
 **2026-10-02・D-2着手前の整理完了:** 今回は複製許可リスト・公開importの依存整理・文書整合だけ。D-1最終Gitと実Gitは一覧まで一致（main、HEAD `1acca438`、ローカルorigin/main `66fd90f3`、ahead5/behind0、index空、変更13＋未追跡12＝25件）。元71件・別操作4commit・C-1開始13件の由来、C-J追加10件、D-1追加2件と未回答commit範囲を保持した。
 
-[準備メモ](D2-複製許可リストと依存整理.md)に、明示157候補と列挙外除外、env.tsへ製品19/試験17ファイルが直接依存すること、必要最小限の別判断、架空の別名/保存先、固定install・空DB0001〜0007・check・dev/最終preview HTTP/画面の将来計画を具体化した。[内容識別](D2-複製元-内容識別.json)は未commit作業ツリーの公開ファイルだけで、禁止envの本文/型/実値/hashは未取得。禁止依存は未解消。今回の変更は文書だけで、実複製/install/migration/起動やアプリ再検証は未実施。Git操作/送信・実設定/実接続・C-2/メディア・CI/audit再照会等も対象外。M-0未回答と工程E前の未検証条件は保持。[最終Git・文書検証・次セッション](D2準備完了-次セッション開始プロンプト.md)を正本とし、以下のD-1以前は履歴として保持する。
+[準備メモ](D2-複製許可リストと依存整理.md)に、明示157候補と列挙外除外、env.tsへ製品19/試験17ファイルが直接依存すること、必要最小限の別判断、架空の別名/保存先、固定install・空DB0001〜0007・check・dev/最終preview HTTP/画面の将来計画を具体化した。[内容識別](archive/D2-複製元-内容識別.json)は未commit作業ツリーの公開ファイルだけで、禁止envの本文/型/実値/hashは未取得。禁止依存は未解消。今回の変更は文書だけで、実複製/install/migration/起動やアプリ再検証は未実施。Git操作/送信・実設定/実接続・C-2/メディア・CI/audit再照会等も対象外。M-0未回答と工程E前の未検証条件は保持。[最終Git・文書検証・次セッション](archive/D2準備完了-次セッション開始プロンプト.md)を正本とし、以下のD-1以前は履歴として保持する。
 
 **2026-10-02・D-1完了:** 今回の明示許可はローカル統合検証と必要な文書整合だけ。C-J終了点と実Gitは一覧まで完全一致（main、HEAD `1acca438b77eb3fa3f8fe4c347f9a8e16b3de0ee`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、ahead5/behind0、index空、変更13＋未追跡10＝23件）。元71件・別操作4commit・開始13件の残存B-2〜B-4文書/C-1・C-J追加分と未回答commit範囲を保持して開始した。
 
-不足したC-J通信関数→API→本物の両認証/D1の14試験を追加。通常staging/productionで所有者分離、応答紛失後の本人metadata回復、unknown消費/同時枠保持とOFF/設定不備/旧台帳回復を検証した。製品コード・画面・契約・実設定は変更不要。今回のcheckはlint82・型生成/型検査・実workerd23ファイル487試験＋Node7合成build/HTTP・client/Worker buildでexit0、dev/最終preview HTTP smokeと現在のChromeでの画面操作も成功。自身のサーバーと確認タブを終了し、文書・公開情報・差分保持を再点検した。最終Gitは変更13＋未追跡12＝25件、ref/ahead/behind/indexは開始時と同じ。[D-1記録](D1完了-次セッション開始プロンプト.md)に証拠・限界・全一覧を残す。C-2/D-2、メディア、Git操作/送信・実設定/実接続/配備/クラウド/automation・CI/audit再照会は対象外。M-0と工程E前の条件は未解消。以下のC-J以前は各工程時点の履歴。
+不足したC-J通信関数→API→本物の両認証/D1の14試験を追加。通常staging/productionで所有者分離、応答紛失後の本人metadata回復、unknown消費/同時枠保持とOFF/設定不備/旧台帳回復を検証した。製品コード・画面・契約・実設定は変更不要。今回のcheckはlint82・型生成/型検査・実workerd23ファイル487試験＋Node7合成build/HTTP・client/Worker buildでexit0、dev/最終preview HTTP smokeと現在のChromeでの画面操作も成功。自身のサーバーと確認タブを終了し、文書・公開情報・差分保持を再点検した。最終Gitは変更13＋未追跡12＝25件、ref/ahead/behind/indexは開始時と同じ。[D-1記録](archive/D1完了-次セッション開始プロンプト.md)に証拠・限界・全一覧を残す。C-2/D-2、メディア、Git操作/送信・実設定/実接続/配備/クラウド/automation・CI/audit再照会は対象外。M-0と工程E前の条件は未解消。以下のC-J以前は各工程時点の履歴。
 
 **2026-10-02・C-J完了:** 本人の別の明示許可により、チャットと独立した`/decisions`の固定4候補分類画面、合成fixture3例、明示的な1回POST・本人metadata GETと[導入説明](Jev標準利用例.md)を追加した。本文/結果/要求キーのブラウザ永続保存なし、unknown/応答紛失時の再送停止、全候補確率/confidenceの無補正表示・人の確認を維持。B-3JのAPI/数値/固定版/台帳/保持契約、依存/lockfile/0001〜0007・実設定は変更なし。
 
 開始GitはC-1最終記録に完全一致（main、HEAD `1acca438b77eb3fa3f8fe4c347f9a8e16b3de0ee`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、ahead5/behind0、index空、変更9＋未追跡4＝13件）。13件には残るB-2〜B-4文書差分とC-1が共存し、元71件はC-1開始時の履歴。別操作4commitと既存差分を保持して重ねた。今回の明示除外を優先し、stage/commit・送信/remote再照会は実施しない。
 
-今回の版のlint/型生成・型検査・実workerd22ファイル473テスト（C-J追加21）・合成build/HTTP7試験・client/Worker buildが成功。初回checkはsandboxのloopback待受EPERMでテスト開始前に停止し、許可されたローカル実行で成功した。画面と最終HTTP smoke、差分保持、最終Git・次の開始プロンプトは[C-J引き継ぎ](CJ完了-次セッション開始プロンプト.md)へ記録する。過去のB-4/CIを今回の証拠へ流用しない。
+今回の版のlint/型生成・型検査・実workerd22ファイル473テスト（C-J追加21）・合成build/HTTP7試験・client/Worker buildが成功。初回checkはsandboxのloopback待受EPERMでテスト開始前に停止し、許可されたローカル実行で成功した。画面と最終HTTP smoke、差分保持、最終Git・次の開始プロンプトは[C-J引き継ぎ](archive/CJ完了-次セッション開始プロンプト.md)へ記録する。過去のB-4/CIを今回の証拠へ流用しない。
 
 C-2/D統合・別名複製、メディア、実設定/実接続/配備/クラウド変更/automation・CI/audit再照会は未実施。M-0未回答と工程E前の実契約/保持/unknown修復/実権限/日本語品質/実料金/失敗課金/自動補充/人数/総予算/期間/終了方法を未解消のまま残す。次の推奨は別の明示許可後のD-1だけで、C-2/D-2・メディアは同時に進めない。
 
@@ -208,23 +208,23 @@ C-2/D統合・別名複製、メディア、実設定/実接続/配備/クラウ
 
 **2026-10-02・C-1:** 本人の別の明示許可により、READMEの3入口、[local](presets/local.md)・[個人/社内](presets/internal.md)・[公開サービス](presets/public.md)と必要な既存文書を整合した。B-4の公開5例/固定build境界に沿って、用途・環境・認証・AI/Jev・拡張・不足項目・次の操作・確認範囲を説明し、[工程E前の停止条件](operations.md#工程e前の停止条件)を未解消のまま示した。コード/画面/依存/lockfile・0001〜0007・実設定は変更なし。
 
-開始実GitはB-4のHEAD・index・71件の一覧に一致し、共通6ルールを実読した。既存差分を保持し、文書だけを更新。M-0の未回答、Jevの本文/結果/hash非保存・終端90日/結果再表示なし・unknown消費/同時枠保持・自動再送/削除/解放なし・GET要求状態更新なし・復元直後の再有効化禁止を維持した。アプリcheck/build/smoke・画面・D複製・CI/audit再照会・Git送信/remote再照会・実接続/配備/クラウド/automationは未実施。文書検証、差分保持、最終Gitと次の開始プロンプトは[C-1完了引き継ぎ](C1完了-次セッション開始プロンプト.md)を正本とする。次の推奨は別の明示許可後のC-Jだけで、C-2/D/メディアは同時に進めない。
+開始実GitはB-4のHEAD・index・71件の一覧に一致し、共通6ルールを実読した。既存差分を保持し、文書だけを更新。M-0の未回答、Jevの本文/結果/hash非保存・終端90日/結果再表示なし・unknown消費/同時枠保持・自動再送/削除/解放なし・GET要求状態更新なし・復元直後の再有効化禁止を維持した。アプリcheck/build/smoke・画面・D複製・CI/audit再照会・Git送信/remote再照会・実接続/配備/クラウド/automationは未実施。文書検証、差分保持、最終Gitと次の開始プロンプトは[C-1完了引き継ぎ](archive/C1完了-次セッション開始プロンプト.md)を正本とする。次の推奨は別の明示許可後のC-Jだけで、C-2/D/メディアは同時に進めない。
 
 ### B-4セッションの結果（履歴）
 
-**2026-10-02・B-4:** 本人の別の明示許可により、公開5設定例、固定mode/env対応・ファイル不在停止・plugin解決後の環境/APP_ENV/ポリシー照合を実装した。新しい管理外2設定はGit/Biomeから除外。全例Jev OFF・キーなし、任意拡張OFF、旧検証の閉鎖/省略互換を維持。設定の管理と変更時の影響は[公開プリセットとbuild境界](公開プリセットとbuild境界.md)、検証と最終Git・次セッションは[B-4完了引き継ぎ](B4完了-次セッション開始プロンプト.md)を正本とする。
+**2026-10-02・B-4:** 本人の別の明示許可により、公開5設定例、固定mode/env対応・ファイル不在停止・plugin解決後の環境/APP_ENV/ポリシー照合を実装した。新しい管理外2設定はGit/Biomeから除外。全例Jev OFF・キーなし、任意拡張OFF、旧検証の閉鎖/省略互換を維持。設定の管理と変更時の影響は[公開プリセットとbuild境界](公開プリセットとbuild境界.md)、検証と最終Git・次セッションは[B-4完了引き継ぎ](archive/B4完了-次セッション開始プロンプト.md)を正本とする。
 
 開始GitはB-3J引き継ぎとHEAD/index/54件の一覧が一致。固定依存/lockfile・0001〜0007・B-2/B-3/B-3Jコードと旧台帳契約を保持した。C-1/C-J以降、メディア、Git送信、実接続/配備/remote migration/クラウド変更/automationは今回の対象外。M-0未回答と工程E前の実契約/保持/unknown修復/権限/日本語品質/実料金/自動補充/人数/総予算/期間/終了方法は未解消。次の推奨は別の明示許可後のC-1文書3入口だけ。
 
 最終checkはexit0（lint77・型生成/型検査・実workerd21ファイル452テスト・Node7合成build/HTTP試験・client/Worker build・help事前生成）。最終コードのdev/preview HTTP smokeも成功し、自身のサーバーを停止、4173/4194の接続拒否を確認した。更新12文書のリンク292件/アンカー57件は欠落0。開始54件の45件は内容一致、9文書だけ追記し削除0。B-4実装完了時のmain/HEAD/ローカルorigin/main/indexは開始と同じ、変更37＋未追跡34＝71件。最新CI/別名複製/実接続は未実施。
 
-同日の追加「コミットして」により、実行境界`3958b54`、Jev/独立台帳`48662c7`、公開例/build設定`210fc0a`をmainへローカルコミットした。文書記録は別コミットにまとめる。commit中のC-1と記載された同時編集は区別して保持し、今回の許可へ取り込まない。現行Gitと再開基準は[B-4引き継ぎのコミット補足](B4完了-次セッション開始プロンプト.md#同日の追加依頼によるローカルコミット)を参照する。Git送信/remote再照会・実接続/クラウド変更はない。
+同日の追加「コミットして」により、実行境界`3958b54`、Jev/独立台帳`48662c7`、公開例/build設定`210fc0a`をmainへローカルコミットした。文書記録は別コミットにまとめる。commit中のC-1と記載された同時編集は区別して保持し、今回の許可へ取り込まない。現行Gitと再開基準は[B-4引き継ぎのコミット補足](archive/B4完了-次セッション開始プロンプト.md#同日の追加依頼によるローカルコミット)を参照する。Git送信/remote再照会・実接続/クラウド変更はない。
 
 ### B-3J実装セッションの結果（履歴）
 
 **2026-10-02・B-3J実装完了:** 同日の明示許可で採用済み契約をコード化。`decisions/`の固定fetch adapter・Choice/Score/Noul・分類POST/本人metadata GET、独立した原子的予約/1claim/終端CAS、0007の本文/結果/hashなし台帳を追加した。SDK/依存/0001〜0006/配備設定は変更なし。既定OFF、チャット枠独立、unknown消費/同時枠保持、終端90日・結果再表示なし、GET読取のみを維持。
 
-Node26.10.0/pnpm12.6.0の最終checkはlint69ファイル・型生成/型検査・実workerd20ファイル422テスト・client/Worker build/help事前生成で成功。全service経路の短縮timeout検証と、共通origin guard拒否時のprivate/no-storeも含む。最終点検は[B-3J実装完了引き継ぎ](B3J完了-次セッション開始プロンプト.md)を正本とする。既存ローカルD1へ0007だけ追加適用し再適用0件。最終buildのHTTP smokeはSSR/help/404/asset/API、架空登録、Jev OFF/metadata GET、demoチャット/履歴/replay/削除/logoutまで成功。起動したpreviewを停止し、4173番ポートが応答しないことも確認済み。画面は未変更で操作検証なし。CI/audit再照会/別名複製/実接続は未実施。
+Node26.10.0/pnpm12.6.0の最終checkはlint69ファイル・型生成/型検査・実workerd20ファイル422テスト・client/Worker build/help事前生成で成功。全service経路の短縮timeout検証と、共通origin guard拒否時のprivate/no-storeも含む。最終点検は[B-3J実装完了引き継ぎ](archive/B3J完了-次セッション開始プロンプト.md)を正本とする。既存ローカルD1へ0007だけ追加適用し再適用0件。最終buildのHTTP smokeはSSR/help/404/asset/API、架空登録、Jev OFF/metadata GET、demoチャット/履歴/replay/削除/logoutまで成功。起動したpreviewを停止し、4173番ポートが応答しないことも確認済み。画面は未変更で操作検証なし。CI/audit再照会/別名複製/実接続は未実施。
 
 開始Gitはmain、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更29＋未追跡14＝43件で引き継ぎと一致。remote/index/履歴は操作せず、開始43件の内容識別と最終一覧を照合する。B-4以降/C-J/メディア/Git送信/クラウド/automationは対象外。M-0未回答、工程E前の実適用契約/保持/unknown修復/実料金/自動補充/権限/日本語品質/人数/予算/期間/終了方法を維持した。
 
@@ -234,7 +234,7 @@ Node26.10.0/pnpm12.6.0の最終checkはlint69ファイル・型生成/型検査�
 
 公式API/3型/Models/LegalとD1を公開ページで再照合し、前回取得できなかったConfidence、Jev 1.13の既知の限界、MCAのTelemetry/backup・credit自動補充、Privacyの保持説明を[公式記録](../references/jev-service-contract-20261002.md#採用回答再確認セッションでの再照合2026-10-02)へ追記した。input本文の情報は自動除去されず送信対象になること、confidenceが精度や権限を保証しないことを契約へ補足。実適用Order/DPA・保持/削除・unknown照合/修復・料金/失敗課金/自動補充・実権限/日本語品質・新予算は工程E前の確認事項として残す。
 
-今回は採用回答確認・契約確定・公式再確認・文書更新だけ。Jev service/API/SDK/SQL、B-4以降、新メディア、Git送信、実接続・配備・クラウド変更・automationは未実施。実装は別の明示許可待ち。開始実GitはB-3J引き継ぎとHEAD・index・ファイル一覧まで一致（main、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更29＋未追跡14＝43件）。remote再照会なし。43件の公開ファイルの内容識別を採り、許可された文書だけを更新。最終点検と次の開始プロンプトは[B-3J引き継ぎの最新記録](B3J設計完了-次セッション開始プロンプト.md)を参照。
+今回は採用回答確認・契約確定・公式再確認・文書更新だけ。Jev service/API/SDK/SQL、B-4以降、新メディア、Git送信、実接続・配備・クラウド変更・automationは未実施。実装は別の明示許可待ち。開始実GitはB-3J引き継ぎとHEAD・index・ファイル一覧まで一致（main、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更29＋未追跡14＝43件）。remote再照会なし。43件の公開ファイルの内容識別を採り、許可された文書だけを更新。最終点検と次の開始プロンプトは[B-3J引き継ぎの最新記録](archive/B3J設計完了-次セッション開始プロンプト.md)を参照。
 
 ### B-3J初回設計セッションの結果（履歴）
 
@@ -244,7 +244,7 @@ Node26.10.0/pnpm12.6.0の最終checkはlint69ファイル・型生成/型検査�
 
 許可は設計・公開公式調査・文書更新のみ。コード/SDK/SQL追加や適用、B-4以降、新メディア、Git送信、実接続/配備/クラウド変更/automationは未実施。B-2の308/B-3の342テストと当時のcheck/最終build HTTP smokeは下記の履歴として保持し、今回アプリcheck/buildを再実行した証拠にしない。M-0の採用済み条件・回答未受領・上流検証待ちは変更なし。
 
-開始実Gitは[B-3引き継ぎ](B3完了-次セッション開始プロンプト.md)とファイル一覧まで一致（main、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更29＋未追跡11）。remote再照会なし。元40件の公開ファイルの内容識別を採り、文書だけを更新して保持した。最終点検・文書検証・Git状態と次セッションは[B-3J設計引き継ぎ](B3J設計完了-次セッション開始プロンプト.md)を正本とする。
+開始実Gitは[B-3引き継ぎ](archive/B3完了-次セッション開始プロンプト.md)とファイル一覧まで一致（main、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更29＋未追跡11）。remote再照会なし。元40件の公開ファイルの内容識別を採り、文書だけを更新して保持した。最終点検・文書検証・Git状態と次セッションは[B-3J設計引き継ぎ](archive/B3J設計完了-次セッション開始プロンプト.md)を正本とする。
 
 ### B-3セッションの結果（履歴）
 
@@ -256,7 +256,7 @@ Node26.10.0/pnpm12.6.0の最終checkはlint69ファイル・型生成/型検査�
 
 最終buildのpreview HTTP smokeも成功（SSR/help/404/asset/API、架空登録、local/demo一覧、固定応答/stream、履歴/復元/replay、削除/logout、全拡張OFF）。起動したpreviewは停止した。画面コードを変更していないため今回ブラウザ表示/クリックは未実施。最新CI・別名クリーン複製・audit再照会・実AI/実メール/Secret投入・OTP/再認証・配備・remote migration・クラウド変更・automation・Git送信は未実施。依存/lockfile・0001〜0006・配備設定は変更なし。生成型/distはコマンドで生成した。
 
-B-3開始時はmain、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更18＋未追跡7（計25）で引き継ぎ一致。既存25件を保持し、remote再照会・index/commit/push操作なし。終了時の実状態・差分一覧・文書検査は[B-3引き継ぎ](B3完了-次セッション開始プロンプト.md)へ記録する。過去HEADのCIや複製成功を未commit差分へ流用しない。
+B-3開始時はmain、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更18＋未追跡7（計25）で引き継ぎ一致。既存25件を保持し、remote再照会・index/commit/push操作なし。終了時の実状態・差分一覧・文書検査は[B-3引き継ぎ](archive/B3完了-次セッション開始プロンプト.md)へ記録する。過去HEADのCIや複製成功を未commit差分へ流用しない。
 
 終了点検ではmain/HEAD/ローカルorigin/main/indexを維持し、変更29＋未追跡11（計40）。共通公開保護フックのstatusは3項目ともtrue。名指しの公開20文書について相対リンク258件・アンカー62件の欠落/未照合0、行末空白0を確認した。見出し照合は別の名指し公開7文書だけを追加し、任意リンク先を読み取っていない。`git diff --check` / `git diff --cached --check`も成功。最終修正後に342テストとbuild/HTTP smokeを再確認し、起動したpreviewを停止した。
 
@@ -274,7 +274,7 @@ B-3開始時はmain、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ロー�
 
 HTTP preview smokeはSSR/help/404/asset/APIに加え、架空登録・認証済みモデル一覧（local/demoのみ）・固定応答/stream・保存/復元・replay・削除/logoutまで成功。起動したpreviewは終了。画面コードは未変更で、今回のブラウザ表示/クリック・最新CI・別名クリーン複製・audit再照会は未実施。依存/lockfile、0001〜0006、配備設定/実リソースは変更なし。実AI/実メール/Secret投入/OTP/再認証/配備/remote migration/クラウド変更/automation/Git送信も未実施。
 
-B-2開始時はmain、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更9＋未追跡4で引き継ぎ一致。既存13件を保持し、index・commit・push・remote再照会は操作していない。終了状態と変更ファイルは[B-2引き継ぎ](B2完了-次セッション開始プロンプト.md)へ記録する。過去HEADのCIを今回へ流用しない。
+B-2開始時はmain、HEAD `901a4b9db3b1278de983acb5ceb5462899f0be79`、ローカルorigin/main `66fd90f3526a52083ae79f4bd60fa9b640843c26`、index空、変更9＋未追跡4で引き継ぎ一致。既存13件を保持し、index・commit・push・remote再照会は操作していない。終了状態と変更ファイルは[B-2引き継ぎ](archive/B2完了-次セッション開始プロンプト.md)へ記録する。過去HEADのCIを今回へ流用しない。
 
 終了時の文書検査は名指しの公開文書17件、相対リンク232件・アンカー53件の欠落0、行末空白0。見出し照合も名指しの公開文書だけを追加し、任意リンク先は開いていない。`git diff --check` / `git diff --cached --check`成功、対象コード/テスト/smokeのBiome再確認も成功。main/HEAD/ローカルorigin/main/indexは開始時と同じで、変更18＋未追跡7（計25）。最終点検のB-2範囲に未完事項はなく、回答待ち/検証待ち/未許可の後続工程は上記のまま区別する。
 
@@ -475,21 +475,21 @@ GitHubメール設定確認とPR運用の再開は完了。2026-09-28の追加�
 
 ### 2026-09-27の配備前確認（履歴）
 
-以下は初回配備前の経緯。現在の配備状態は冒頭と[staging作業ログ](staging-work-log.md)を参照する。[staging初回配備の実行前計画](staging-deployment-plan.md)には当時の対象・手順・復旧を残している。
+以下は初回配備前の経緯。現在の配備状態は冒頭と[staging作業ログ](staging-work-log.md)を参照する。[staging初回配備の実行前計画](archive/staging-deployment-plan.md)には当時の対象・手順・復旧を残している。
 
 2026-09-27の再確認: ローカルとリモートの`main`は`0000000000000000000000000000000000000000`で一致し、確認開始時の作業ツリーはクリーン。[CI run 36315931415](https://github.com/example/cloudflare-ai-starter-kit)の`verify`全ステップ成功、check run annotationは0件。GitHubのprivate repoでrulesetとbranch protectionの両APIが「GitHub Proへupgrade、または公開化」と403を返した。privateを維持する設定案は[公式調査](../references/staging-deployment.md#github-main保護の設定案)に記録し、設定変更はしていない。
 
 同日のローカル検証: staging向けbuildとWrangler dry-runは成功。現在のstaging設定にはD1 bindingがなく、`APP_ORIGIN`は`.invalid`の仮値なので、実配備の準備完了とは扱わない。初回sandbox buildはローカルlisten/ログ書込権限で失敗し、`WRANGLER_LOG_PATH=.wrangler/logs`と許可されたローカル実行で再確認した。実クラウド、Access、D1 remote migration、実メール、実AIの成功は未確認。
 
-Cloudflareの読み取りAPIで接続先アカウント `staging.example.invalid` とactiveな同名zone、Access organizationを確認。候補のstaging Worker・D1・Accessアプリ名、`staging.example.invalid` のDNS/Custom Domain/routeは確認時点で未使用。契約情報APIは権限不足だったため、後続でDashboardを確認した。[計画書](staging-deployment-plan.md)はWorkerを公開ルートなしで配備後、Worker単位のAccess保護を付けてからCustom Domainを追加する順序へ更新した。Cloudflareの作成・変更はしていない。
+Cloudflareの読み取りAPIで接続先アカウント `staging.example.invalid` とactiveな同名zone、Access organizationを確認。候補のstaging Worker・D1・Accessアプリ名、`staging.example.invalid` のDNS/Custom Domain/routeは確認時点で未使用。契約情報APIは権限不足だったため、後続でDashboardを確認した。[計画書](archive/staging-deployment-plan.md)はWorkerを公開ルートなしで配備後、Worker単位のAccess保護を付けてからCustom Domainを追加する順序へ更新した。Cloudflareの作成・変更はしていない。
 
 ユーザーは上記アカウントとhostnameをstaging**準備上の候補**として了承し、初回はAccess限定公開、追加費用上限は既存Workers Paid料金を除き月$5と回答。実配備・DNS変更・実メール送信の承認ではない。既存Access IdPはワンタイムPINのみで、実ログインはメール送信を伴うため未実施。Accessの実契約・共有枠、テスターの範囲、実操作の対象と順序は実行前に確認する。
 
-後続の「進めて」を受け、DashboardでWorkers Paid activeと今期の請求可能使用量$0、Workers/D1が含有枠内であることを読み取り確認。Cloudflare Oneはプラン未選択。Zero Trust Freeの最終画面には規約同意と無料枠超過分の毎月請求許可が必要で、月$5の硬い上限は示されない。法的同意・継続請求の最終操作は行わず本人へ引き継ぎ、D1/Worker/Access/Custom Domainの作成と配備は停止。詳細は[実行前計画](staging-deployment-plan.md)。
+後続の「進めて」を受け、DashboardでWorkers Paid activeと今期の請求可能使用量$0、Workers/D1が含有枠内であることを読み取り確認。Cloudflare Oneはプラン未選択。Zero Trust Freeの最終画面には規約同意と無料枠超過分の毎月請求許可が必要で、月$5の硬い上限は示されない。法的同意・継続請求の最終操作は行わず本人へ引き継ぎ、D1/Worker/Access/Custom Domainの作成と配備は停止。詳細は[実行前計画](archive/staging-deployment-plan.md)。
 
 本人からZero Trust Freeを手動有効化した旨を受領し、Dashboardで同プランの表示を確認。Cloudflareアカウントのactive memberは1名。専用D1 `cloudflare-ai-starter-kit-staging` の新規作成を試みたが、自動承認レビューは初回の明示禁止を後続の「進めて」だけでは解除できないとして拒否した。別経路で再試行していない。migration 5本はローカルで構文上の削除/破棄文がないことを確認した。クラウドリソース作成・remote migration・Worker配備・Accessアプリ・Custom Domain/DNS変更の具体的承認を得るまで、外部変更はしない。
 
-Workers AI料金を公式表で再確認。Workers Paidにもアカウント共通で1日10,000 Neuronsの無料枠があり、枠内の実推論には追加料金がかからない。超過分は$0.011/1,000 Neuronsで従量課金される。初回の配備・認証・D1検証はAI OFFのままとし、後続のAI疎通時に共有使用量とモデル・回数・入出力上限を定める。根拠と費用リスクは[公式調査](../references/staging-deployment.md)と[実行前計画](staging-deployment-plan.md)へ追記した。
+Workers AI料金を公式表で再確認。Workers Paidにもアカウント共通で1日10,000 Neuronsの無料枠があり、枠内の実推論には追加料金がかからない。超過分は$0.011/1,000 Neuronsで従量課金される。初回の配備・認証・D1検証はAI OFFのままとし、後続のAI疎通時に共有使用量とモデル・回数・入出力上限を定める。根拠と費用リスクは[公式調査](../references/staging-deployment.md)と[実行前計画](archive/staging-deployment-plan.md)へ追記した。
 
 ユーザーが専用D1・Worker・Accessアプリ作成、remote migration、Custom Domain/DNS変更を明示許可。専用D1をAPACに作成し、空DBへmigration 5本をremote適用、再listで未適用0本。`pnpm check`は157件のworkerdテストを含め成功し、staging buildとdry-runも成功。Worker実配備はWrangler OAuthの`workers_scripts:write`不足で拒否され、Workerは未作成。権限追加の確認を依頼済み。Accessアプリ・Custom Domain/DNS・実HTTPは未実施。[staging作業ログ](staging-work-log.md)に順序と結果を記録した。
 

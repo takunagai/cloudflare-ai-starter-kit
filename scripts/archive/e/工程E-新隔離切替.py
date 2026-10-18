@@ -14,7 +14,7 @@ def main():
     parser.add_argument("mode", choices=("on", "off"))
     parser.add_argument("--verify-generated", action="store_true")
     arguments = parser.parse_args()
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parents[3]
     path = root / ".wrangler.e-probe-20261006.local.jsonc"
     try:
         metadata = path.lstat()

@@ -139,7 +139,7 @@ def main():
     parser.add_argument("--verify-only", action="store_true")
     parser.add_argument("--allow-unverified-expiry", action="store_true")
     args = parser.parse_args()
-    directory = Path(__file__).resolve().parent.parent / ".wrangler/e-20261006"
+    directory = Path(__file__).resolve().parents[3] / ".wrangler/e-20261006"
     try:
         if args.mode == "prepare":
             if args.allow_unverified_expiry:

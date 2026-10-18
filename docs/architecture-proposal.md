@@ -1,6 +1,6 @@
 # 合意済み構成と受け入れ条件
 
-整理日: 2026-10-07。合意した仕様の参照先。実装・検証・許可の現在地は[current-state.md](current-state.md)、過去の追記と変更理由は[旧版](architecture-history.md)に分離した。状態報告は本書へ重複追記しない。
+整理日: 2026-10-07。合意した仕様の参照先。実装・検証・許可の現在地は[current-state.md](current-state.md)、過去の追記と変更理由は[旧版](archive/architecture-history.md)に分離した。状態報告は本書へ重複追記しない。
 
 ## 次期整備方針の合意（2026-09-29）
 
@@ -40,7 +40,7 @@ falは従来の画像サンプルに加え、[画像・動画・音声の初版�
 
 ## 第1段階の実装と完了証拠
 
-開発基盤の受け入れ条件は、固定依存、型/lint、workerd API、SSR/prerender、build/previewとHTTP smoke、環境別の運用手順。過去の検証版は[第2段階の検証記録](phase2-verification.md)と[構成資料の旧版](architecture-history.md#第1段階の実装と完了証拠)で確認する。現在の進捗は[current-state.md](current-state.md)で管理する。
+開発基盤の受け入れ条件は、固定依存、型/lint、workerd API、SSR/prerender、build/previewとHTTP smoke、環境別の運用手順。過去の検証版は[第2段階の検証記録](phase2-verification.md)と[構成資料の旧版](archive/architecture-history.md#第1段階の実装と完了証拠)で確認する。現在の進捗は[current-state.md](current-state.md)で管理する。
 
 ## 第2段階: 標準機能の受け入れ条件
 

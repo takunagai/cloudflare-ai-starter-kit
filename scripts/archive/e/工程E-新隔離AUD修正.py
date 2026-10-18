@@ -26,7 +26,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("update", "verify-generated"))
     arguments = parser.parse_args()
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parents[3]
     path = root / ".wrangler.e-probe-20261006.local.jsonc"
     try:
         source = read_private(path)
