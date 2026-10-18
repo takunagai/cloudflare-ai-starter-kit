@@ -1,5 +1,6 @@
 # 公式情報の参照索引
 
+- [TanStack StartのXSS修正と依存の一括更新](dependency-update-20261018.md): 2026-10-18のaudit critical 2件（GHSA-qx66-fv34-fjm8）、メジャー更新を除く直接依存の更新、効いていないoverride 3件の削除。vitest 5、Polar 1.0、compatibility_dateは見送り。
 - [CI依存脆弱性とCIシェルの修正](ci-dependencies-20261008.md): 2026-10-08のCI失敗2件（zsh不在、source-map-js/sharpのGHSA）の根拠と、複製先private-rag-chatからの逆輸入。実アプリへの影響は断定しない。
 
 - [AI Search/R2の現行仕様と非公開RAG](ai-search-rag-20261006.md): 2026-10-06のGA/料金・instance binding・metadata filter・R2データソースを公式資料で再照合。既存のMarkdown/テキスト登録コードとの対応と、実索引・個人資料送信の未確認範囲を区別する。
