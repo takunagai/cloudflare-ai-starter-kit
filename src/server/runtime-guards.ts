@@ -1,6 +1,4 @@
-// 通常運用と旧検証の両方で使う実行時ガード。認証・所有権を確認した入口から呼ぶ。
-// 旧検証専用の判定（固定窓・3回・入力上限）は ai-verification.ts に置く。
-import { verificationModelId } from "./ai/catalog";
+// 認証・所有権を確認した入口から呼ぶ実行時ガード。
 import type { AppEnv } from "./env";
 import { ApiError } from "./http";
 import {
@@ -15,10 +13,9 @@ export type RuntimeEnv = AppEnv & RuntimePolicyInput;
 export async function checkRuntimeBoundary(env: RuntimeEnv) {
   const boundary = resolveRuntimePolicy(env).boundary;
   if (!boundary.ok) throw new ApiError(503, boundary.code);
-  if (
-    boundary.value.kind === "standard" &&
-    boundary.value.requiresVerificationLedgerCheck
-  ) {
+  // 別用途に使ったD1（旧検証の台帳に行がある等）の再利用を拒否する。
+  // 理由コードは配備済みの記録と照合できるよう旧名のまま維持する。
+  if (boundary.value.requiresCleanLedgerCheck) {
     let present: { present: number } | null;
     try {
       present = await env.DB.prepare(
@@ -40,33 +37,29 @@ export async function checkChatRuntimePolicy(env: RuntimeEnv) {
   return chat.value;
 }
 
-// OFF/旧検証の404は認証や設定/台帳照会より先に判定する。
+// standardを明示しないstagingは、認証や設定/台帳照会より先に拡張を閉じる。
+export function isStagingWithoutStandardPolicy(env: RuntimePolicyInput) {
+  return env.APP_ENV === "staging" && env.STAGING_POLICY !== "standard";
+}
+
+// OFFの404は認証や設定/台帳照会より先に判定する。
 export function requireExtensionEnabled(
   env: RuntimeEnv,
   flag: string | undefined,
   code = "feature_disabled",
 ) {
-  if (
-    flag !== "true" ||
-    (env.APP_ENV === "staging" &&
-      (env.STAGING_POLICY === undefined ||
-        env.STAGING_POLICY === "verification"))
-  )
+  if (flag !== "true" || isStagingWithoutStandardPolicy(env))
     throw new ApiError(404, code);
 }
 
 // 各入口の入力/所有権/状態確認後、関連更新と外部呼出し直前に使う。
 // チャット/Jevの設定不備だけでは独立拡張を止めない。
 export async function checkExtensionRuntimePolicy(env: RuntimeEnv) {
-  const boundary = await checkRuntimeBoundary(env);
-  if (boundary.kind === "verification")
-    throw new ApiError(404, "feature_disabled");
+  await checkRuntimeBoundary(env);
 }
 
 export function chatModelAllowed(policy: ChatPolicy, modelId: string) {
   switch (policy.mode) {
-    case "verification":
-      return modelId === verificationModelId;
     case "off":
       return false;
     case "local-demo":

@@ -5,9 +5,8 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModel } from "ai";
 import { createWorkersAI } from "workers-ai-provider";
-import { type VerificationEnv, verificationSettings } from "../ai-verification";
 import { type AppEnv, isLocalDevelopment, type PublicModel } from "../env";
-import { chatModelAllowed } from "../runtime-guards";
+import { chatModelAllowed, type RuntimeEnv } from "../runtime-guards";
 import { resolveRuntimePolicy } from "../runtime-policy";
 import { chatModelCatalog as catalog } from "./catalog";
 import { createLocalDemoModel } from "./local-demo";
@@ -50,10 +49,7 @@ function localEndpoint(env: AppEnv): string | undefined {
   }
 }
 
-function available(
-  entry: (typeof catalog)[number],
-  env: VerificationEnv,
-): boolean {
+function available(entry: (typeof catalog)[number], env: RuntimeEnv): boolean {
   const policy = resolveRuntimePolicy(env);
   if (
     !policy.boundary.ok ||
@@ -61,11 +57,6 @@ function available(
     !chatModelAllowed(policy.chat.value, entry.id)
   )
     return false;
-  try {
-    verificationSettings(env);
-  } catch {
-    return false;
-  }
   switch (entry.provider) {
     case "openai":
       return configured(env.OPENAI_API_KEY);
@@ -84,14 +75,14 @@ function available(
   }
 }
 
-export function listModels(env: VerificationEnv): PublicModel[] {
+export function listModels(env: RuntimeEnv): PublicModel[] {
   return catalog.map((entry) => ({
     ...entry,
     available: available(entry, env),
   }));
 }
 
-export function getModel(modelId: string, env: VerificationEnv): LanguageModel {
+export function getModel(modelId: string, env: RuntimeEnv): LanguageModel {
   const entry = catalog.find((item) => item.id === modelId);
   if (!entry || !available(entry, env)) throw new ModelUnavailableError();
   switch (entry.provider) {

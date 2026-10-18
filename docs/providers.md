@@ -23,12 +23,12 @@
 | `openai/gpt-4.1-mini` | `gpt-4.1-mini` / Chat Completions | `OPENAI_API_KEY` |
 | `anthropic/claude-haiku-4-5` | `claude-haiku-4-5` | `ANTHROPIC_API_KEY` |
 | `google/gemini-3.5-flash-lite` | `gemini-3.5-flash-lite` | `GOOGLE_GENERATIVE_AI_API_KEY` |
-| `workers-ai/llama-3.1-8b-fp8` | `@cf/meta/llama-3.1-8b-instruct-fp8` | Workers AI binding `AI`。旧検証stagingだけは固定窓/総枠の既存設定も必要 |
+| `workers-ai/llama-3.1-8b-fp8` | `@cf/meta/llama-3.1-8b-instruct-fp8` | Workers AI binding `AI` |
 | `openrouter/openai/gpt-4.1-mini` | `openai/gpt-4.1-mini` | `OPENROUTER_API_KEY` |
 | `lm-studio/local` | サーバー側の `LM_STUDIO_MODEL` | ローカル環境と `LM_STUDIO_BASE_URL` |
 | `local/demo` | AIを使わない固定応答 | ローカル環境と `LOCAL_DEMO=true` |
 
-adapterの`available`は同期ポリシーの選択と設定充足、HTTPモデル一覧の`available`はさらに台帳検査を通過した意味です。旧検証では従来の固定窓判定も維持します。キーの有効性、残高、実利用権限、provider稼働状況を照会した結果ではありません。選択外/未設定adapterは外部通信前に`ModelUnavailableError`になり、HTTPチャットは固定コードを返します。モデル一覧は推論しません。
+adapterの`available`は同期ポリシーの選択と設定充足、HTTPモデル一覧の`available`はさらに台帳検査を通過した意味です。キーの有効性、残高、実利用権限、provider稼働状況を照会した結果ではありません。選択外/未設定adapterは外部通信前に`ModelUnavailableError`になり、HTTPチャットは固定コードを返します。モデル一覧は推論しません。
 
 Googleの2.5系は確認時点で新規利用が制限されているため、新規プロジェクト向けとして公式が案内する3.5 Flash-Liteをサンプルにした。これは全モデルの性能・価格比較の結果ではない。利用モデルを追加・変更する場合は `src/server/ai/catalog.ts`の公開定義と`providers.ts`のadapterを変更し、選択/直接取得の契約テストと説明を更新する。無制限なモデルID入力や自動fallbackは導入していない。
 
@@ -42,7 +42,7 @@ Googleの2.5系は確認時点で新規利用が制限されているため、�
 4. 別承認後だけ、ユーザーが会話外で対象環境のSecretを投入する。[Secrets運用補足](../rules/secrets.md)に従い、値をチャット・コマンド引数・ログに出さない。Workers AIは各環境へ`AI` bindingを個別に設定する。build/配備先は[B-4の固定対応](公開プリセットとbuild境界.md#buildの選択と拒否)に従い、旧検証stagingを通常へ転換しない。
 5. 認証済みモデル一覧で選択と設定充足を確認し、承認した回数・予算・期間内の小さなリクエストで実接続する。設定済み/available表示は資格情報・残高・実権限の照会結果ではない。実行時も認証・所有権・原子的枠・台帳・モデル選択を再確認し、出力上限/timeout/retry 0を維持する。生エラーをHTTPやログへ丸ごと返さない。
 
-資格情報だけでは有効にならない点は旧版からの互換性変更です。AI_MODE省略→demoを保持するのは安全なloopback local＋LOCAL_DEMO=trueだけで、他の通常経路はOFFです。旧検証stagingでは新AI設定を混ぜず、従来の固定FP8・30分・総3回・単一所有者・失敗消費・閉鎖を保持します。新しいAI設定への書換えや台帳の削除/更新で解除しません。
+資格情報だけでは有効にならない点は旧版からの互換性変更です。AI_MODE省略→demoを保持するのは安全なloopback local＋LOCAL_DEMO=trueだけで、他の通常経路はOFFです。旧検証モード（固定FP8・30分・総3回）は2026-10-19に廃止し、`STAGING_POLICY`を省略したstagingはモデルを全件available:falseにします（[廃止の記録](実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)）。台帳の削除/更新で通常へ解除しません。
 
 Jevは専用`JEV_MODE`、fal等は対応`ENABLE_*`で独立して制御します。AI_MODEだけで実メール・Jev・画像・決済の全接続を止められると説明せず、終了操作を個別に定義します。
 

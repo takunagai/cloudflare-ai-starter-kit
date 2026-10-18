@@ -26,7 +26,7 @@
 
 全例で`JEV_MODE=off`、JEV_MODEL/TYPESAFE_API_KEYなし、任意拡張5種OFF。非localはAI_MODE=off/LOCAL_DEMO=false。AI/R2/Workflow等の未使用bindingは追加しない。EMAILは公開向け認証に使う2例だけへ列挙し、AIやJevのための必須項目にはしない。認証未設定の非local例もbuild/公開healthの起動は可能だが、認証・アプリ利用・実メールの成功を示さない。
 
-DB IDは全ゼロのローカル用ダミー、originは`.invalid`、routeなし、workers_dev/preview_urls=false。公開wranglerのlocalは従来のAI_MODE省略からlocal-demoを解決する互換を保持し、用途別local例では明示する。productionは明示OFFと専用ダミーDB、各環境のJevはOFF。公開stagingは旧verificationの省略互換・enabled=false/開始空を保持し、AI_MODE/STAGING_POLICYを追加して通常へ転換しない。実設定と旧台帳を整理目的で書き換えない。
+DB IDは全ゼロのローカル用ダミー、originは`.invalid`、routeなし、workers_dev/preview_urls=false。公開wranglerのlocalは従来のAI_MODE省略からlocal-demoを解決する互換を保持し、用途別local例では明示する。productionは明示OFFと専用ダミーDB、各環境のJevはOFF。公開stagingは`STAGING_POLICY`を書かず、2026-10-19の旧検証廃止後は`missing_staging_policy`で全経路を閉じる（[廃止の記録](実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)）。AI_MODE/STAGING_POLICYを追加して通常へ転換しない。実設定と旧台帳を整理目的で書き換えない。
 
 ## buildの選択と拒否
 
@@ -34,8 +34,8 @@ DB IDは全ゼロのローカル用ダミー、originは`.invalid`、routeなし
 
 | Vite mode | 設定ファイル | build時のCLOUDFLARE_ENV・APP_ENV/ポリシー |
 | --- | --- | --- |
-| development / production / test | `wrangler.jsonc` | 省略はlocal。明示stagingは旧verification、productionはproduction。Viteのproduction名だけではAPP_ENVを変えない |
-| staging-local | 既存の管理外staging設定 | staging必須、APP_ENV=staging、ポリシー省略/verificationだけ。解決先を保持 |
+| development / production / test | `wrangler.jsonc` | 省略はlocal。明示stagingはポリシー省略（実行時に閉鎖）、productionはproduction。Viteのproduction名だけではAPP_ENVを変えない |
+| staging-local | 既存の管理外staging設定 | staging必須、APP_ENV=staging、ポリシー省略/verificationだけ。解決先を保持するが、旧検証廃止後の実行時は503で全経路を閉じる |
 | standard-staging-local | `.wrangler.standard-staging.local.jsonc` | staging必須、APP_ENV=staging、STAGING_POLICY=standard |
 | production-local | `.wrangler.production.local.jsonc` | production必須、APP_ENV=production、STAGING_POLICY省略 |
 

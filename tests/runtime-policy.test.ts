@@ -34,9 +34,8 @@ describe("runtime policy: environment and legacy boundary", () => {
         boundary: {
           ok: true,
           value: {
-            kind: "standard",
             environment: base.APP_ENV,
-            requiresVerificationLedgerCheck: base.APP_ENV === "staging",
+            requiresCleanLedgerCheck: base.APP_ENV === "staging",
           },
         },
         chat: { ok: true, value: { mode: "off" } },
@@ -45,23 +44,27 @@ describe("runtime policy: environment and legacy boundary", () => {
     },
   );
 
-  it.each([undefined, "verification"])("staging %sは旧検証へ委譲", (policy) => {
-    for (const enabled of [undefined, "false", "true", ""]) {
+  // 旧検証モード（省略時の既定）は廃止。どの組合せでも全経路を固定コードで閉じる。
+  it.each([
+    [undefined, "missing_staging_policy"],
+    ["verification", "invalid_staging_policy"],
+  ] as const)("staging %sはfail-closed", (policy, code) => {
+    for (const extra of [
+      {},
+      { AI_VERIFICATION_ENABLED: "false" },
+      { AI_VERIFICATION_ENABLED: "true" },
+      { AI_VERIFICATION_START: "" },
+      selected,
+      remoteJev,
+    ]) {
       const result = resolveRuntimePolicy({
         ...staging,
         STAGING_POLICY: policy,
-        AI_VERIFICATION_ENABLED: enabled,
+        ...extra,
       });
-      expect(result.boundary).toEqual({
-        ok: true,
-        value: { kind: "verification", environment: "staging" },
-      });
-      // binding・期限・台帳を確認したreadyや実行可能モデルを返さない。
-      expect(result.chat).toEqual({
-        ok: true,
-        value: { mode: "verification" },
-      });
-      expect(result.jev).toEqual({ ok: true, value: { mode: "off" } });
+      expect(result.boundary).toEqual({ ok: false, code });
+      expect(result.chat).toEqual(result.boundary);
+      expect(result.jev).toEqual(result.boundary);
     }
   });
 
@@ -282,22 +285,6 @@ describe("runtime policy: explicit chat selection", () => {
         }).chat.ok,
       ).toBe(false);
   });
-  it.each([undefined, "verification"])(
-    "旧検証に新AI設定を混ぜない: %s",
-    (STAGING_POLICY) => {
-      for (const settings of [
-        { AI_MODE: "off" },
-        { AI_MODE: "" },
-        { AI_ALLOWED_MODELS: "[]" },
-        { AI_ALLOWED_MODELS: "" },
-        selected,
-      ])
-        expect(
-          resolveRuntimePolicy({ ...staging, STAGING_POLICY, ...settings })
-            .chat,
-        ).toEqual({ ok: false, code: "verification_ai_settings_forbidden" });
-    },
-  );
 });
 
 describe("runtime policy: independent Jev contract and pure evaluation", () => {
@@ -356,14 +343,6 @@ describe("runtime policy: independent Jev contract and pure evaluation", () => {
         ).toBe(false);
     expect(resolveRuntimePolicy({ ...local, ...remoteJev }).jev.ok).toBe(true);
   });
-  it.each([undefined, "verification"])(
-    "旧検証でJev接続を拒否: %s",
-    (STAGING_POLICY) => {
-      expect(
-        resolveRuntimePolicy({ ...staging, STAGING_POLICY, ...remoteJev }).jev,
-      ).toEqual({ ok: false, code: "verification_jev_forbidden" });
-    },
-  );
   it("入力を変えず、資格情報/bindingを読まず、通信しない", () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")

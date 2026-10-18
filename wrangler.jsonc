@@ -16,8 +16,6 @@
       "routes": [],
       "vars": {
         "APP_ENV": "staging",
-        "AI_VERIFICATION_ENABLED": "false",
-        "AI_VERIFICATION_START": "",
         "JEV_MODE": "off",
         "APP_ORIGIN": "https://staging.example.invalid",
         "AUTH_MODE": "access",

@@ -29,7 +29,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `src/router.tsx` | ルーター生成と型登録 |
 | `src/server.ts` | Worker入口。`/api`と`/api/*`をAPIへ、それ以外をStartへ渡す |
 | `src/server/api.ts` / `app-api.ts` | health・入力検証・認証済みAPIのdispatch。未知APIはJSONの404 |
-| `src/server/runtime-policy.ts` / `runtime-guards.ts` | 設定の純粋判定 / 入口から呼ぶ実行時ガード。旧検証専用の判定は`ai-verification.ts` |
+| `src/server/runtime-policy.ts` / `runtime-guards.ts` | 設定の純粋判定 / 入口から呼ぶ実行時ガード。system promptは`chat-prompt.ts` |
 | `src/server/auth/` / `db/` | Better Auth・Access・認証schema |
 | `src/server/chat*.ts` / `agent-tools.ts` | 生成・履歴・原子的枠予約・人間承認 |
 | `src/server/extensions/` / `billing.ts` | 任意拡張、外部API境界 |

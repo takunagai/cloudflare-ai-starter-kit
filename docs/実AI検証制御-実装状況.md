@@ -1,5 +1,20 @@
 # 実AI検証制御の実装状況
 
+## 2026-10-19 旧検証モードの廃止
+
+確認日: 2026-10-19。本人の決定（2026-10-18）で、2026-09-28〜29の旧検証モード（指定FP8・固定30分・総3回）をコードから削除した。実装とローカル検証のみで、配備済みのstaging Worker・実D1・実設定は変更していない。以下の節は各時点の履歴で、旧検証の記述は現在の動作ではない。
+
+| 対象 | 現在の動作と理由 | 管理場所・変更時の影響 |
+| --- | --- | --- |
+| `STAGING_POLICY`省略のstaging | 境界・チャット・Jevを503 `missing_staging_policy`で閉じる。拡張・決済・判断APIは認証前に404。以前は省略時の既定が旧検証だったため、黙って通常運用へ変わらないよう明示指定を必須にした | `runtime-policy.ts`、`runtime-guards.ts`の`isStagingWithoutStandardPolicy`。公開wranglerの`env.staging`と既存`staging-local`はこの閉鎖状態になる |
+| `STAGING_POLICY=verification` | 未知値と同じく503 `invalid_staging_policy` | 同上 |
+| `AI_VERIFICATION_ENABLED` / `AI_VERIFICATION_START`の残存 | 従来どおり503 `legacy_verification_settings`。公開wranglerからは削除した | `runtime-policy.ts`。複製先の管理外設定に残っていれば拒否される |
+| `/api/ai-verification` | 削除。認証の前後とも未知APIのJSON 404 | `api.ts`、`app-api.ts` |
+| 通常stagingの台帳検査 | 維持。旧モードの名残ではなく「別用途に使ったD1の再利用を拒否する」境界チェックとして`requiresCleanLedgerCheck`へ改名。0006のtableあり・行なしを要求し、理由コード（`legacy_verification_ledger`、`verification_ledger_unavailable`）は配備済みの記録と照合できるよう変えない | `runtime-guards.ts`の`checkRuntimeBoundary`。0006のtableはmigrationなので削除しない |
+| チャットのsystem prompt | 旧検証モジュールから`chat-prompt.ts`へ移した。文面は不変 | `chat-prompt.ts` |
+
+検証済み（ローカル）: `pnpm check`（45ファイル885件）、preview smoke（`/api/ai-verification`の404を認証前後で確認）。workerdのテストで、`STAGING_POLICY`省略・`verification`・未知値・旧フラグ残存のstagingがチャット503と固定コードを返し、会話の参照は継続することを確認した。未検証: 配備済みの旧staging Workerは再配備するまで旧コードのまま。再配備は別承認。
+
 ## 2026-10-02 B-4完了の参照
 
 [公開5設定例とbuild境界](公開プリセットとbuild境界.md)はB-4として実装/ローカル検証済み。全例Jev/任意拡張OFF、旧検証staging閉鎖・通常staging別Worker/別DBを保持し、実設定/旧台帳を変更していない。[B-4の証拠と次セッション](archive/B4完了-次セッション開始プロンプト.md)を参照。以下のB-3J/B-3/B-2の未実装欄は各時点の履歴。C以降/メディア/実接続/配備は未実施で、M-0未回答と工程E前の未確定条件は残る。
@@ -89,11 +104,11 @@
 | 対象 | 状態 |
 | --- | --- |
 | モデル | 公開ID`workers-ai/llama-3.1-8b-fp8`・表示名・upstream IDをFP8版へ変更。旧IDは不明モデルとして拒否し、無言で転送しない |
-| [検査モジュール](../src/server/ai-verification.ts) | staging・Access・拡張全OFF・固定30分窓・入力200 code units・system/履歴込み4,096 UTF-8 bytesをチャット経路で検査 |
+| 検査モジュール（`src/server/ai-verification.ts`、2026-10-19削除） | staging・Access・拡張全OFF・固定30分窓・入力200 code units・system/履歴込み4,096 UTF-8 bytesをチャット経路で検査 |
 | [migration 0006](../migrations/0006_ai_verification.sql) | 検証開始時刻・期限・所有者・消費数0〜3を保持する単一行テーブル。一時テストD1と既存のローカルD1へ適用。remote未適用 |
 | 原子的な枠予約 | 会話lock・request/messages作成・総枠消費を同じD1 batch内で実施。最初の所有者に固定し、日付・会話削除・再有効化・設定開始時刻変更で枠を増やさない |
 | 履歴・timeout・API | 直前の完了済みuser/assistant 2件または履歴0のみ。切詰めなし。推論直前に期限再確認し、中断は60秒と期限までの残り時間の短い方。認証済みGET `/api/ai-verification`はready/remaining/期限だけを返し、所有者IDは返さない |
-| [独立テスト](../tests/ai-verification.test.ts)・[統合テスト](../tests/ai-verification-chat.test.ts) | レビューで4件追加し20件＋19件成功。全体checkは15ファイル197テスト・lint・型検査・build成功。fake binding限定 |
+| 独立テスト・統合テスト（`tests/ai-verification*.test.ts`、2026-10-19削除） | レビューで4件追加し20件＋19件成功。全体checkは15ファイル197テスト・lint・型検査・build成功。fake binding限定 |
 | Cloudflare・GitHub | 実環境操作は未実施。実装PRの作成・生成情報と最新CIの検査は今回の許可範囲 |
 
 当初の一括編集は共通秘密保護フックに拒否された。原因調査と[限定修正案](保護フック誤検出-調査と修正案.md)のレビュー後、ユーザーが適用と構造化patchによる再開を明示承認。限定した読み取り検索だけを改善し、秘密ファイル判定・任意Pythonの判定・保護の登録・例外・baselineは維持した。設定型ソースは読まず、専用設定型を使って組み込んだ。

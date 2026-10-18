@@ -3,12 +3,7 @@ import { z } from "zod";
 import { FAILURE_MESSAGES } from "../lib/reliability";
 import { noteTools } from "./agent-tools";
 import { getModel, listModels } from "./ai/providers";
-import {
-  chatSystemPrompt,
-  checkVerificationInput,
-  type VerificationEnv,
-  verificationSettings,
-} from "./ai-verification";
+import { chatSystemPrompt } from "./chat-prompt";
 import {
   chatHistory,
   finishChat,
@@ -19,7 +14,11 @@ import {
 import { type Identity, isEnabled } from "./env";
 import { retrieveRag } from "./extensions/rag";
 import { ApiError, json, readJson } from "./http";
-import { chatModelAllowed, checkChatRuntimePolicy } from "./runtime-guards";
+import {
+  chatModelAllowed,
+  checkChatRuntimePolicy,
+  type RuntimeEnv,
+} from "./runtime-guards";
 
 const chatSchema = z
   .object({
@@ -34,21 +33,23 @@ const chatSchema = z
 
 export async function handleChat(
   request: Request,
-  env: VerificationEnv,
+  env: RuntimeEnv,
   identity: Identity,
   ctx: ExecutionContext,
 ) {
   const input = await readJson(request, chatSchema, 40000);
-  const legacy =
-    env.APP_ENV === "staging" &&
-    (env.STAGING_POLICY === undefined || env.STAGING_POLICY === "verification");
-  if (!legacy) await ownedConversation(env, identity.id, input.conversationId);
-  const policy = legacy ? null : await checkChatRuntimePolicy(env);
-  const verification = verificationSettings(env);
+  await ownedConversation(env, identity.id, input.conversationId);
+  const policy = await checkChatRuntimePolicy(env);
   const model = listModels(env).find((entry) => entry.id === input.modelId);
   if (!model) throw new ApiError(400, "unknown_model");
-  if (!model.available || (policy && !chatModelAllowed(policy, input.modelId)))
+  if (!model.available || !chatModelAllowed(policy, input.modelId))
     throw new ApiError(503, "model_unavailable");
+  // 受付後の各段階でも設定変更を再確認する。
+  const recheckPolicy = async () => {
+    const current = await checkChatRuntimePolicy(env);
+    if (!chatModelAllowed(current, input.modelId))
+      throw new ApiError(503, "model_unavailable");
+  };
   if (
     (input.rag && !isEnabled(env.ENABLE_RAG)) ||
     (input.agent && !isEnabled(env.ENABLE_AGENT))
@@ -58,13 +59,7 @@ export async function handleChat(
   if (!(await reserveChat(env, identity, input)))
     return json({ replayed: true });
   const abort = new AbortController();
-  const timeout = setTimeout(
-    () => abort.abort("timeout"),
-    Math.min(
-      60000,
-      verification ? Math.max(0, verification.expiresAt - Date.now()) : 60000,
-    ),
-  );
+  const timeout = setTimeout(() => abort.abort("timeout"), 60000);
   const cancel = () => abort.abort("cancelled");
   request.signal.addEventListener("abort", cancel, { once: true });
   if (request.signal.aborted) cancel();
@@ -95,14 +90,9 @@ export async function handleChat(
             env,
             input.conversationId,
             input.requestId,
-            Boolean(verification),
           );
           failureCode = "request_preparation_failed";
-          if (!verification) {
-            const current = await checkChatRuntimePolicy(env);
-            if (!chatModelAllowed(current, input.modelId))
-              throw new ApiError(503, "model_unavailable");
-          }
+          await recheckPolicy();
           const sources = input.rag
             ? await retrieveRag(env, identity, input.message.slice(0, 2000))
             : null;
@@ -114,14 +104,7 @@ export async function handleChat(
             .map((source) => `[${source.id}] ${source.title}\n${source.text}`)
             .join("\n\n")
             .slice(0, 16000);
-          if (verification) {
-            checkVerificationInput(input.message, history);
-            verificationSettings(env);
-          } else {
-            const current = await checkChatRuntimePolicy(env);
-            if (!chatModelAllowed(current, input.modelId))
-              throw new ApiError(503, "model_unavailable");
-          }
+          await recheckPolicy();
           if (abort.signal.aborted) throw new Error("generation_cancelled");
           const selectedModel = getModel(input.modelId, env);
           // モデル呼出し直前に推論開始印を永続化する。印を残せなければモデルを呼ばない。
@@ -139,14 +122,9 @@ export async function handleChat(
             model: selectedModel,
             // agentは複数のモデルstepを持つ。各呼出し直前にも再確認する。
             prepareStep: async () => {
-              if (verification) verificationSettings(env);
-              else {
-                const current = await checkChatRuntimePolicy(env);
-                if (!chatModelAllowed(current, input.modelId))
-                  throw new ApiError(503, "model_unavailable");
-                // 資格情報/選択の変化も既存modelオブジェクトの再利用で迂回しない。
-                getModel(input.modelId, env);
-              }
+              await recheckPolicy();
+              // 資格情報/選択の変化も既存modelオブジェクトの再利用で迂回しない。
+              getModel(input.modelId, env);
             },
             system: chatSystemPrompt,
             messages: [

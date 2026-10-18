@@ -25,7 +25,7 @@ export type RuntimePolicyInput = Readonly<{
   }>;
 
 export type AppEnvironment = "local" | "staging" | "production";
-export type StagingPolicy = "verification" | "standard";
+export type StagingPolicy = "standard";
 export type AiMode = "off" | "local-demo" | "selected";
 export type JevMode = "off" | "remote";
 
@@ -36,35 +36,28 @@ export type JevModelId = (typeof allowedJevModelIds)[number];
 export type PolicyErrorCode =
   | "invalid_application_environment"
   | "invalid_application_origin"
+  | "missing_staging_policy"
   | "invalid_staging_policy"
   | "legacy_verification_settings"
-  | "verification_ai_settings_forbidden"
   | "invalid_ai_mode"
   | "invalid_local_demo"
   | "invalid_allowed_models"
   | "local_model_forbidden"
   | "invalid_jev_mode"
-  | "invalid_jev_model"
-  | "verification_jev_forbidden";
+  | "invalid_jev_model";
 
 export type PolicyResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly code: PolicyErrorCode };
 
-export type EnvironmentPolicy =
-  | {
-      readonly kind: "verification";
-      readonly environment: "staging";
-    }
-  | {
-      readonly kind: "standard";
-      readonly environment: AppEnvironment;
-      // trueはDB検査が済んだ意味ではない。B-2の非同期guardが必須。
-      readonly requiresVerificationLedgerCheck: boolean;
-    };
+export type EnvironmentPolicy = {
+  readonly environment: AppEnvironment;
+  // stagingのD1が別用途（0006の旧検証台帳）に使われていないことの確認要否。
+  // trueはDB検査が済んだ意味ではない。runtime-guardsの非同期guardが必須。
+  readonly requiresCleanLedgerCheck: boolean;
+};
 
 export type ChatPolicy =
-  | { readonly mode: "verification" } // 旧制御への委譲。実行許可ではない。
   | { readonly mode: "off" }
   | { readonly mode: "local-demo" }
   | {
@@ -120,11 +113,12 @@ function environmentPolicy(
   if (!validOrigin(input.APP_ORIGIN, environment === "local"))
     return failure("invalid_application_origin");
 
+  // 旧検証モード（省略時の既定）は2026-10-19に廃止。stagingは明示指定を必須とする。
   if (environment === "staging") {
-    const staging = input.STAGING_POLICY ?? "verification";
-    if (staging === "verification")
-      return success({ kind: "verification", environment });
-    if (staging !== "standard") return failure("invalid_staging_policy");
+    if (input.STAGING_POLICY === undefined)
+      return failure("missing_staging_policy");
+    if (input.STAGING_POLICY !== "standard")
+      return failure("invalid_staging_policy");
   } else if (input.STAGING_POLICY !== undefined) {
     return failure("invalid_staging_policy");
   }
@@ -137,9 +131,8 @@ function environmentPolicy(
   )
     return failure("legacy_verification_settings");
   return success({
-    kind: "standard",
     environment,
-    requiresVerificationLedgerCheck: environment === "staging",
+    requiresCleanLedgerCheck: environment === "staging",
   });
 }
 
@@ -147,13 +140,6 @@ function chatPolicy(
   input: RuntimePolicyInput,
   boundary: EnvironmentPolicy,
 ): PolicyResult<ChatPolicy> {
-  if (boundary.kind === "verification") {
-    if (input.AI_MODE !== undefined || input.AI_ALLOWED_MODELS !== undefined)
-      return failure("verification_ai_settings_forbidden");
-    // LOCAL_DEMO/認証/拡張/期限/binding/台帳は旧verificationSettingsで判定。
-    return success({ mode: "verification" });
-  }
-
   const mode =
     input.AI_MODE ??
     (boundary.environment === "local" && input.LOCAL_DEMO === "true"
@@ -198,18 +184,13 @@ function chatPolicy(
   });
 }
 
-function jevPolicy(
-  input: RuntimePolicyInput,
-  boundary: EnvironmentPolicy,
-): PolicyResult<JevPolicy> {
+function jevPolicy(input: RuntimePolicyInput): PolicyResult<JevPolicy> {
   const mode = input.JEV_MODE ?? "off";
   if (mode !== "off" && mode !== "remote") return failure("invalid_jev_mode");
   if (mode === "off")
     return input.JEV_MODEL === undefined
       ? success({ mode })
       : failure("invalid_jev_model");
-  if (boundary.kind === "verification")
-    return failure("verification_jev_forbidden");
   const model = allowedJevModelIds.find((id) => id === input.JEV_MODEL);
   if (!model) return failure("invalid_jev_model");
   return success({ mode, model });
@@ -223,6 +204,6 @@ export function resolveRuntimePolicy(input: RuntimePolicyInput): RuntimePolicy {
   return {
     boundary,
     chat: chatPolicy(input, boundary.value),
-    jev: jevPolicy(input, boundary.value),
+    jev: jevPolicy(input),
   };
 }

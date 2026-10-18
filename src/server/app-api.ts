@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { decideNote } from "./agent-tools";
 import { listModels } from "./ai/providers";
-import { type VerificationEnv, verificationStatus } from "./ai-verification";
 import { getIdentity, handleAuth } from "./auth";
 import { handleBilling } from "./billing";
 import { handleChat } from "./chat";
@@ -29,6 +28,8 @@ import {
   chatModelAllowed,
   checkChatRuntimePolicy,
   checkExtensionRuntimePolicy,
+  isStagingWithoutStandardPolicy,
+  type RuntimeEnv,
   requireExtensionEnabled,
 } from "./runtime-guards";
 import { resolveRuntimePolicy } from "./runtime-policy";
@@ -40,17 +41,14 @@ function method(request: Request, allowed: string[]) {
 
 export async function handleApp(
   request: Request,
-  env: VerificationEnv & MediaEnv,
+  env: RuntimeEnv & MediaEnv,
   ctx: ExecutionContext,
 ): Promise<Response> {
   const receivedAt = Date.now();
   try {
     const path = new URL(request.url).pathname;
     guardRequestEnvironment(request, env);
-    const extensionsBlocked =
-      env.APP_ENV === "staging" &&
-      (env.STAGING_POLICY === undefined ||
-        env.STAGING_POLICY === "verification");
+    const extensionsBlocked = isStagingWithoutStandardPolicy(env);
     if (
       extensionsBlocked &&
       (path.startsWith("/api/billing/") ||
@@ -140,10 +138,6 @@ export async function handleApp(
           "Cache-Control": "private, no-store",
         })
       );
-    }
-    if (path === "/api/ai-verification") {
-      method(request, ["GET"]);
-      return json(await verificationStatus(env, identity.id));
     }
     const billing = await handleBilling(request, env, identity);
     if (billing) return billing;

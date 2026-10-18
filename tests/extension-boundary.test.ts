@@ -11,12 +11,9 @@ import { decideNote, noteTools } from "../src/server/agent-tools";
 import {
   chatModelCatalog,
   selectableChatModelIds,
+  verificationModelId,
 } from "../src/server/ai/catalog";
 import { getModel, listModels } from "../src/server/ai/providers";
-import {
-  type VerificationEnv,
-  verificationModelId,
-} from "../src/server/ai-verification";
 import api from "../src/server/api";
 import {
   type BillingProvider,
@@ -45,6 +42,7 @@ import {
   type SummaryParams,
   startSummary,
 } from "../src/server/extensions/workflows";
+import type { RuntimeEnv } from "../src/server/runtime-guards";
 import * as runtime from "../src/server/runtime-guards";
 
 const database = env.DB;
@@ -66,7 +64,7 @@ const documentId = "00000000-0000-4000-8000-000000000004";
 const summaryId = "d".repeat(64);
 const secret = `whsec_${Buffer.from("TEST_ONLY_B3_webhook_signing_fixture").toString("base64")}`;
 const toolOptions = { toolCallId: "TEST_ONLY_tool", messages: [], context: {} };
-let config: VerificationEnv;
+let config: RuntimeEnv;
 let search: ReturnType<
   typeof vi.fn<
     (input: AiSearchSearchRequest) => Promise<AiSearchSearchResponse>
@@ -276,7 +274,7 @@ describe("B-3 synchronous catalog and direct model selection", () => {
   it.each(selectableChatModelIds)(
     "shares catalog and refuses a credential-only request for %s",
     (id) => {
-      const target: VerificationEnv = {
+      const target: RuntimeEnv = {
         ...config,
         APP_ENV: "local",
         APP_ORIGIN: "http://127.0.0.1:3000",
@@ -545,7 +543,7 @@ describe("B-3 independent extension guards and priority on D1", () => {
   });
 
   it.each([undefined, "verification"])(
-    "keeps old staging extensions closed for policy %s even with false verification flag",
+    "keeps staging extensions closed without STAGING_POLICY=standard (policy %s)",
     async (policy) => {
       config = {
         ...config,

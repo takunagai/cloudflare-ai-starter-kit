@@ -282,7 +282,7 @@ describe("B-4 public presets", () => {
     },
   );
 
-  it("公開wranglerの通常設定と旧検証閉鎖を保持", () => {
+  it("公開wranglerの通常設定とSTAGING_POLICY未指定stagingの閉鎖を保持", () => {
     const config = JSON.parse(publicConfig);
     expect(resolveRuntimePolicy(config.vars).chat).toEqual({
       ok: true,
@@ -292,15 +292,18 @@ describe("B-4 public presets", () => {
       ok: true,
       value: { mode: "off" },
     });
-    expect(config.env.staging.vars.AI_VERIFICATION_ENABLED).toBe("false");
-    expect(config.env.staging.vars.AI_VERIFICATION_START).toBe("");
+    expect(config.env.staging.vars).not.toHaveProperty(
+      "AI_VERIFICATION_ENABLED",
+    );
+    expect(config.env.staging.vars).not.toHaveProperty("AI_VERIFICATION_START");
     expect(config.env.staging.vars).not.toHaveProperty("AI_MODE");
     expect(config.env.staging.vars).not.toHaveProperty("STAGING_POLICY");
-    for (const vars of [
-      config.vars,
-      config.env.staging.vars,
-      config.env.production.vars,
-    ])
+    // 用途別の複製で STAGING_POLICY を明示するまで、stagingは全経路を閉じる。
+    expect(resolveRuntimePolicy(config.env.staging.vars).boundary).toEqual({
+      ok: false,
+      code: "missing_staging_policy",
+    });
+    for (const vars of [config.vars, config.env.production.vars])
       expect(resolveRuntimePolicy(vars).jev).toEqual({
         ok: true,
         value: { mode: "off" },

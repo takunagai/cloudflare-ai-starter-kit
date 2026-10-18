@@ -9,9 +9,9 @@ import {
   listModels,
   ModelUnavailableError,
 } from "../src/server/ai/providers";
-import type { VerificationEnv } from "../src/server/ai-verification";
+import type { RuntimeEnv } from "../src/server/runtime-guards";
 
-function settings(extra: Partial<VerificationEnv> = {}): VerificationEnv {
+function settings(extra: Partial<RuntimeEnv> = {}): RuntimeEnv {
   // 実Secrets・cloudflare:workers.envには触れない。
   return {
     APP_ENV: "local",
@@ -22,7 +22,7 @@ function settings(extra: Partial<VerificationEnv> = {}): VerificationEnv {
       extra.LOCAL_DEMO === "true" ? [] : selectableChatModelIds,
     ),
     ...extra,
-  } as VerificationEnv;
+  } as RuntimeEnv;
 }
 
 beforeEach(() => {

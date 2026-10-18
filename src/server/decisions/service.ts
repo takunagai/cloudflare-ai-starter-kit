@@ -1,7 +1,10 @@
-import type { VerificationEnv } from "../ai-verification";
 import type { Identity } from "../env";
 import { ApiError } from "../http";
-import { checkRuntimeBoundary } from "../runtime-guards";
+import {
+  checkRuntimeBoundary,
+  isStagingWithoutStandardPolicy,
+  type RuntimeEnv,
+} from "../runtime-guards";
 import { resolveRuntimePolicy } from "../runtime-policy";
 import { DecisionTransportError, fetchDecision } from "./adapter";
 import {
@@ -20,7 +23,7 @@ import {
   reserveDecision,
 } from "./ledger";
 
-export type DecisionEnv = VerificationEnv & { TYPESAFE_API_KEY?: string };
+export type DecisionEnv = RuntimeEnv & { TYPESAFE_API_KEY?: string };
 export type DecisionContext = {
   env: DecisionEnv;
   identity: Identity;
@@ -89,9 +92,7 @@ export class DecisionDeadline {
 export function requireDecisionEnabled(env: DecisionEnv) {
   // OFF validation is deliberately independent of the shared boundary/chat policy.
   if (
-    (env.APP_ENV === "staging" &&
-      (env.STAGING_POLICY === undefined ||
-        env.STAGING_POLICY === "verification")) ||
+    isStagingWithoutStandardPolicy(env) ||
     ((env.JEV_MODE === undefined || env.JEV_MODE === "off") &&
       env.JEV_MODEL === undefined)
   )

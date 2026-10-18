@@ -38,6 +38,7 @@ describe("Worker API boundary", () => {
     "/api",
     "/api/missing",
     "/api/health/other",
+    "/api/ai-verification",
     "/api/ai-verification/other",
     "/api/ai-verification-extra",
   ])("returns JSON 404 for %s", async (path) => {

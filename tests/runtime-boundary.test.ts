@@ -14,16 +14,14 @@ import {
   vi,
 } from "vitest";
 import * as agentTools from "../src/server/agent-tools";
+import { verificationModelId } from "../src/server/ai/catalog";
 import { createLocalDemoModel } from "../src/server/ai/local-demo";
 import * as providers from "../src/server/ai/providers";
-import {
-  type VerificationEnv,
-  verificationModelId,
-} from "../src/server/ai-verification";
 import api from "../src/server/api";
 import type { ChatInput } from "../src/server/chat-store";
 import * as chatStore from "../src/server/chat-store";
 import type { Identity, PublicModel } from "../src/server/env";
+import type { RuntimeEnv } from "../src/server/runtime-guards";
 import { checkRuntimeBoundary } from "../src/server/runtime-guards";
 
 const ledgerQuery = "SELECT 1 AS present FROM ai_verification LIMIT 1";
@@ -33,7 +31,7 @@ const database = bindings.DB;
 if (!database) throw new Error("local_test_database_missing");
 let keys: Awaited<ReturnType<typeof generateKeyPair>>;
 let jwks: { keys: Awaited<ReturnType<typeof exportJWK>>[] };
-let config: VerificationEnv;
+let config: RuntimeEnv;
 let run: ReturnType<typeof vi.fn>;
 let deliveries: EmailMessageBuilder[];
 
@@ -357,7 +355,7 @@ describe("B-2 authenticated standard staging on workerd/D1", () => {
   it.each(["local", "production"] as const)(
     "%s boundary does not read a legacy ledger",
     async (environment) => {
-      const target: VerificationEnv = {
+      const target: RuntimeEnv = {
         ...config,
         APP_ENV: environment,
         APP_ORIGIN:
@@ -407,9 +405,10 @@ describe("B-2 authenticated standard staging on workerd/D1", () => {
         (await call(req(`/api/conversations/${id}`, headers, {}, "DELETE")))
           .status,
       ).toBe(200);
-      expect(
-        await (await call(req("/api/ai-verification", headers))).json(),
-      ).toEqual({ ready: false, remaining: 0 });
+      // 旧検証の状態APIは廃止済み。認証済みでも未知APIとして扱う。
+      const removed = await call(req("/api/ai-verification", headers));
+      expect(removed.status).toBe(404);
+      expect(await removed.json()).toEqual({ error: "not_found" });
       expect((await ledger()).results).toEqual([]);
       expect(run).toHaveBeenCalledOnce();
     },
@@ -684,19 +683,24 @@ describe("B-2 authenticated standard staging on workerd/D1", () => {
   it("checks invalid policy and residual legacy settings, without using them as recovery guards", async () => {
     const headers = await signIn("access");
     const id = await conversation(headers);
-    for (const overrides of [
-      { STAGING_POLICY: "TEST_ONLY_unknown" },
-      { AI_VERIFICATION_ENABLED: "true" },
-      { AI_VERIFICATION_START: "2026-01-01T00:00:00.000Z" },
-    ]) {
+    for (const [overrides, code] of [
+      [{ STAGING_POLICY: undefined }, "missing_staging_policy"],
+      [{ STAGING_POLICY: "verification" }, "invalid_staging_policy"],
+      [{ STAGING_POLICY: "TEST_ONLY_unknown" }, "invalid_staging_policy"],
+      [{ AI_VERIFICATION_ENABLED: "true" }, "legacy_verification_settings"],
+      [
+        { AI_VERIFICATION_START: "2026-01-01T00:00:00.000Z" },
+        "legacy_verification_settings",
+      ],
+    ] as const) {
       const previous = config;
       config = { ...config, ...overrides };
       expect((await models(headers)).every((model) => !model.available)).toBe(
         true,
       );
-      expect((await call(req("/api/chat", headers, input(id)))).status).toBe(
-        503,
-      );
+      const chat = await call(req("/api/chat", headers, input(id)));
+      expect(chat.status).toBe(503);
+      expect(await chat.json()).toEqual({ error: code });
       expect(
         (await call(req(`/api/conversations/${id}`, headers))).status,
       ).toBe(200);

@@ -54,12 +54,13 @@ assert.equal(
   true,
   "core smoke requires every optional feature OFF",
 );
-const anonymousVerification = await call("/api/ai-verification");
-assert.equal(
-  anonymousVerification.status,
-  401,
-  "verification requires authentication through the Worker entry",
-);
+// 旧検証の状態APIは2026-10-19に廃止。認証の前後とも未知APIのJSON 404。
+async function assertRemovedVerificationApi(label) {
+  const response = await call("/api/ai-verification");
+  assert.equal(response.status, 404, `removed verification API ${label}`);
+  assert.deepEqual(await response.json(), { error: "not_found" });
+}
+await assertRemovedVerificationApi("before authentication");
 const app = await call("/app");
 assert.equal(app.status, 200);
 assert.equal(app.headers.get("Referrer-Policy"), "no-referrer");
@@ -104,13 +105,7 @@ assert.deepEqual(
   ["local/demo"],
   "B-2 local compatibility allows only the fixed demo model",
 );
-const verification = await call("/api/ai-verification");
-assert.equal(
-  verification.status,
-  200,
-  "verification status reachable through the built Worker",
-);
-assert.deepEqual(await verification.json(), { ready: false, remaining: 0 });
+await assertRemovedVerificationApi("after authentication");
 const created = await call("/api/conversations", { title: "HTTP smoke" });
 assert.equal(created.status, 201);
 const { conversation } = await created.json();
