@@ -360,3 +360,18 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 - 作者は匿名の名前/メールがauthor・committer各20件。過去の実mergeと新しい仮マージの生成author名計2件は同じ許可済みの名前に一致し、生成committer名も既存のサービス表記に一致。生成authorメール2件はアカウントnoreply、生成committerメール2件はサービスnoreply。未解決候補0件、値は出力・転記していない。
 - 計画コミットと一致する[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386329626)と[pull_request CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386349306)は両方completed・success。ローカル文書検査、GitHub生成情報検査、CIを区別した。
 - この記録の追加commit・通常push後も更新されたhead/仮マージを取得し直し、本文/メッセージ・作者・API先端/親を検査し、最新の両CIを確認する。上記22件とCI runは計画コミット時点の記録。追加送信に問題が出た場合は停止し、未知の情報の不存在まで保証しない。
+
+## 2026-10-19 08:30 JST 旧検証stagingを閉鎖版で再配備
+
+本人の承認（2026-10-19「再配備する」「実行して」）を受け、旧検証モード廃止後のコードで既存の旧検証staging Workerを再配備した。目的は旧検証コードを稼働から外すこと。通常stagingへの転換ではない。
+
+| 項目 | 内容 |
+| --- | --- |
+| ソース | `17470cb`（GitHub CIのverify成功）。lockfile・`compatibility_date`（2026-09-25）は同commitのもの |
+| build | `CLOUDFLARE_ENV=staging pnpm build --mode staging-local`。既存の管理外設定を使用し、内容は表示・変更していない |
+| 生成設定の検査（値は非表示） | Worker名は公開テンプレートのstaging名、APP_ENV=staging、AUTH_MODE=access、STAGING_POLICYなし、workers_dev/preview_urls=false、route 1件、D1 binding 1件、AI bindingなし。旧`AI_VERIFICATION_*`のキーは管理外設定に残存（どの値でも閉鎖結果は同じ） |
+| 配備 | dry-run成功の後、生成設定で`wrangler deploy`（`--env`なし）。**実クラウド成功**。`wrangler deployments status`で新versionが配分100%であることを照合（IDは記録しない） |
+| 外部からの確認 | 匿名の`/api/health`・`/api/ai-verification`は403で、アプリのJSON応答ではない（Workerへ到達する前にエッジで拒否）。Access認証後の動作は未確認 |
+| 期待動作（ローカルテストで確認済み） | チャット・モデル一覧は503 `missing_staging_policy`／全件available:false、拡張・判断APIは認証前404、認証と会話の閲覧/削除は継続、`/api/ai-verification`は404 |
+| 実施しなかったこと | remote migration（この DBの適用状況は未再確認。最後の記録は0006段階のため、`/api/chat/requests/:id`は500になり得る）、D1・Access・route・Secretの変更、実AI推論 |
+| 戻し方 | `wrangler rollback`で直前versionへ戻せる。戻すと旧検証コードが再び稼働する |
