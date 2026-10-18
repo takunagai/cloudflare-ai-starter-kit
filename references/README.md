@@ -57,6 +57,6 @@
 | 拡張 | [AI Search / R2 / Workflows / fal](../docs/extensions.md)。新instance binding、metadata分離、nativeローカルWorkflow、取消と不明結果の制約 |
 | 決済 | [Polar](../docs/billing.md)。2026-09の署名方式変更、新旧検証、単一商品、解約・再契約、署名状態による会員サンプルの認可 |
 | 更新 | [依存監査対応](../docs/operations.md#2026-09-27の依存監査対応)。未使用CLI経由の旧esbuildだけを修正版へ固定 |
-| Claude Code | [公式memory/import](https://code.claude.com/docs/en/memory#import-additional-files)に従い、CLAUDE.mdから同ディレクトリのAGENTS.mdを相対import。ルール本文は複製しない |
+| Claude Code | 2026-10-19確認。[公式agents-md mod](https://github.com/anthropics/claude-code/tree/main/mods/agents-md)（同梱`agents-md@builtin`）の既定`claude-md-or-agents-md`で、CLAUDE.md類が無い場合にAGENTS.mdを読む。CLAUDE.mdを廃止し、AGENTS.mdだけを置く。Claude Code 2.1.303の新セッションで読込を確認。制約: `/memory`と`#`はAGENTS.mdを扱わない。旧方式はCLAUDE.mdからの相対import |
 
 CVA / clsx / tailwind-mergeは今回の共有UIでは必要がなく未導入。React専用AI hookも、FetchのSSE consumerで足りるため依存に残さない。SQL migrationは明示的に管理し、Drizzleのschema自動pushや独自CLIを追加しない。

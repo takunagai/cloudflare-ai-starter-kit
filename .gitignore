@@ -54,7 +54,7 @@ Thumbs.db
 /.idea/
 
 # pnpm-lock.yaml、wrangler.jsonc、migrations/、.github/、
-# AGENTS.md、CLAUDE.md、共有エディタ設定は追跡する。
+# AGENTS.md、共有エディタ設定は追跡する。
 # Local deployment settings and private history recovery (never publish)
 /.wrangler.staging.local.jsonc
 /.wrangler.standard-staging.local.jsonc
