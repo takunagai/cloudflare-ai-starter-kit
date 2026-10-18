@@ -13,7 +13,7 @@
 | 最初の用途別複製 | 別プロジェクトへ複製し、本人1名・Access保護の通常stagingで実配備と受入まで完了（複製先の記録）。踏んだ注意点を[運用手順](operations.md#複製先の実配備で確認した注意点)へ、確認項目を[公開前チェック](launch-checklist.md)へ反映 | 複製先固有の機能・運用状態は複製先自身の文書で管理する。公開向け（Better Auth＋実メール）の実績はない |
 | 複製先からの逆輸入 | private-rag-chat（2026-10-06複製、Ver.0.1運用中）の差分を分類。Wave 1（CIシェル修正、source-map-js/sharpのoverride、画像fixtureのbeforeAll）と Wave 2（チャット要求台帳・復旧: 0015で`inference_started`/`failure_code`、`GET /api/chat/requests/:id`、ブラウザの要求ID記録と再送抑止、`api()`の失敗分類）を取り込み、check・audit 0件・preview smokeを確認。復旧UIはdevのブラウザで、成功後の応答消失（再読込→確認カード→台帳照合→履歴復元）と推論前失敗（照合→「入力を再開」→記録消去→送信可能）の2経路を実測し、その際に見つけた受付記録APIの振り分け漏れを修正。通常stagingの`/help`をSSRにする`prerenderHelpFor`も採用。設計は[チャット設計](chat.md#要求台帳と再送2026-10-08複製先private-rag-chatから逆輸入)、根拠は[CI依存](../references/ci-dependencies-20261008.md) | RAG専用（rag-*、trial台帳、rag_sync、索引UI）は逆輸入しない。0015は実環境に未配備。複製先の`src/server/api.ts`にも同じ振り分け漏れがある見込みで、複製先のセッションで確認が要る |
 | コード構成 | 共通の実行時ガードを`runtime-guards.ts`へ分離（2026-10-09、動作変更なし） | `ai-verification.ts`は旧検証の判定に加え、汎用の`chatSystemPrompt`と`VerificationEnv`（`RuntimeEnv`の別名）を持ち、chat・chat-store・providers・decisionsから参照される。旧検証の廃止は下のTODO。複製先とのファイル差分が増える。複製先へは同期しない |
-| 依存 | 2026-10-18にaudit critical 2件（TanStack Startの反射型XSS、GHSA-qx66-fv34-fjm8）を受け、メジャー更新を除く直接依存を更新し、効いていないoverride 3件を削除。audit 0件、check（47ファイル929件）、preview smokeを確認。根拠は[依存更新の記録](../references/dependency-update-20261018.md) | 未commit・CI未確認・未配備。vitest 5、@polar-sh/sdk 1.0、`compatibility_date`は見送り。同じ版を使う複製先は未修正の見込み |
+| 依存 | 2026-10-18にaudit critical 2件（TanStack Startの反射型XSS、GHSA-qx66-fv34-fjm8）を受け、メジャー更新を除く直接依存を更新し、効いていないoverride 3件を削除。audit 0件、check（47ファイル929件）、preview smokeを確認。根拠は[依存更新の記録](../references/dependency-update-20261018.md) | commit・GitHub CI確認済み、未配備。vitest 5、@polar-sh/sdk 1.0、`compatibility_date`は見送り。同じ版を使う複製先は未修正の見込み |
 | 文書配置 | 2026-10-18に役目を終えた文書を[docs/archive/](archive/README.md)へ、工程Eの操作scriptを`scripts/archive/e/`へ移し、相対リンクを張り替えた（リンク切れ0件）。完了済みのhandover 2本は、複製先のVaultアーカイブに同一原文があることを確認してtrashした | `docs/plan.md`は被参照が多いため移動していない |
 
 ## 今回の改善と有効な許可
@@ -28,7 +28,7 @@
 
 ### TODO
 
-- [ ] 2026-10-18の依存更新と文書整理をcommitし、GitHub CIを確認する。commit/pushは本人の依頼を受けてから行う
+- [x] 2026-10-18の依存更新と文書整理をcommitし、GitHub CIを確認する（2026-10-19、`cc49cb0`・`e170dad`をpush、CIのverify成功）
 - [ ] 旧検証モード（ai-verification）を廃止する（2026-10-18決定、次のセッションで実装）。本人の選択は「構造の分離にとどめず、旧検証モードを廃止する」。動作が変わる変更なので、次の手順と完了条件で進める
 	1. 汎用品を移す: `chatSystemPrompt`はchat側へ、`VerificationEnv`は`RuntimeEnv`へ置き換える
 	2. 旧検証の判定（`verificationScope`、`verificationSettings`、`checkVerificationInput`、`verificationStatus`）と`/api/ai-verification`を削除する。削除後の`/api/ai-verification`は未知APIとしてJSONの404を返す
