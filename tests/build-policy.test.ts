@@ -13,7 +13,6 @@ import { resolveRuntimePolicy } from "../src/server/runtime-policy";
 import publicConfig from "../wrangler.jsonc?raw";
 
 const privateTargets = [
-  ["staging-local", "staging", ".wrangler.staging.local.jsonc", "closed"],
   [
     "standard-staging-local",
     "staging",
@@ -50,9 +49,7 @@ describe("B-4 build target boundary", () => {
       ),
     ).toBe(true);
     expect(
-      prerenderHelpFor(
-        resolveBuildTarget("staging-local", "staging", () => true),
-      ),
+      prerenderHelpFor(resolveBuildTarget("production", "staging", () => true)),
     ).toBe(true);
   });
   it.each(["development", "production", "test"])(
@@ -113,16 +110,20 @@ describe("B-4 build target boundary", () => {
     },
   );
 
-  it.each(["unknown", "staging", "__proto__", "", "../production-local"])(
-    "未知mode %sはファイルへ触れず固定エラー",
-    (mode) => {
-      const exists = vi.fn(() => true);
-      expect(() => resolveBuildTarget(mode, "staging", exists)).toThrow(
-        /^build_mode_invalid$/,
-      );
-      expect(exists).not.toHaveBeenCalled();
-    },
-  );
+  it.each([
+    "unknown",
+    "staging",
+    "staging-local",
+    "__proto__",
+    "",
+    "../production-local",
+  ])("未知mode %sはファイルへ触れず固定エラー", (mode) => {
+    const exists = vi.fn(() => true);
+    expect(() => resolveBuildTarget(mode, "staging", exists)).toThrow(
+      /^build_mode_invalid$/,
+    );
+    expect(exists).not.toHaveBeenCalled();
+  });
 
   it("公開設定の明示環境は閉鎖staging/productionと一致し、未知環境を拒否", () => {
     expect(
@@ -176,25 +177,23 @@ describe("B-4 build target boundary", () => {
       ).toThrow(/^build_target_mismatch$/);
   });
 
-  it("staging-localは省略/旧値verificationだけを受け、standardへの切替を拒否", () => {
-    const target = resolveBuildTarget("staging-local", "staging", () => true);
-    for (const stagingPolicy of [undefined, "verification"])
-      expect(() =>
-        assertResolvedBuildTarget(target, {
-          environment: "staging",
-          environmentDeclared: true,
-          appEnvironment: "staging",
-          stagingPolicy,
-        }),
-      ).not.toThrow();
+  it("公開テンプレートのstagingは省略だけを受け、standard/旧値への切替を拒否", () => {
+    const target = resolveBuildTarget("production", "staging", () => true);
+    const resolved = {
+      environment: "staging",
+      environmentDeclared: true,
+      appEnvironment: "staging",
+    };
     expect(() =>
       assertResolvedBuildTarget(target, {
-        environment: "staging",
-        environmentDeclared: true,
-        appEnvironment: "staging",
-        stagingPolicy: "standard",
+        ...resolved,
+        stagingPolicy: undefined,
       }),
-    ).toThrow(/^build_target_mismatch$/);
+    ).not.toThrow();
+    for (const stagingPolicy of ["standard", "verification"])
+      expect(() =>
+        assertResolvedBuildTarget(target, { ...resolved, stagingPolicy }),
+      ).toThrow(/^build_target_mismatch$/);
   });
 
   it("productionとlocalへstagingポリシーを混ぜない", () => {

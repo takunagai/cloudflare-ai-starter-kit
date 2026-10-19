@@ -35,7 +35,6 @@ DB IDは全ゼロのローカル用ダミー、originは`.invalid`、routeなし
 | Vite mode | 設定ファイル | build時のCLOUDFLARE_ENV・APP_ENV/ポリシー |
 | --- | --- | --- |
 | development / production / test | `wrangler.jsonc` | 省略はlocal。明示stagingはポリシー省略（実行時に閉鎖）、productionはproduction。Viteのproduction名だけではAPP_ENVを変えない |
-| staging-local | 既存の管理外staging設定 | staging必須、APP_ENV=staging、ポリシー省略/verificationだけ。解決先を保持するが、旧検証廃止後の実行時は503で全経路を閉じる |
 | standard-staging-local | `.wrangler.standard-staging.local.jsonc` | staging必須、APP_ENV=staging、STAGING_POLICY=standard |
 | production-local | `.wrangler.production.local.jsonc` | production必須、APP_ENV=production、STAGING_POLICY省略 |
 

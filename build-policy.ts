@@ -3,7 +3,8 @@ export type BuildTarget = Readonly<{
   configPath: string;
   environment: "staging" | "production" | undefined;
   appEnvironment: "local" | "staging" | "production";
-  // closedはSTAGING_POLICYを書かないstaging。旧検証廃止後は実行時に全経路を閉じる。
+  // closedはSTAGING_POLICYを書かない公開テンプレートのstaging。実行時に全経路を閉じる。
+  // 旧検証用のstaging-local modeは2026-10-19に旧stagingの削除とあわせて廃止した。
   stagingPolicy: "closed" | "standard" | undefined;
 }>;
 
@@ -27,11 +28,6 @@ export function resolveBuildTarget(
     case "development":
     case "production":
     case "test":
-      break;
-    case "staging-local":
-      configPath = ".wrangler.staging.local.jsonc";
-      requiredEnvironment = "staging";
-      stagingPolicy = "closed";
       break;
     case "standard-staging-local":
       configPath = ".wrangler.standard-staging.local.jsonc";
@@ -90,10 +86,8 @@ export function assertResolvedBuildTarget(
     resolved.environment !== target.environment ||
     (target.environment !== undefined && !resolved.environmentDeclared) ||
     resolved.appEnvironment !== target.appEnvironment ||
-    // 既存の管理外設定が旧値verificationを書いていてもbuildは通す（実行時に閉じる）。
     (target.stagingPolicy === "closed"
-      ? resolved.stagingPolicy !== undefined &&
-        resolved.stagingPolicy !== "verification"
+      ? resolved.stagingPolicy !== undefined
       : resolved.stagingPolicy !== target.stagingPolicy)
   )
     throw new Error("build_target_mismatch");

@@ -54,7 +54,7 @@
 | staging | 承認後の実クラウド検証 | 本番とWorker、Secrets、D1、R2等を分離。必要な任意拡張のみ設定 |
 | production | 本番利用 | stagingで確認した成果物・migrationの手順を適用。権限と公開範囲を明示 |
 
-`wrangler.jsonc`の`env.staging` / `env.production`は公開用テンプレート。`workers_dev: false`、`preview_urls: false`、`send_metrics: false`を維持し、実D1 ID・AUD・Custom Domainは含めない。公開stagingと既存`staging-local`は`STAGING_POLICY`を書かない閉鎖状態とし、旧検証廃止（2026-10-19）後は`missing_staging_policy`で全経路を閉じる（[廃止の記録](実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)）。用途2/3の通常stagingとproductionは[B-4の公開5例と固定mode対応](公開プリセットとbuild境界.md#buildの選択と拒否)を別に選ぶ。実設定の保存・非共有・複製除外は[公開情報と履歴管理](リポジトリ-公開情報と履歴管理.md#用途別設定の保存と共有2026-10-02)に従う。Cloudflareアカウント全体の設定変更や、管理外ファイルの作成・閲覧をこの文書で許可しない。
+`wrangler.jsonc`の`env.staging` / `env.production`は公開用テンプレート。`workers_dev: false`、`preview_urls: false`、`send_metrics: false`を維持し、実D1 ID・AUD・Custom Domainは含めない。公開stagingは`STAGING_POLICY`を書かない閉鎖状態とし、旧検証廃止（2026-10-19）後は`missing_staging_policy`で全経路を閉じる（[廃止の記録](実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)）。用途2/3の通常stagingとproductionは[B-4の公開5例と固定mode対応](公開プリセットとbuild境界.md#buildの選択と拒否)を別に選ぶ。実設定の保存・非共有・複製除外は[公開情報と履歴管理](リポジトリ-公開情報と履歴管理.md#用途別設定の保存と共有2026-10-02)に従う。Cloudflareアカウント全体の設定変更や、管理外ファイルの作成・閲覧をこの文書で許可しない。
 
 Workersの環境別bindings・vars・Secretsを暗黙継承すると考えない。D1/R2/AI/Workflows等のbindingsは使用する環境ごとに明示する。環境を選ぶだけで本番の設定やデータを流用しない。ローカルDBはダミーIDを持つDB bindingでエミュレートする。staging/productionへは本物の環境別D1を明示追加する。
 
@@ -123,12 +123,12 @@ CIはchecks専用とし、有料APIの実行や自動deployを含めない。ロ
 
 初回配備前に、公開先、環境、必要リソース、費用、Secrets投入方法、戻し方を具体化し、その範囲の承認を得る。第2段階の作業再開を公開の承認とは扱わない。
 
-Cloudflare Vite pluginを使うため、**buildとdeployの環境を一致させる**。既存のstaging-local（旧検証廃止後は閉鎖したWorkerになる）、通常stagingは`CLOUDFLARE_ENV=staging pnpm build --mode standard-staging-local`、productionは`CLOUDFLARE_ENV=production pnpm build --mode production-local`で対象の管理外設定を明示選択する。必要ファイルは今回作成せず、実設定は本人が別承認後に管理する。公開wranglerだけの環境指定buildはテンプレートの検査であり、完成した配備設定と扱わない。生成物の環境・認証・bindingを確認してから、承認された配備へ進む。preview/deploy時の環境指定だけで別環境へ切り替えない。
+Cloudflare Vite pluginを使うため、**buildとdeployの環境を一致させる**。通常stagingは`CLOUDFLARE_ENV=staging pnpm build --mode standard-staging-local`、productionは`CLOUDFLARE_ENV=production pnpm build --mode production-local`で対象の管理外設定を明示選択する。必要ファイルは今回作成せず、実設定は本人が別承認後に管理する。公開wranglerだけの環境指定buildはテンプレートの検査であり、完成した配備設定と扱わない。生成物の環境・認証・bindingを確認してから、承認された配備へ進む。preview/deploy時の環境指定だけで別環境へ切り替えない。
 
-生成設定は`dist/server/wrangler.json`、Worker本体は`dist/server/index.js`、assetsは`dist/client`。第1段階のbuild/dry-run、B-4の合成build、実配備の結果はそれぞれの対象版に限る。以下のコマンドは廃止済みの旧verification用の過去の選択方法で、今これでbuildしたWorkerは全経路を閉じる。用途2/3の通常stagingへ転用しない。新しい対象は上の固定対応と、別承認された実設定を使う。C-1ではbuild/dry-run/配備を実行していない。
+生成設定は`dist/server/wrangler.json`、Worker本体は`dist/server/index.js`、assetsは`dist/client`。第1段階のbuild/dry-run、B-4の合成build、実配備の結果はそれぞれの対象版に限る。旧検証用の`staging-local` modeは2026-10-19に旧stagingの削除とあわせて廃止した（[作業ログ](staging-work-log.md#2026-10-19-旧stagingを削除)）。通常stagingの例は次のとおり。新しい対象は上の固定対応と、別承認された実設定を使う。
 
 ```sh
-CLOUDFLARE_ENV=staging pnpm build --mode staging-local
+CLOUDFLARE_ENV=staging pnpm build --mode standard-staging-local
 WRANGLER_SEND_METRICS=false pnpm exec wrangler deploy --config dist/server/wrangler.json --dry-run
 ```
 

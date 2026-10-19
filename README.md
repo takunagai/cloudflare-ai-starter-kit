@@ -100,7 +100,7 @@ CIも同じ検証を行い、自動deploy・実メール送信・有料LLM呼び
 3. 固定Node/pnpmで`pnpm install --frozen-lockfile` → `pnpm format`（名称変更後の整形）→ `pnpm db:migrate:local` → `pnpm check` → `pnpm dev`を実行します。
 4. 表示名・meta・画面を目的に合わせて変更します。配色は`src/theme.css`だけで変更できます（[見た目とテーマ設定](docs/theme.md)）。公開先、必要リソース、費用、Secret投入先、復旧方法を確定してからクラウドへ配備します。
 
-Git管理する`wrangler.jsonc`はローカル用・配備用のテンプレートです。D1 IDはダミー、Access AUDは空、originは例示用、公開経路は無効です。既存の`staging-local`は解決先を保持しますが、旧検証モードは2026-10-19に廃止したため、`STAGING_POLICY`を省略したstagingは`missing_staging_policy`で全経路を閉じます（[廃止の記録](docs/実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)）。通常stagingとproductionには別の管理外設定を明示選択するB-4のmodeを用意しました。[5設定例とbuild境界](docs/公開プリセットとbuild境界.md)で対応を確認してください。必要ファイル不在時に公開例へ代替しません。管理外設定と`.publication-recovery/`は複製・共有しません。実設定の作成・実接続・配備は別承認です。詳細は[公開情報と履歴管理](docs/リポジトリ-公開情報と履歴管理.md)も参照してください。
+Git管理する`wrangler.jsonc`はローカル用・配備用のテンプレートです。D1 IDはダミー、Access AUDは空、originは例示用、公開経路は無効です。旧検証モードは2026-10-19に廃止し、`STAGING_POLICY`を省略したstagingは`missing_staging_policy`で全経路を閉じます（[廃止の記録](docs/実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)）。旧検証用の`staging-local` modeと旧stagingのWorker・D1も同日に削除しました（[作業ログ](docs/staging-work-log.md#2026-10-19-旧stagingを削除)）。通常stagingとproductionには別の管理外設定を明示選択するB-4のmodeを用意しました。[5設定例とbuild境界](docs/公開プリセットとbuild境界.md)で対応を確認してください。必要ファイル不在時に公開例へ代替しません。管理外設定と`.publication-recovery/`は複製・共有しません。実設定の作成・実接続・配備は別承認です。詳細は[公開情報と履歴管理](docs/リポジトリ-公開情報と履歴管理.md)も参照してください。
 
 環境分離、migration、buildとdeployの環境一致、復旧は[運用手順](docs/operations.md)、秘密の人間による投入は[Secrets補足](rules/secrets.md)を参照してください。実Secretをチャット・コマンド引数・ブラウザ変数へ入れません。
 

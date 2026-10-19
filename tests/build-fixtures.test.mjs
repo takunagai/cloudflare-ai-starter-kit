@@ -129,9 +129,10 @@ for (const [name, environment, auth] of [
         const fragment = JSON.parse(text.slice(text.indexOf("{")));
         config = { ...base, ...fragment };
       }
+      // legacyは公開テンプレートのstaging（STAGING_POLICYなし・閉鎖）をそのままbuildする。
       const mode =
         name === "legacy"
-          ? "staging-local"
+          ? "production"
           : environment === "staging"
             ? "standard-staging-local"
             : environment === "production"
@@ -139,7 +140,7 @@ for (const [name, environment, auth] of [
               : "production";
       const configPath =
         name === "legacy"
-          ? ".wrangler.staging.local.jsonc"
+          ? "wrangler.jsonc"
           : environment === "staging"
             ? ".wrangler.standard-staging.local.jsonc"
             : environment === "production"
@@ -198,7 +199,7 @@ test("実plugin: 未知mode/環境不一致/不在/解決先不一致でbuild停
       ["production-local", "staging", "build_environment_mismatch"],
       ["standard-staging-local", "staging", "build_config_missing"],
       ["production-local", "production", "build_config_missing"],
-      ["staging-local", "staging", "build_config_missing"],
+      ["staging-local", "staging", "build_mode_invalid"],
     ]) {
       const result = await build(dir, mode, environment);
       assert.equal(result.ok, false);

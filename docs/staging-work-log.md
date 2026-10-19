@@ -395,3 +395,17 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 | 未適用schemaに触れる経路 | 閉鎖版でも開いている回復用GETのうち`/api/chat/requests/:id`（0015の列）と`/api/decisions/requests/:key`（0007のtable）は500になり得る。通常の画面操作では呼ばれず、データは出ない |
 | 判断 | 閉鎖したWorkerのためにremote migrationはしない（0008以降はリモートの分割エラーの既知事例があり、見合わない）。旧stagingの削除などの片付けは別の判断とする |
 | Access認証後（本人がブラウザで確認） | 1. `/app`は表示され、チャットは使えるモデルなし。2. `/api/models`は全件`available:false`。3. `/api/ai-verification`は`{"error":"not_found"}`。4. `/api/conversations`は正常なJSON。4項目すべて期待どおり |
+
+## 2026-10-19 旧stagingを削除
+
+本人の判断（「先延ばしにすると状況が分からなくなる。今片付けられるものは片付ける」）で、旧検証stagingのクラウド資源と手元の設定を削除した。D1は本人の決定でバックアップを取っていない（中身は旧検証で使った本人のアカウント・会話・台帳だけ）。
+
+| 対象 | 実施と確認 |
+| --- | --- |
+| 事前の棚卸し（読み取りのみ） | 管理外設定の照合で、Worker名・D1を手元の他の管理外設定（通常staging用・工程E用）が共有していないことを確認。bindingはD1の1件だけ、routeはカスタムドメイン1件。`wrangler delete --dry-run`成功 |
+| Worker | 本人が`wrangler delete`を実行。`wrangler deployments status`が「見つからない」を返し、旧ホストの名前解決もできなくなったことを確認 |
+| D1 | `wrangler d1 delete`（管理外設定のbinding名で指定し、名前・IDは出力しない）。同じ照会が「見つからない」で失敗することを確認 |
+| Access | 本人がアプリを削除。専用のpolicyも残っていないことを管理画面で確認 |
+| DNS・証明書 | 管理画面で、旧ホストのDNSレコード・証明書がどちらも残っていないことを確認（公式文書はWorker削除時のカスタムドメインとDNSの扱いを明記していないため実測した） |
+| 手元 | 管理外設定`.wrangler.staging.local.jsonc`をtrashへ移動。Git・Biomeの除外指定は誤って再作成された場合に備えて残す。`staging-local` build modeをコード・テスト・現行文書から削除（未知modeとして`build_mode_invalid`で止まる） |
+| 未対応・対象外 | Secretの名前一覧は保護フックが止めたため照会していない（Workerと一緒に削除される）。工程Eの隔離Worker 2件とそのAccess・DNS・証明書は今回の対象外で残っている |
