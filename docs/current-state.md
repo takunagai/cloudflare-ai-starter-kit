@@ -1,6 +1,6 @@
 # 現在地と次の作業
 
-更新日: 2026-10-18。再開時の入口はこの文書。実クラウドの最終確認は2026-10-06で、今回再照会していない。2026-10-08にCodexからClaude Codeへ担当を引き継いだ。ローカルD1は0015まで適用済み。
+更新日: 2026-10-19。再開時の入口はこの文書。実クラウドの最終確認は2026-10-06で、今回再照会していない。2026-10-08にCodexからClaude Codeへ担当を引き継いだ。ローカルD1は0015まで適用済み。
 
 ## 成果物と残件
 
@@ -13,7 +13,7 @@
 | 最初の用途別複製 | 別プロジェクトへ複製し、本人1名・Access保護の通常stagingで実配備と受入まで完了（複製先の記録）。踏んだ注意点を[運用手順](operations.md#複製先の実配備で確認した注意点)へ、確認項目を[公開前チェック](launch-checklist.md)へ反映 | 複製先固有の機能・運用状態は複製先自身の文書で管理する。公開向け（Better Auth＋実メール）の実績はない |
 | 複製先からの逆輸入 | private-rag-chat（2026-10-06複製、Ver.0.1運用中）の差分を分類。Wave 1（CIシェル修正、source-map-js/sharpのoverride、画像fixtureのbeforeAll）と Wave 2（チャット要求台帳・復旧: 0015で`inference_started`/`failure_code`、`GET /api/chat/requests/:id`、ブラウザの要求ID記録と再送抑止、`api()`の失敗分類）を取り込み、check・audit 0件・preview smokeを確認。復旧UIはdevのブラウザで、成功後の応答消失（再読込→確認カード→台帳照合→履歴復元）と推論前失敗（照合→「入力を再開」→記録消去→送信可能）の2経路を実測し、その際に見つけた受付記録APIの振り分け漏れを修正。通常stagingの`/help`をSSRにする`prerenderHelpFor`も採用。設計は[チャット設計](chat.md#要求台帳と再送2026-10-08複製先private-rag-chatから逆輸入)、根拠は[CI依存](../references/ci-dependencies-20261008.md) | RAG専用（rag-*、trial台帳、rag_sync、索引UI）は逆輸入しない。0015は実環境に未配備。複製先の`src/server/api.ts`にも同じ振り分け漏れがある見込みで、複製先のセッションで確認が要る |
 | コード構成 | 共通の実行時ガードを`runtime-guards.ts`へ分離（2026-10-09、動作変更なし）。2026-10-19に旧検証モードを廃止し、`ai-verification.ts`と`/api/ai-verification`を削除。system promptは`chat-prompt.ts`、環境型は`RuntimeEnv`へ統一。`STAGING_POLICY`省略のstagingは503 `missing_staging_policy`で閉じる。check（45ファイル885件）・preview smoke済み。記録は[廃止の記録](実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止) | `17470cb`でcommit・CI成功。2026-10-19に旧検証staging Workerを閉鎖版で再配備（[作業ログ](staging-work-log.md#2026-10-19-0830-jst-旧検証stagingを閉鎖版で再配備)）。Access認証後の動作を本人が確認した後、同日に旧stagingのWorker・D1・Accessアプリ/policyと手元の管理外設定、`staging-local` build modeを削除した（[作業ログ](staging-work-log.md#2026-10-19-旧stagingを削除)）。工程Eの資源も同日に削除した（工程Eの行を参照）。複製先とのファイル差分が増える。複製先へは同期しない |
-| 依存 | 2026-10-18にaudit critical 2件（TanStack Startの反射型XSS、GHSA-qx66-fv34-fjm8）を受け、メジャー更新を除く直接依存を更新し、効いていないoverride 3件を削除。audit 0件、check（47ファイル929件）、preview smokeを確認。根拠は[依存更新の記録](../references/dependency-update-20261018.md) | commit・GitHub CI確認済み、未配備。vitest 5、@polar-sh/sdk 1.0、`compatibility_date`は見送り。同じ版を使う複製先は未修正の見込み |
+| 依存 | 2026-10-18にaudit critical 2件（TanStack Startの反射型XSS、GHSA-qx66-fv34-fjm8）を受け、メジャー更新を除く直接依存を更新し、効いていないoverride 3件を削除。audit 0件、check（47ファイル929件）、preview smokeを確認。根拠は[依存更新の記録](../references/dependency-update-20261018.md) | commit・GitHub CI確認済み、未配備。vitest 5、@polar-sh/sdk 1.0、`compatibility_date`は見送り。同じ版を使う複製先は未修正の見込み。2026-10-19に`compatibility_date`を2026-10-12へ更新（check・smoke済み、[記録](../references/compatibility-date-20261019.md)） |
 | 文書配置 | 2026-10-18に役目を終えた文書を[docs/archive/](archive/README.md)へ、工程Eの操作scriptを`scripts/archive/e/`へ移し、相対リンクを張り替えた（リンク切れ0件）。完了済みのhandover 2本は、複製先のVaultアーカイブに同一原文があることを確認してtrashした | `docs/plan.md`は被参照が多いため移動していない |
 
 ## 今回の改善と有効な許可
@@ -38,7 +38,7 @@
 	6. 完了条件: `pnpm check`、preview smoke、`/api/ai-verification`の404、`STAGING_POLICY`省略時のfail-closed、通常stagingとlocalの回帰をworkerdで確認する。配備済みの旧staging Workerは再配備するまで影響を受けず、再配備は別承認とする
 - [x] 複製先private-rag-chatへ、TanStack StartのXSS修正（react-start 1.168.60以上）と、受付記録APIの振り分け漏れの確認を伝える（2026-10-19）。振り分け漏れは複製先で修正済み（複製先の`2c27dd6`）だった。XSSは複製先が react-start 1.168.58 / start-server-core 1.169.37 のままだったため、複製先の`handover/`に指示書を置き、本人が複製先のセッションで実施中。修正版の配備は複製先で別に判断する
 - [ ] 見送った更新（vitest 5、@polar-sh/sdk 1.0、`compatibility_date`）を、変更履歴とworkerdの動作変更を確認して別作業で行う。2026-10-19時点でaudit 0件のため急がない。推奨順（1件ずつ`pnpm check`・smokeで確認しcommit）
-	1. `compatibility_date`（2026-09-25）: 全複製先の実行時挙動に効き、手間が最小。9/25以降の互換性フラグの変更点を公式で確認する
+	1. 完了（2026-10-19）: `compatibility_date`を2026-09-25から2026-10-12へ更新。根拠と検証は[記録](../references/compatibility-date-20261019.md)
 	2. vitest 4.1.11→5.x: テストだけに影響。Cloudflare vitest plugin 1.4.4のpeerは5を許容。設定・APIの破壊的変更を確認する
 	3. @polar-sh/sdk 0.49.0→1.0.x: 任意拡張の決済（標準OFF）の`billing.ts`に影響。0.x→1.0のAPI変更をfakeテストで確認する。決済を使う複製先が出るまで後回しでよい
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
