@@ -37,10 +37,11 @@
 	5. tests（`ai-verification*.test.ts`、runtime-boundary・extension-boundary・providersの該当部分）、`scripts/app-smoke.mjs`、`wrangler.jsonc`の`AI_VERIFICATION_*`、README・operations・構成資料の旧検証の記述を更新する
 	6. 完了条件: `pnpm check`、preview smoke、`/api/ai-verification`の404、`STAGING_POLICY`省略時のfail-closed、通常stagingとlocalの回帰をworkerdで確認する。配備済みの旧staging Workerは再配備するまで影響を受けず、再配備は別承認とする
 - [x] 複製先private-rag-chatへ、TanStack StartのXSS修正（react-start 1.168.60以上）と、受付記録APIの振り分け漏れの確認を伝える（2026-10-19）。振り分け漏れは複製先で修正済み（複製先の`2c27dd6`）だった。XSSは複製先が react-start 1.168.58 / start-server-core 1.169.37 のままだったため、複製先の`handover/`に指示書を置き、本人が複製先のセッションで実施中。修正版の配備は複製先で別に判断する
-- [x] 2026-10-19に3件とも完了（GitHub CIは未確認、未配備）。見送った更新（vitest 5、@polar-sh/sdk 1.0、`compatibility_date`）を、変更履歴とworkerdの動作変更を確認して別作業で行う。2026-10-19時点でaudit 0件のため急がない。推奨順（1件ずつ`pnpm check`・smokeで確認しcommit）
+- [x] 2026-10-19に3件とも完了（GitHub CI verify成功、未配備）。見送った更新（vitest 5、@polar-sh/sdk 1.0、`compatibility_date`）を、変更履歴とworkerdの動作変更を確認して別作業で行う。2026-10-19時点でaudit 0件のため急がない。推奨順（1件ずつ`pnpm check`・smokeで確認しcommit）
 	1. 完了（2026-10-19）: `compatibility_date`を2026-09-25から2026-10-12へ更新。根拠と検証は[記録](../references/compatibility-date-20261019.md)
 	2. 完了（2026-10-19）: vitestを4.1.11から5.0.5へ更新。plugin不具合（workers-sdk#16331）の回避策を`tests/setup.ts`に入れた。修正版のpluginが出たら`applyD1Migrations`へ戻す。根拠と検証は[記録](../references/vitest5-20261019.md)
 	3. 完了（2026-10-19）: @polar-sh/sdkを0.49.0から1.0.2へ更新し、`billing.ts`を追従。実Polarは未接続。根拠と検証は[記録](../references/polar-sdk1-20261019.md)
+- [ ] [cloudflare/workers-sdk#16331](https://github.com/cloudflare/workers-sdk/issues/16331)の修正版`@cloudflare/vitest-plugin`が出たら、`tests/setup.ts`の回避策（pluginと同じmigration適用処理）を`cloudflare:test`の`applyD1Migrations`呼び出しへ戻す（2026-10-19登録）。戻した後に`--maxWorkers=1`を含む`pnpm test`で全件成功を確認する。経緯は[Vitest 5の記録](../references/vitest5-20261019.md#3-既知の不具合と回避策)
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
 
 今回の改善結果と検証は[開発運用の改善記録](development-workflow.md)を参照する。次は実際の通常作業で、担当エージェントが確認範囲・所要時間・再質問・手戻りを点検する。今回の変更を記録する場合は、本人からコミットの依頼を受けて各リポジトリの対象差分だけを扱う。測定のためだけのコミットや実接続は行わない。
