@@ -38,6 +38,9 @@ const bob: Identity = {
 };
 const def = decisionDefinitions["starter-intent"];
 const day = () => new Date().toISOString().slice(0, 10);
+// 当日のUTC正午で時計を止める。0時直後やCIの遅延で、日付・60秒枠・期限の判定が揺れないようにする。
+const freezeClock = () =>
+  vi.useFakeTimers({ toFake: ["Date"], now: Date.parse(`${day()}T12:00:00Z`) });
 const key = (n = 1, date = day()) =>
   `${date}:${n.toString(16).padStart(8, "0")}-1111-4111-8111-111111111111`;
 const input = { input: "来週の準備を順番に整理したい" };
@@ -362,6 +365,8 @@ describe("Jev atomic admission and durable one-attempt claim", () => {
     expect(others.filter((r) => r.status === "fulfilled")).toHaveLength(2);
   });
   it("owner20/21 and rolling5/6, with exact60s boundary", async () => {
+    // 0時から60秒以内に走ると、0時に作る19件が60秒枠にも入ってしまう。
+    freezeClock();
     const now = Date.now();
     const start = Date.parse(`${day()}T00:00:00Z`);
     for (let n = 1; n <= 19; n++) await seed(alice.id, n, start);
@@ -514,6 +519,8 @@ describe("Jev failures, leases and retention", () => {
     fetcher.mockImplementation(() => new Promise(() => {}));
     // 送信可能な窓を約2秒にする。fetchMs(15秒)のままならテスト上限(5秒)を超えるので、
     // 短縮の検証になる。窓を200msにするとCIの遅延で送信前に期限切れになり不安定だった。
+    // 2秒でもCIが遅いと送信前に使い切るため、時計を止めて窓を固定する（timerは実時間）。
+    freezeClock();
     await expect(evaluate(1, alice, Date.now() - 13000)).rejects.toMatchObject({
       status: 504,
       code: "decision_timeout",
@@ -546,6 +553,8 @@ describe("Jev failures, leases and retention", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
   it("expired reserved becomes failed; expired submitting becomes unknown; maintenance bounded", async () => {
+    // 0時から31秒以内だと、31秒前に作る行が前日のkeyになる。
+    freezeClock();
     const now = Date.now();
     await seed("TEST_ONLY_reserved", 1, now - 31000, "reserved");
     await seed("TEST_ONLY_submitting", 2, now - 31000, "reserved");
@@ -776,10 +785,10 @@ describe("Jev HTTP dispatch and metadata recovery", () => {
     expect((await getDecisionRow(db, alice.id, k2))?.state).toBe("reserved");
   });
   it("GET counter60/61 does not consume POST quota or extend expiry", async () => {
+    // rateLimitは1分単位の固定枠。61回の途中で分をまたぐと数え直しになるため時刻を止める。
+    freezeClock();
     await evaluate();
     const row = await getDecisionRow(db, alice.id, key());
-    // rateLimitは1分単位の固定枠。61回の途中で分をまたぐと数え直しになるため時刻を止める。
-    vi.spyOn(Date, "now").mockReturnValue(Date.now());
     for (let n = 0; n < 60; n++)
       expect((await send(request(`requests/${key()}`, "GET"))).status).toBe(
         200,
