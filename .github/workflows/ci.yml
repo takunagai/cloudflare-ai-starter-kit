@@ -46,4 +46,9 @@ jobs:
           done
           echo 'Preview failed to become ready; inspect the local preview command.'
           exit 1
+      # 実Secretを持たないローカルpreviewのログだけを出す。smokeの失敗原因を後から追うため。
+      - name: Preview log on failure
+        if: failure()
+        shell: bash
+        run: tail -n 200 /tmp/starter-preview.log || true
       - run: pnpm audit

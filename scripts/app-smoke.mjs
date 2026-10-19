@@ -32,10 +32,11 @@ for (const [path, method] of [
   ["/api/media/jobs", "POST"],
 ]) {
   const response = await call(path, method === "POST" ? {} : undefined, method);
+  // 500の層（アプリのinternal_errorか、preview側の失敗か）を区別できるよう本文を残す。
   assert.equal(
     response.status,
     404,
-    "M-1 media creation is OFF before authentication",
+    `M-1 media creation is OFF before authentication: ${method} ${path} ${await response.clone().text()}`,
   );
   assert.equal(response.headers.get("Cache-Control"), "private, no-store");
 }
