@@ -1,5 +1,6 @@
 # 公式情報の参照索引
 
+- [Vitest 5への更新](vitest5-20261019.md): 2026-10-19に4.1.11から5.0.5へ。Cloudflare plugin 1.4.4のpeer内。setup fileの`cloudflare:test`でworkerdが落ちる不具合（workers-sdk#16331）の回避策と、`api.test.ts`の初回読込の扱い、解除条件。
 - [compatibility_dateの更新](compatibility-date-20261019.md): 2026-10-19に2026-09-25から2026-10-12（同梱workerd 1.20261012.1の上限）へ。範囲内の既定フラグは`durable_object_io_tasks_prevent_eviction`の1件でDurable Object未使用のため影響なし。
 - [TanStack StartのXSS修正と依存の一括更新](dependency-update-20261018.md): 2026-10-18のaudit critical 2件（GHSA-qx66-fv34-fjm8）、メジャー更新を除く直接依存の更新、効いていないoverride 3件の削除。vitest 5、Polar 1.0、compatibility_dateは見送り。
 - [CI依存脆弱性とCIシェルの修正](ci-dependencies-20261008.md): 2026-10-08のCI失敗2件（zsh不在、source-map-js/sharpのGHSA）の根拠と、複製先private-rag-chatからの逆輸入。実アプリへの影響は断定しない。

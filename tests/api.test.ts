@@ -1,9 +1,15 @@
 import { exports } from "cloudflare:workers";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 const origin = "https://starter.test";
 
 describe("Worker API boundary", () => {
+  // 最初のfetchがWorkerのmodule graph全体を読み込む。Vitest 5の並列実行では
+  // 既定の5秒を超えることがあるため、読込を各testの時間から外す。
+  beforeAll(async () => {
+    await exports.default.fetch(`${origin}/api/health`);
+  }, 30_000);
+
   it("returns health JSON without caching", async () => {
     const response = await exports.default.fetch(`${origin}/api/health`);
     expect(response.status).toBe(200);

@@ -21,7 +21,7 @@ falは従来の画像サンプルに加え、[画像・動画・音声の初版�
 | 開発環境 | Node.js 26.10.0 / pnpm 12.6.0 | インストール・ローカル検証済み。グローバル環境は変更せず一時toolchainを使用 |
 | Web | React 19.3.0 + TanStack Start 1.168.58 / Router 1.170.39 | strict peer解決・SSR・prerender・ブラウザ通信を確認。公式RC表記を了承して採用。基本機能に絞る |
 | ビルド | Vite 8.3.1 / CF Vite plugin 1.60.2 / Wrangler 4.141.0 | 開発・previewのWorker処理をworkerdで実行 |
-| 品質 | TypeScript 7.0.2 / Biome 2.5.14 / Vitest 4.1.11 / CF Vitest plugin 1.2.8 | 最新Vitest5はCF plugin peer範囲外。対応後に再検討 |
+| 品質 | TypeScript 7.0.2 / Biome 2.5.14 / Vitest 4.1.11 / CF Vitest plugin 1.2.8 | 版は採用時点の値。2026-10-19にVitest 5.0.5・CF Vitest plugin 1.4.4へ更新した（[記録](../references/vitest5-20261019.md)） |
 | UI / 入力 | Tailwind CSS 4.3.3 / Zod 4.6.5 | 導入済み。CVA / clsx / tailwind-mergeは現行UIで不要なため未採用 |
 | 認証・DB | Better Auth 1.7.6 + D1 + Drizzle ORM 0.45.3（migrationは明示SQL）。社内・個人用はCloudflare Accessも選択可能 | Better Authはメール＋パスワード標準、Google追加可能。認証方式によらず会話・ジョブ・契約権限の所有権をアプリで確認 |
 | モデル | AI SDK 7 + 各provider | 選択境界だけ共通化。設定済みかつ許可したモデルのみ実行 |
