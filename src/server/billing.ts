@@ -141,7 +141,7 @@ const checkoutEvent = z.object({
     product_id: id,
     metadata: z.object({ owner_id: id, operation_id: id }),
     status: z.enum(["open", "expired", "confirmed", "failed", "succeeded"]),
-    url: z.string().url(),
+    url: z.url(),
     expires_at: isoDate,
   }),
 });
