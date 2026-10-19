@@ -35,7 +35,8 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `src/server/extensions/` / `billing.ts` | 任意拡張、外部API境界 |
 | `migrations/` | 履歴管理されたD1 SQL |
 | `src/lib/contracts.ts` | 入出力のZod schema |
-| `src/styles.css` | Tailwindと共通スタイル |
+| `src/styles.css` | Tailwindと共通スタイル。色はトークン参照のみ |
+| `src/theme.css` | テーマカラー・角丸の設定。配色の変更はここだけ |
 | `tests/` | 実workerdでのAPIテスト |
 | `scripts/smoke.mjs` | ローカルHTTPの統合確認 |
 | `wrangler.jsonc` / `vite.config.ts` | Worker環境・ビルド・事前生成設定 |

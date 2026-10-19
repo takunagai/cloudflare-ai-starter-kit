@@ -222,7 +222,7 @@ export function MediaPanel() {
       aria-busy={isBusy}
     >
       <h1>画像と素材</h1>
-      <p>
+      <p className="intro">
         参照画像は7日、生成した画像・動画・音声は最初の保存から30日。再利用で期限は延長されません。
       </p>
       {!isEnabled && (

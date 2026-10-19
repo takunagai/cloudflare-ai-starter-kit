@@ -1,0 +1,54 @@
+/*
+ * テーマ設定。配色を変えるときはこのファイルだけを編集する。
+ *
+ * 既定はモノクロ。アクセント色はボタン・リンク・フォーカス枠・選択状態に使われる。
+ * 薄い背景やホバー色は styles.css で color-mix により自動で派生するため、
+ * ここでは基準の色だけを指定する。
+ *
+ * ダーク表示は OS 設定に追従し、ヘッダーの切替ボタンで固定もできる。
+ * モノクロではライトとダークでアクセントを反転させる必要があるため、両方を指定する。
+ * 有彩色を使う場合は、ダーク側を少し明るくすると背景との差が保てる。
+ */
+:root {
+  /* アクセント（ライト表示） */
+  --theme-accent: oklch(0.2 0 0);
+  --theme-on-accent: oklch(0.99 0 0);
+
+  /* アクセント（ダーク表示） */
+  --theme-accent-dark: oklch(0.94 0 0);
+  --theme-on-accent-dark: oklch(0.18 0 0);
+
+  /*
+   * 背景・文字・境界線のグレーに混ぜる色味。chroma 0 で無彩色。
+   * 例: chroma 0.012 と hue 260 で、わずかに青みのあるグレーになる。
+   */
+  --theme-neutral-chroma: 0;
+  --theme-neutral-hue: 0;
+
+  /* 角丸の基準値。カード・入力欄・ボタンはこの値から算出する */
+  --theme-radius: 10px;
+}
+
+/*
+ * 設定例: ブルー
+ *
+ * :root {
+ *   --theme-accent: oklch(0.5 0.19 262);
+ *   --theme-on-accent: oklch(0.99 0 0);
+ *   --theme-accent-dark: oklch(0.72 0.14 262);
+ *   --theme-on-accent-dark: oklch(0.18 0.03 262);
+ *   --theme-neutral-chroma: 0.008;
+ *   --theme-neutral-hue: 262;
+ * }
+ *
+ * 設定例: グリーン
+ *
+ * :root {
+ *   --theme-accent: oklch(0.45 0.09 160);
+ *   --theme-on-accent: oklch(0.99 0 0);
+ *   --theme-accent-dark: oklch(0.74 0.11 160);
+ *   --theme-on-accent-dark: oklch(0.18 0.03 160);
+ *   --theme-neutral-chroma: 0.008;
+ *   --theme-neutral-hue: 140;
+ * }
+ */
