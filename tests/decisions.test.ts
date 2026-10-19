@@ -777,6 +777,8 @@ describe("Jev HTTP dispatch and metadata recovery", () => {
   it("GET counter60/61 does not consume POST quota or extend expiry", async () => {
     await evaluate();
     const row = await getDecisionRow(db, alice.id, key());
+    // rateLimitは1分単位の固定枠。61回の途中で分をまたぐと数え直しになるため時刻を止める。
+    vi.spyOn(Date, "now").mockReturnValue(Date.now());
     for (let n = 0; n < 60; n++)
       expect((await send(request(`requests/${key()}`, "GET"))).status).toBe(
         200,
