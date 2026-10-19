@@ -42,6 +42,11 @@
 	2. 完了（2026-10-19）: vitestを4.1.11から5.0.5へ更新。plugin不具合（workers-sdk#16331）の回避策を`tests/setup.ts`に入れた。修正版のpluginが出たら`applyD1Migrations`へ戻す。根拠と検証は[記録](../references/vitest5-20261019.md)
 	3. 完了（2026-10-19）: @polar-sh/sdkを0.49.0から1.0.2へ更新し、`billing.ts`を追従。実Polarは未接続。根拠と検証は[記録](../references/polar-sdk1-20261019.md)
 - [ ] [cloudflare/workers-sdk#16331](https://github.com/cloudflare/workers-sdk/issues/16331)の修正版`@cloudflare/vitest-plugin`が出たら、`tests/setup.ts`の回避策（pluginと同じmigration適用処理）を`cloudflare:test`の`applyD1Migrations`呼び出しへ戻す（2026-10-19登録）。戻した後に`--maxWorkers=1`を含む`pnpm test`で全件成功を確認する。経緯は[Vitest 5の記録](../references/vitest5-20261019.md#3-既知の不具合と回避策)
+- [ ] 2026-10-19の更新（`compatibility_date`、vitest 5、@polar-sh/sdk 1.0.2）の配備と、Polar sandboxでの実接続確認（2026-10-19登録、本人判断で保留）。旧stagingは同日削除済みのため配備先がない。進めるときは次の順で、各段階の対象・費用を具体化して本人の承認を得る
+	1. 新しい通常stagingのWorker・専用D1・Accessを決めて作る。migration 0001〜0012・0014・0015を`scripts/d1-wire.ts`の送信用SQLで1本ずつ適用し、SELECTで照合する（[運用手順](operations.md)）
+	2. 全拡張OFF・公開経路なしでbuild（`--mode standard-staging-local`）→ dry-run → 配備し、Access保護とホスト接続を確認する
+	3. 本人がPolar sandboxで組織・継続課金商品・tokenを作り、`POLAR_ACCESS_TOKEN`と`POLAR_WEBHOOK_SECRET`を会話外で投入する。`ENABLE_BILLING=true`・`POLAR_SERVER=sandbox`・`POLAR_PRODUCT_ID`を設定し、`/api/billing/webhook`をAccessで遮断しない（[決済の設定](billing.md)）
+	4. 購入→webhook→状態表示→Portalを確かめ、API版`2026-10`の実応答が`billing.ts`の応答検証を通ることを記録する（[SDK 1.0の記録](../references/polar-sdk1-20261019.md)の未確認項目）
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
 
 今回の改善結果と検証は[開発運用の改善記録](development-workflow.md)を参照する。次は実際の通常作業で、担当エージェントが確認範囲・所要時間・再質問・手戻りを点検する。今回の変更を記録する場合は、本人からコミットの依頼を受けて各リポジトリの対象差分だけを扱う。測定のためだけのコミットや実接続は行わない。
