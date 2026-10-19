@@ -1,6 +1,6 @@
 # Polar決済の任意拡張
 
-更新日: 2026-10-02。Polar SDK 0.49.0、standardwebhooks 1.1.1を使用します。標準構成は `ENABLE_BILLING` がOFFで、Polarアカウント・キー・商品設定を要求しません。実決済・sandbox checkout・実webhook配達は未接続です。
+更新日: 2026-10-19。Polar SDK 1.0.2（API版`2026-10`、`@polar-sh/sdk/2026-10`の`createPolar`）、standardwebhooks 1.1.1を使用します。0.49.0からの更新内容は[記録](../references/polar-sdk1-20261019.md)を参照します。標準構成は `ENABLE_BILLING` がOFFで、Polarアカウント・キー・商品設定を要求しません。実決済・sandbox checkout・実webhook配達は未接続です。
 
 B-3で通常環境の設定・旧台帳guardをHTTPと直接SDK adapterへ統合しました。OFF/`STAGING_POLICY=standard`を指定しないstagingは404、通常の対話APIは認証・method/入力・所有権を先に確認し、実行/関連更新直前にもguardを再確認します。AI_MODEやJev設定の不備だけでは決済を停止しません。通常stagingの台帳不適合は503で、認証や履歴の回復導線は維持します。[設定メモと検証範囲](実AI検証制御-実装状況.md#2026-10-02-b-3のモデル選択と別入口統合)を参照してください。
 
@@ -30,7 +30,7 @@ checkoutとportalは同一Originの認証済み要求だけです。`external_cu
 
 ## 重複・失敗・復旧
 
-checkout前にD1で `(owner, server, product)` の一意な予約を作ります。並行要求は既存URLを返すか409になり、upstream作成を重複実行しません。SDK自動retryは無効、timeoutは8秒です。上流の冪等性保証を確認できないため、timeoutや保存失敗後に新しいcheckoutを無条件作成しません。
+checkout前にD1で `(owner, server, product)` の一意な予約を作ります。並行要求は既存URLを返すか409になり、upstream作成を重複実行しません。SDK 1.xは自動retryを持たず、要求ごとにfetchを1回だけ呼びます（`tests/billing-sdk.test.ts`で固定）。timeoutは8秒です。SDK 1.xは応答を検証しないため、使う項目（checkoutの`id`・`url`・`expires_at`、Portalの`customer_portal_url`）をZodで検証します。上流の冪等性保証を確認できないため、timeoutや保存失敗後に新しいcheckoutを無条件作成しません。
 
 `checkout_pending_reconciliation`（409/502）は上流で作成された可能性を示します。`checkout.created/updated` webhookの署名・owner・operation IDが一致すれば既存予約を復旧し、次の要求で同じURLを返します。失敗・期限切れが署名webhookで確認できた場合だけ再作成できます。ローカル時計で期限を過ぎたという理由だけでは新しい購入を開始しません。
 
@@ -44,7 +44,7 @@ event IDと本文hashの一意記録、customer対応付け、契約状態更新
 
 webhookはmethod・本文・署名・入力schemaの確認後、既処理イベントの2xx応答前と関連更新直前にも設定・旧台帳を検査します。不適合時は未受領のまま503とし、配達済みと誤認させません。正しい別Worker/別DB構成で同じイベントが再送されれば、既存の重複防止契約で処理できます。旧検証台帳の削除/上書きを復旧方法にしません。checkout予約後にguardが拒否し、upstreamへ未送信と確定している場合だけ予約をexpiredへ閉じます。送信後に結果不明ならuncertainを保持し、自動再作成しません。
 
-署名はStandard Webhooksと旧Polar HMACの両方を検証します。2026-09-08より前後でsecretの署名方式が異なるためです。SDK 0.49.0の `validateEvent` は旧方式に固定されているため、署名検証には公式のstandardwebhooksを直接使い、消費するevent項目をZodで検証しています。raw body、secret、SDKエラー、顧客メールをログへ出しません。
+署名はStandard Webhooksと旧Polar HMACの両方を検証します。2026-09-08より前後でsecretの署名方式が異なるためです。SDK 0.49.0の `validateEvent` が旧方式に固定されていたため、署名検証には公式のstandardwebhooksを直接使い、消費するevent項目をZodで検証しています。SDK 1.0の`webhooks.validateEvent`は両方式に対応しますが、event型が選んだAPI版に固定されるため、この実装は変えていません（2026-10-19）。raw body、secret、SDKエラー、顧客メールをログへ出しません。
 
 ## 検証と制約
 

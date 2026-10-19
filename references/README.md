@@ -1,5 +1,6 @@
 # 公式情報の参照索引
 
+- [Polar SDK 1.0への更新](polar-sdk1-20261019.md): 2026-10-19に0.49.0から1.0.2（API版2026-10）へ。全面書き直しへの追従、再送なしの確認、SDKが外した応答検証のZod化。実Polarは未接続。
 - [Vitest 5への更新](vitest5-20261019.md): 2026-10-19に4.1.11から5.0.5へ。Cloudflare plugin 1.4.4のpeer内。setup fileの`cloudflare:test`でworkerdが落ちる不具合（workers-sdk#16331）の回避策と、`api.test.ts`の初回読込の扱い、解除条件。
 - [compatibility_dateの更新](compatibility-date-20261019.md): 2026-10-19に2026-09-25から2026-10-12（同梱workerd 1.20261012.1の上限）へ。範囲内の既定フラグは`durable_object_io_tasks_prevent_eviction`の1件でDurable Object未使用のため影響なし。
 - [TanStack StartのXSS修正と依存の一括更新](dependency-update-20261018.md): 2026-10-18のaudit critical 2件（GHSA-qx66-fv34-fjm8）、メジャー更新を除く直接依存の更新、効いていないoverride 3件の削除。vitest 5、Polar 1.0、compatibility_dateは見送り。

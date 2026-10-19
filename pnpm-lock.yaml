@@ -196,8 +196,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0(ai@7.0.143(zod@4.6.7))(zod@4.6.7)
       '@polar-sh/sdk':
-        specifier: 0.49.0
-        version: 0.49.0
+        specifier: 1.0.2
+        version: 1.0.2
       '@tanstack/react-router':
         specifier: 1.170.45
         version: 1.170.45(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -1292,8 +1292,9 @@ packages:
   '@oxc-project/types@0.154.0':
     resolution: {integrity: sha512-KYOUGQFlLWR+s4QMV2Q9ko38TZm7EdO87Qm7rvZLqk/webse/cDjtyxKhg/47l0byCbs/k46LT8qc4PKjAikzA==}
 
-  '@polar-sh/sdk@0.49.0':
-    resolution: {integrity: sha512-9UYb70iKjJCtWYlu0OF5HLYBLmkxHwqr2RlXwuxXQgRGqq56IQWlVG+NO7e1YJ7I5GW0CBHhGIjRbQ9hYM6ycQ==}
+  '@polar-sh/sdk@1.0.2':
+    resolution: {integrity: sha512-c3jdqYloVfcejKsAqYfYcW4bG7KkXj5bXkgdsdx4GHlJPzHFV5tysfeZGf9V7dJReLBirAluchsuHWiAIBco8w==}
+    engines: {node: '>=22'}
 
   '@poppinss/colors@4.1.6':
     resolution: {integrity: sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==}
@@ -3560,10 +3561,7 @@ snapshots:
 
   '@oxc-project/types@0.154.0': {}
 
-  '@polar-sh/sdk@0.49.0':
-    dependencies:
-      standardwebhooks: 1.1.1
-      zod: 4.6.7
+  '@polar-sh/sdk@1.0.2': {}
 
   '@poppinss/colors@4.1.6':
     dependencies:

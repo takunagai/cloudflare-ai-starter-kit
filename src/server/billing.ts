@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { Polar } from "@polar-sh/sdk";
+import { createPolar } from "@polar-sh/sdk/2026-10";
 import { Webhook } from "standardwebhooks";
 import { z } from "zod";
 import type { AppEnv, Identity } from "./env";
@@ -33,34 +33,45 @@ export function createPolarProvider(env: AppEnv): BillingProvider {
   requireExtensionEnabled(env, env.ENABLE_BILLING);
   if (!env.POLAR_ACCESS_TOKEN)
     throw new ApiError(503, "billing_not_configured");
-  const polar = new Polar({
+  // SDK 1.xは要求ごとにfetchを1回だけ呼び、再送しない。timeoutは秒指定。
+  const polar = createPolar({
     accessToken: env.POLAR_ACCESS_TOKEN,
-    server: serverFor(env),
-    timeoutMs: 8000,
-    retryConfig: { strategy: "none" },
+    environment: serverFor(env),
+    timeout: 8,
   });
   return {
     async checkout(input) {
       requireExtensionEnabled(env, env.ENABLE_BILLING);
       await checkExtensionRuntimePolicy(env);
-      const result = await polar.checkouts.create({
-        products: [input.productId],
-        externalCustomerId: input.ownerId,
-        metadata: { owner_id: input.ownerId, operation_id: input.operationId },
-        successUrl: input.returnUrl,
-        returnUrl: input.returnUrl,
-        allowDiscountCodes: false,
-      });
-      return { id: result.id, url: result.url, expiresAt: result.expiresAt };
+      const result = checkoutResponse.parse(
+        await polar.checkouts.create({
+          products: [input.productId],
+          external_customer_id: input.ownerId,
+          metadata: {
+            owner_id: input.ownerId,
+            operation_id: input.operationId,
+          },
+          success_url: input.returnUrl,
+          return_url: input.returnUrl,
+          allow_discount_codes: false,
+        }),
+      );
+      return {
+        id: result.id,
+        url: result.url,
+        expiresAt: new Date(result.expires_at),
+      };
     },
     async portal(input) {
       requireExtensionEnabled(env, env.ENABLE_BILLING);
       await checkExtensionRuntimePolicy(env);
-      const result = await polar.customerSessions.create({
-        externalCustomerId: input.ownerId,
-        returnUrl: input.returnUrl,
-      });
-      return { url: result.customerPortalUrl };
+      const result = portalResponse.parse(
+        await polar.customerSessions.create({
+          external_customer_id: input.ownerId,
+          return_url: input.returnUrl,
+        }),
+      );
+      return { url: result.customer_portal_url };
     },
   };
 }
@@ -95,6 +106,13 @@ function safePolarUrl(url: string, server: Server): string {
 const emptyBody = z.object({}).strict();
 const id = z.string().min(1).max(500);
 const isoDate = z.iso.datetime({ offset: true });
+// SDK 1.xは応答を検証しないため、使う項目だけをここで検証する。
+const checkoutResponse = z.object({
+  id,
+  url: z.string(),
+  expires_at: isoDate,
+});
+const portalResponse = z.object({ customer_portal_url: z.string() });
 const stateEvent = z.object({
   type: z.literal("customer.state_changed"),
   timestamp: isoDate,
@@ -169,7 +187,8 @@ function verifyWebhook(
     ]),
   );
   // Polarは2026-09-08以降のsecretをStandard Webhooksへ変更。
-  // SDK 0.49のvalidateEventは旧キーしか扱わないので公式standardwebhooksで双方を検証する。
+  // 公式standardwebhooksで新旧キーの双方を検証する。SDK 1.xのvalidateEventも両対応だが、
+  // event型がAPI版に固定されるため使わない（0.49は旧キーしか扱わなかった）。
   for (const key of [secret, Buffer.from(secret, "utf8").toString("base64")]) {
     try {
       return new Webhook(key).verify(body, headers);
