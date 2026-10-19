@@ -37,7 +37,10 @@
 	5. tests（`ai-verification*.test.ts`、runtime-boundary・extension-boundary・providersの該当部分）、`scripts/app-smoke.mjs`、`wrangler.jsonc`の`AI_VERIFICATION_*`、README・operations・構成資料の旧検証の記述を更新する
 	6. 完了条件: `pnpm check`、preview smoke、`/api/ai-verification`の404、`STAGING_POLICY`省略時のfail-closed、通常stagingとlocalの回帰をworkerdで確認する。配備済みの旧staging Workerは再配備するまで影響を受けず、再配備は別承認とする
 - [x] 複製先private-rag-chatへ、TanStack StartのXSS修正（react-start 1.168.60以上）と、受付記録APIの振り分け漏れの確認を伝える（2026-10-19）。振り分け漏れは複製先で修正済み（複製先の`2c27dd6`）だった。XSSは複製先が react-start 1.168.58 / start-server-core 1.169.37 のままだったため、複製先の`handover/`に指示書を置き、本人が複製先のセッションで実施中。修正版の配備は複製先で別に判断する
-- [ ] 見送った更新（vitest 5、@polar-sh/sdk 1.0、`compatibility_date`）を、変更履歴とworkerdの動作変更を確認して別作業で行う
+- [ ] 見送った更新（vitest 5、@polar-sh/sdk 1.0、`compatibility_date`）を、変更履歴とworkerdの動作変更を確認して別作業で行う。2026-10-19時点でaudit 0件のため急がない。推奨順（1件ずつ`pnpm check`・smokeで確認しcommit）
+	1. `compatibility_date`（2026-09-25）: 全複製先の実行時挙動に効き、手間が最小。9/25以降の互換性フラグの変更点を公式で確認する
+	2. vitest 4.1.11→5.x: テストだけに影響。Cloudflare vitest plugin 1.4.4のpeerは5を許容。設定・APIの破壊的変更を確認する
+	3. @polar-sh/sdk 0.49.0→1.0.x: 任意拡張の決済（標準OFF）の`billing.ts`に影響。0.x→1.0のAPI変更をfakeテストで確認する。決済を使う複製先が出るまで後回しでよい
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
 
 今回の改善結果と検証は[開発運用の改善記録](development-workflow.md)を参照する。次は実際の通常作業で、担当エージェントが確認範囲・所要時間・再質問・手戻りを点検する。今回の変更を記録する場合は、本人からコミットの依頼を受けて各リポジトリの対象差分だけを扱う。測定のためだけのコミットや実接続は行わない。
