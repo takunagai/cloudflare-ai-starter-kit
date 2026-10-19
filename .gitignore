@@ -42,9 +42,10 @@ auth.json.*
 /*.db-*
 /backups/
 
-# ログ・OS・エディタの一時ファイル
+# ログ・OS・エディタの一時ファイル（/Log/はエージェントの会話ログ）
 *.log
 /logs/
+/Log/
 .DS_Store
 ._*
 Thumbs.db
