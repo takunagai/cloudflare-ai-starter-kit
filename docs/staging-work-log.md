@@ -385,4 +385,13 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 | ソース | `2ef75ff`（GitHub CIのverify成功）。この時点のHEADは並行セッションのUI刷新`b86275b`を含む。直後のテストだけの`adf6103`は配備物に影響しない |
 | 生成設定の検査（値は非表示） | 前回との違いは旧`AI_VERIFICATION_*`の2キーがなくなったことだけ。Worker名・APP_ENV=staging・AUTH_MODE=access・STAGING_POLICYなし・workers_dev/preview_urls=false・route 1件・D1 binding 1件は同じ |
 | 配備 | dry-run成功の後に`wrangler deploy`（`--env`なし）。**実クラウド成功**。`wrangler deployments status`で新versionが配分100%であることを照合（IDは記録しない） |
-| 外部からの確認 | 匿名の`/api/health`・`/api/ai-verification`は前回と同じく403（エッジで拒否）。Access認証後の動作とD1のmigration状況は引き続き未確認 |
+| 外部からの確認 | 匿名の`/api/health`・`/api/ai-verification`は前回と同じく403（エッジで拒否） |
+
+### 09:30 JST 認証後の動作とD1のmigration状況を確認
+
+| 項目 | 結果 |
+| --- | --- |
+| D1のmigration（読み取り専用の`SELECT name FROM d1_migrations`） | 適用済みは0001〜0006だけ。0007〜0012・0014・0015の8本は未適用、リポジトリ外のmigrationなし。D1名・IDは出力・記録していない |
+| 未適用schemaに触れる経路 | 閉鎖版でも開いている回復用GETのうち`/api/chat/requests/:id`（0015の列）と`/api/decisions/requests/:key`（0007のtable）は500になり得る。通常の画面操作では呼ばれず、データは出ない |
+| 判断 | 閉鎖したWorkerのためにremote migrationはしない（0008以降はリモートの分割エラーの既知事例があり、見合わない）。旧stagingの削除などの片付けは別の判断とする |
+| Access認証後（本人がブラウザで確認） | 1. `/app`は表示され、チャットは使えるモデルなし。2. `/api/models`は全件`available:false`。3. `/api/ai-verification`は`{"error":"not_found"}`。4. `/api/conversations`は正常なJSON。4項目すべて期待どおり |

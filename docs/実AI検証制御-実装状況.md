@@ -13,7 +13,7 @@
 | 通常stagingの台帳検査 | 維持。旧モードの名残ではなく「別用途に使ったD1の再利用を拒否する」境界チェックとして`requiresCleanLedgerCheck`へ改名。0006のtableあり・行なしを要求し、理由コード（`legacy_verification_ledger`、`verification_ledger_unavailable`）は配備済みの記録と照合できるよう変えない | `runtime-guards.ts`の`checkRuntimeBoundary`。0006のtableはmigrationなので削除しない |
 | チャットのsystem prompt | 旧検証モジュールから`chat-prompt.ts`へ移した。文面は不変 | `chat-prompt.ts` |
 
-検証済み（ローカル）: `pnpm check`（45ファイル885件）、preview smoke（`/api/ai-verification`の404を認証前後で確認）。workerdのテストで、`STAGING_POLICY`省略・`verification`・未知値・旧フラグ残存のstagingがチャット503と固定コードを返し、会話の参照は継続することを確認した。配備: 2026-10-19に既存の旧検証staging Workerを`17470cb`で再配備し、新versionが配分100%であることを確認した（[作業ログ](staging-work-log.md#2026-10-19-0830-jst-旧検証stagingを閉鎖版で再配備)）。未検証: Access認証後の実動作、そのD1のmigration状況。
+検証済み（ローカル）: `pnpm check`（45ファイル885件）、preview smoke（`/api/ai-verification`の404を認証前後で確認）。workerdのテストで、`STAGING_POLICY`省略・`verification`・未知値・旧フラグ残存のstagingがチャット503と固定コードを返し、会話の参照は継続することを確認した。配備: 2026-10-19に既存の旧検証staging Workerを`17470cb`で再配備し、新versionが配分100%であることを確認した（[作業ログ](staging-work-log.md#2026-10-19-0830-jst-旧検証stagingを閉鎖版で再配備)）。同日、旧`AI_VERIFICATION_*`を管理外設定から除いて再配備し、Access認証後の動作（モデル全件available:false、`/api/ai-verification`の404、会話一覧）を本人が確認した。そのD1は0001〜0006だけ適用で、閉鎖版のためmigrationしない。
 
 ## 2026-10-02 B-4完了の参照
 
