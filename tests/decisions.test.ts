@@ -511,7 +511,9 @@ describe("Jev failures, leases and retention", () => {
   });
   it("service timeout shortens fetch to leave5s and retains unknown without retry", async () => {
     fetcher.mockImplementation(() => new Promise(() => {}));
-    await expect(evaluate(1, alice, Date.now() - 14800)).rejects.toMatchObject({
+    // 送信可能な窓を約2秒にする。fetchMs(15秒)のままならテスト上限(5秒)を超えるので、
+    // 短縮の検証になる。窓を200msにするとCIの遅延で送信前に期限切れになり不安定だった。
+    await expect(evaluate(1, alice, Date.now() - 13000)).rejects.toMatchObject({
       status: 504,
       code: "decision_timeout",
     });
