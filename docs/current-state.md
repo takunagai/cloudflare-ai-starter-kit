@@ -47,6 +47,7 @@
 	2. 全拡張OFF・公開経路なしでbuild（`--mode standard-staging-local`）→ dry-run → 配備し、Access保護とホスト接続を確認する
 	3. 本人がPolar sandboxで組織・継続課金商品・tokenを作り、`POLAR_ACCESS_TOKEN`と`POLAR_WEBHOOK_SECRET`を会話外で投入する。`ENABLE_BILLING=true`・`POLAR_SERVER=sandbox`・`POLAR_PRODUCT_ID`を設定し、`/api/billing/webhook`をAccessで遮断しない（[決済の設定](billing.md)）
 	4. 購入→webhook→状態表示→Portalを確かめ、API版`2026-10`の実応答が`billing.ts`の応答検証を通ることを記録する（[SDK 1.0の記録](../references/polar-sdk1-20261019.md)の未確認項目）
+- [ ] GitHub CIのHTTP smokeで、`/api/media/*`（OFF時は認証前に404）が500を返した原因を特定する（2026-10-19登録）。docsだけの`204c6ba`のrun 1回目で1度だけ発生し、再実行で成功した。ローカルではpreviewへsmokeを8回流して再現しなかった。アプリは想定外の例外を`internal_error`とだけ返して記録しない（`src/server/http.ts`の`errorResponse`）ため、当時の原因は分からない。`423c166`から、smoke失敗時にpreviewログの末尾と応答本文がCIログに出る。再発したら、本文が`internal_error`（アプリ内の例外）か、それ以外（preview・workerd側）かで切り分ける。2回目が出るまでは実装を変えない
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
 
 今回の改善結果と検証は[開発運用の改善記録](development-workflow.md)を参照する。次は実際の通常作業で、担当エージェントが確認範囲・所要時間・再質問・手戻りを点検する。今回の変更を記録する場合は、本人からコミットの依頼を受けて各リポジトリの対象差分だけを扱う。測定のためだけのコミットや実接続は行わない。
