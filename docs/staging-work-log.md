@@ -375,3 +375,14 @@ mainの再送も一度connection resetで失敗したが、コマンド単位の
 | 期待動作（ローカルテストで確認済み） | チャット・モデル一覧は503 `missing_staging_policy`／全件available:false、拡張・判断APIは認証前404、認証と会話の閲覧/削除は継続、`/api/ai-verification`は404 |
 | 実施しなかったこと | remote migration（この DBの適用状況は未再確認。最後の記録は0006段階のため、`/api/chat/requests/:id`は500になり得る）、D1・Access・route・Secretの変更、実AI推論 |
 | 戻し方 | `wrangler rollback`で直前versionへ戻せる。戻すと旧検証コードが再び稼働する |
+
+### 09:15 JST 旧設定キーを除いて再配備
+
+本人が管理外設定から`AI_VERIFICATION_ENABLED` / `AI_VERIFICATION_START`の2行を削除した（本人が編集。エージェントは内容を表示・閲覧していない）。キー名の件数で0件、`STAGING_POLICY`の追加なしを確認した。
+
+| 項目 | 内容 |
+| --- | --- |
+| ソース | `2ef75ff`（GitHub CIのverify成功）。この時点のHEADは並行セッションのUI刷新`b86275b`を含む。直後のテストだけの`adf6103`は配備物に影響しない |
+| 生成設定の検査（値は非表示） | 前回との違いは旧`AI_VERIFICATION_*`の2キーがなくなったことだけ。Worker名・APP_ENV=staging・AUTH_MODE=access・STAGING_POLICYなし・workers_dev/preview_urls=false・route 1件・D1 binding 1件は同じ |
+| 配備 | dry-run成功の後に`wrangler deploy`（`--env`なし）。**実クラウド成功**。`wrangler deployments status`で新versionが配分100%であることを照合（IDは記録しない） |
+| 外部からの確認 | 匿名の`/api/health`・`/api/ai-verification`は前回と同じく403（エッジで拒否）。Access認証後の動作とD1のmigration状況は引き続き未確認 |
