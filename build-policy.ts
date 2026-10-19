@@ -3,7 +3,8 @@ export type BuildTarget = Readonly<{
   configPath: string;
   environment: "staging" | "production" | undefined;
   appEnvironment: "local" | "staging" | "production";
-  stagingPolicy: "verification" | "standard" | undefined;
+  // closedはSTAGING_POLICYを書かないstaging。旧検証廃止後は実行時に全経路を閉じる。
+  stagingPolicy: "closed" | "standard" | undefined;
 }>;
 
 // 通常stagingは/helpをSSRにする。複製先の実設定ON buildで/help事前生成後に
@@ -21,7 +22,7 @@ export function resolveBuildTarget(
 ): BuildTarget {
   let configPath = "wrangler.jsonc";
   let requiredEnvironment: "staging" | "production" | undefined;
-  let stagingPolicy: "verification" | "standard" | undefined;
+  let stagingPolicy: "closed" | "standard" | undefined;
   switch (mode) {
     case "development":
     case "production":
@@ -30,7 +31,7 @@ export function resolveBuildTarget(
     case "staging-local":
       configPath = ".wrangler.staging.local.jsonc";
       requiredEnvironment = "staging";
-      stagingPolicy = "verification";
+      stagingPolicy = "closed";
       break;
     case "standard-staging-local":
       configPath = ".wrangler.standard-staging.local.jsonc";
@@ -70,7 +71,7 @@ export function resolveBuildTarget(
     appEnvironment: selectedEnvironment ?? "local",
     stagingPolicy:
       selectedEnvironment === "staging"
-        ? (stagingPolicy ?? "verification")
+        ? (stagingPolicy ?? "closed")
         : undefined,
   };
 }
@@ -89,7 +90,8 @@ export function assertResolvedBuildTarget(
     resolved.environment !== target.environment ||
     (target.environment !== undefined && !resolved.environmentDeclared) ||
     resolved.appEnvironment !== target.appEnvironment ||
-    (target.stagingPolicy === "verification"
+    // 既存の管理外設定が旧値verificationを書いていてもbuildは通す（実行時に閉じる）。
+    (target.stagingPolicy === "closed"
       ? resolved.stagingPolicy !== undefined &&
         resolved.stagingPolicy !== "verification"
       : resolved.stagingPolicy !== target.stagingPolicy)

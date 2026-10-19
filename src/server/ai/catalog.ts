@@ -1,5 +1,5 @@
 // 公開ID・表示・providerの正本。設定判定からも参照する純粋な定義。
-export const verificationModelId = "workers-ai/llama-3.1-8b-fp8";
+export const workersAiFp8ModelId = "workers-ai/llama-3.1-8b-fp8";
 export const selectableChatModels = [
   { id: "openai/gpt-4.1-mini", label: "GPT-4.1 mini", provider: "openai" },
   {
@@ -13,7 +13,7 @@ export const selectableChatModels = [
     provider: "google",
   },
   {
-    id: verificationModelId,
+    id: workersAiFp8ModelId,
     label: "Llama 3.1 8B FP8 · Workers AI",
     provider: "workers-ai",
   },

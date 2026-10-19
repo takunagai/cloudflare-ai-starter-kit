@@ -13,7 +13,7 @@ import { resolveRuntimePolicy } from "../src/server/runtime-policy";
 import publicConfig from "../wrangler.jsonc?raw";
 
 const privateTargets = [
-  ["staging-local", "staging", ".wrangler.staging.local.jsonc", "verification"],
+  ["staging-local", "staging", ".wrangler.staging.local.jsonc", "closed"],
   [
     "standard-staging-local",
     "staging",
@@ -124,10 +124,10 @@ describe("B-4 build target boundary", () => {
     },
   );
 
-  it("公開設定の明示環境は旧検証/productionと一致し、未知環境を拒否", () => {
+  it("公開設定の明示環境は閉鎖staging/productionと一致し、未知環境を拒否", () => {
     expect(
       resolveBuildTarget("production", "staging", () => true).stagingPolicy,
-    ).toBe("verification");
+    ).toBe("closed");
     expect(
       resolveBuildTarget("development", "production", () => true)
         .appEnvironment,
@@ -176,7 +176,7 @@ describe("B-4 build target boundary", () => {
       ).toThrow(/^build_target_mismatch$/);
   });
 
-  it("旧modeは省略/verificationだけを維持し、standardへの切替を拒否", () => {
+  it("staging-localは省略/旧値verificationだけを受け、standardへの切替を拒否", () => {
     const target = resolveBuildTarget("staging-local", "staging", () => true);
     for (const stagingPolicy of [undefined, "verification"])
       expect(() =>
