@@ -1,4 +1,4 @@
-import { env } from "cloudflare:test";
+import { env } from "cloudflare:workers";
 import { vi } from "vitest";
 import type { Identity } from "../src/server/env";
 import { MEDIA_MODEL_IDS } from "../src/server/media/catalog";

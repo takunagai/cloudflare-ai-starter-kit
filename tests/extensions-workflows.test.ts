@@ -1,5 +1,6 @@
-import { env, introspectWorkflowInstance } from "cloudflare:test";
+import { introspectWorkflowInstance } from "cloudflare:test";
 import type { WorkflowEvent, WorkflowStep } from "cloudflare:workers";
+import { env } from "cloudflare:workers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppEnv, Identity } from "../src/server/env";
 import { digest } from "../src/server/extensions/rag";

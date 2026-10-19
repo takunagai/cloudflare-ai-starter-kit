@@ -1,4 +1,5 @@
-import { applyD1Migrations, type D1Migration, env } from "cloudflare:test";
+import { applyD1Migrations, type D1Migration } from "cloudflare:test";
+import { env } from "cloudflare:workers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   decisionDefinitions,

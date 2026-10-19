@@ -1,4 +1,5 @@
-import { applyD1Migrations, type D1Migration, env } from "cloudflare:test";
+import { applyD1Migrations, type D1Migration } from "cloudflare:test";
+import { env } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 import { renderD1Wire } from "../scripts/d1-wire";
 
