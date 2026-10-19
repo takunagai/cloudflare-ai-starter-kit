@@ -1,6 +1,20 @@
 2026-10-06・新隔離実接続の終了操作完了/M-0未達: 採用済み09:30〜10:00 JSTに1要求だけ送信し、上流completed/回収stored、本人の画像品質・作成時ACL/匿名拒否pass。300秒token/3600秒自然期限の各1回の実観測はunknownで再試験しない。本人の管理API報告は課金GET200/一致1/$1以内/available_now、上流DELETE200/1試行/CDN結果0/unknown。消去完了/最終請求/Cloudflare増分費用は未確定。D1は上限2/消費1/停止1/閉鎖1/attempt1/未終端0/本文0/出力参照0/active asset0/容量held0・released1、専用R2 root0。新Access Allow0/Block1、当該token取消は監査成功、旧タブはログイン画面。OFF配備5回目と本人Secret除去の即時6回目後、実WorkerはFAL_KEY不在・probe/通常生成/画像・AI/Jev OFF・通常gate空・新D1/R2一致・workers.dev/preview無効。一時falキー失効は本人報告、既存ADMINキーは対象外。旧run/旧資源を保持し、新OFF Worker/D1/private R2と本文なし台帳を残す。
 
 
+## 2026-10-19 工程Eの資源を削除
+
+本人の判断で、下のTODOにあった「終端後90日・D1復元履歴・費用を確認してから退役を判断する」を待たず、工程Eの新旧2セットをすべて削除した。D1の最小台帳（fal側の要求IDを含む）も失われ、上流削除unknownと最終請求の照合は、今後fal側の管理画面・請求明細だけで行うことになる。本人はこの影響を了承したうえで削除を選んだ（比較した案: 外部に出る部分だけ削除してD1/R2を期限まで保持、何も削除しない）。
+
+| 対象 | 実施と確認 |
+| --- | --- |
+| 事前の棚卸し（読み取りのみ） | D1/R2の一覧を名前で絞り、工程Eの2セット（Worker・D1・R2 各2）だけを対象にした。R2は2件ともobject 0件・0 B。Worker削除のdry-runは2件とも成功 |
+| Worker 2件 | `wrangler delete`で削除。`wrangler deployments status`が2件とも「見つからない」を返すことを確認 |
+| D1 2件・R2 2件 | `wrangler d1 delete` / `wrangler r2 bucket delete`で削除。一覧を取り直し、D1は10→8件、R2は9→7件、他の資源の名前は不変であることを確認 |
+| Access | 本人が管理画面でアプリ2件とpolicy 2件を削除。残りのアプリ2件・policy 3件に工程Eのものがないことを画面で確認 |
+| DNS・証明書 | 管理画面で、工程Eのホストを対象にしたDNSレコード・証明書がどちらも0件になったことを確認 |
+| 手元 | 管理外設定2件（`.wrangler.e-probe-20261006.local.jsonc`と、20261005の工程E Workerを指していた`.wrangler.standard-staging.local.jsonc`）をtrashへ移動。`e-probe-20261006-local` build modeを削除（未知modeとして`build_mode_invalid`）。`scripts/archive/e/`の操作scriptは履歴として残す |
+| 今後への影響 | `standard-staging-local` modeは残るが、管理外設定がないため`build_config_missing`で止まる。通常stagingを作るときは新しい管理外設定から作り直す |
+
 ## 終了後の確認TODO（2026-10-06）
 
 - [x] 300秒tokenと3600秒自然期限の各unknownを、公式仕様と[診断実装](../src/server/media/probe-diagnostics.ts)からローカルで切り分けた。両観測とも予定した取得呼出しまで進んだが、個別HTTP状態は残らず今回の原因枝は特定不能。次回用の固定分類を[0014](../migrations/0014_media_probe_observation_reason.sql)と通常コードに追加し、関連workerd/fakeで検証した。token・URL・ID・本文・個別HTTP値を残さず、合格条件は維持する。コード/0014は未配備。
@@ -8,7 +22,7 @@
 - [ ] 2026-10-05の回収invalidは、実レスポンス本文がないため具体的拒否項目を確定できない。nullable metadataへの修正と10月6日の回収storedを候補を支える別要求の証拠として扱い、前回の原因確定と書かない。
 - [ ] 上流DELETE200/CDN結果0の本人報告は消去unknownのまま残す。個別消去の証拠が得られなければunknownを維持し、今回の許可で再DELETEしない。CloudflareのR2物理不在とは分ける。
 - [ ] falの最終請求とCloudflare増分費用を明細確定後に照合する。当日GET200/一致1/$1以内は現時点の本人報告であり、最終額と共有利用の帰属は未確定。
-- [ ] OFFの新旧Worker/D1/private R2と本文なし台帳は保持する。終端後90日の条件、D1復元履歴、費用を確認してから退役対象と影響を別に判断する。
+- [x] OFFの新旧Worker/D1/private R2と本文なし台帳は保持する。終端後90日の条件、D1復元履歴、費用を確認してから退役対象と影響を別に判断する。（2026-10-19、本人の判断で期限を待たずに全削除。上の節を参照）
 
 工程Eの終了操作自体は完了した。M-0の実受入は未達で、次の有料実接続・再配備・鍵再発行・資源削除は今回の許可に含めない。
 

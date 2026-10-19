@@ -20,12 +20,6 @@ const privateTargets = [
     "standard",
   ],
   [
-    "e-probe-20261006-local",
-    "staging",
-    ".wrangler.e-probe-20261006.local.jsonc",
-    "standard",
-  ],
-  [
     "production-local",
     "production",
     ".wrangler.production.local.jsonc",
@@ -114,6 +108,7 @@ describe("B-4 build target boundary", () => {
     "unknown",
     "staging",
     "staging-local",
+    "e-probe-20261006-local",
     "__proto__",
     "",
     "../production-local",
