@@ -87,6 +87,7 @@ pnpm preview     # build済みアプリを127.0.0.1:4173で起動
 | `pnpm test` | 実workerd・一時D1/R2・ローカルWorkflowsの試験に続けて`pnpm test:build`。外部APIはfake |
 | `pnpm test:build` | 公開例/合成Workerの実plugin build・flatten・キーなしHTTP起動/停止。実アプリの複製検証とは別 |
 | `pnpm db:migrate:local` | ローカルD1へ未適用SQLを適用 |
+| `pnpm dev:extensions` | 全拡張ONの画面確認用に127.0.0.1:4198で起動。専用D1・外部fetchはfakeのみ（[手順](docs/extensions.md#全拡張onの画面をローカルで確認する)） |
 | `pnpm build` | client/Workerと公開`/help`の事前生成 |
 
 CIは`pnpm check`、ローカルmigration、preview上のHTTP smoke、`pnpm audit`を実行し、自動deploy・実メール送信・有料LLM呼び出しは行いません。Nodeだけの成功をWorkersの動作証明にはしません。

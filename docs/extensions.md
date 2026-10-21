@@ -117,6 +117,27 @@ AI Searchはローカルで動かない。通常CIでは検索bindingだけfake�
 
 根拠: [fal queue/取消/timeout/公開media](https://fal.ai/docs/documentation/model-apis/inference/queue)、[FLUX.1 schnell仕様](https://fal.ai/models/fal-ai/flux/schnell/api)。
 
+## 全拡張ONの画面をローカルで確認する
+
+`pnpm dev:extensions`は、全拡張をONにした開発サーバーを127.0.0.1:4198で起動する。通常の`pnpm dev`（3000）とローカルD1には触れない。外部への通信と実Secretは使わない。
+
+- 設定は[生成script](../scripts/extensions-preview-config.mjs)が、公開`wrangler.jsonc`のtop-level varsを元に、管理外の`.wrangler/extensions-preview/wrangler.jsonc`へ毎回書き出す。D1・R2・Workflowsの状態は`.wrangler/extensions-preview/state`に置き、起動のたびにmigrationを適用する。
+- 入口は[専用Worker](../tests/extensions-preview-worker.ts)。M-5の[合成fake](../tests/media-integration-fake.ts)が外部fetchを受け、falの合成応答以外はすべて拒否する。mediaの許可・確認済みモデルとfalキーは、このWorkerが実行時にTEST_ONLYの合成値で足す。
+- 拡張ごとの動き（2026-10-21にブラウザで確認）:
+
+| 拡張 | 画面での状態 |
+| --- | --- |
+| ナビ | 「依頼の分類」「画像と素材」が出る |
+| 承認とメモ（agent） | 空の一覧。下書きはチャットの「ツールを使用」から作る |
+| 長時間処理（Workflows） | `local/demo`で要約を依頼でき、承認待ちまで進む |
+| 画像と素材（media） | 12モデルを合成生成できる。素材（PNG・WAV・MP3）と生成履歴、待機中の表示を確認できる。同時に動かせるジョブは1件 |
+| 依頼の分類（Jev） | 合成例は表示できる。キーを置かないため、分類の依頼は外部へ出る前に止まる |
+| 資料（RAG） | AI Searchをローカルで動かせないため、`RAG_NOT_CONFIGURED`を表示する |
+| 画像生成（旧images） | 画面は表示できる。生成はfakeが拒否する |
+| プラン（Polar） | Polarのキーを置かないため、`billing_not_configured`を表示する |
+
+画面で使うアカウントは、この専用D1にだけ作る架空のもの（例: `preview-…@example.test`）にする。状態を消すときは、サーバーを止めてから`.wrangler/extensions-preview/`を削除する。
+
 ## 検証の区別
 
 ```sh

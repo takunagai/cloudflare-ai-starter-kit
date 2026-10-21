@@ -20,7 +20,8 @@
     "test:build": "node --test tests/build-fixtures.test.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "smoke": "node scripts/smoke.mjs",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local"
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "dev:extensions": "node scripts/extensions-preview-config.mjs && wrangler d1 migrations apply DB --local --config .wrangler/extensions-preview/wrangler.jsonc --persist-to .wrangler/extensions-preview/state && vite --config tests/extensions-preview.config.ts --host 127.0.0.1 --port 4198 --strictPort"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.82",

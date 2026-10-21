@@ -62,6 +62,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `pnpm install --frozen-lockfile` | 固定依存のインストール |
 | `pnpm db:migrate:local` | ローカルD1へSQLを適用 |
 | `pnpm dev` | 開発起動。127.0.0.1:3000 |
+| `pnpm dev:extensions` | 全拡張ONの画面確認。127.0.0.1:4198、専用D1、外部fetchはfakeのみ |
 | `pnpm format` | Biomeで整形・安全な修正 |
 | `pnpm lint` | 整形・import・推奨lintの検査 |
 | `pnpm typecheck` | binding型・route型を生成して型検査 |
