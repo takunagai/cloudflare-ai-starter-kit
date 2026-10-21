@@ -1,5 +1,5 @@
 import { inputSchema } from "../lib/contracts";
-import { handleApp } from "./app-api";
+import { handleApp, isAppPath } from "./app-api";
 import type { AppEnv } from "./env";
 
 const maxBodyBytes = 2048;
@@ -76,13 +76,7 @@ export default {
       if (!result.success) return json({ error: "invalid_input" }, 400);
       return json({ valid: true, length: result.data.message.length });
     }
-    if (
-      /^\/api\/(auth\/|session$|models$|conversations(?:\/|$)|chat(?:\/|$)|approvals(?:\/|$)|notes$|decisions(?:\/|$)|media(?:\/|$)|media-source(?:\/|$)|extensions\/|billing\/)/.test(
-        path,
-      )
-    ) {
-      return handleApp(request, env, ctx);
-    }
+    if (isAppPath(path)) return handleApp(request, env, ctx);
     return json({ error: "not_found" }, 404);
   },
 };

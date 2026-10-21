@@ -28,7 +28,8 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `src/routes/` | TanStackの画面・ルート。`__root.tsx`は共通レイアウト |
 | `src/router.tsx` | ルーター生成と型登録 |
 | `src/server.ts` | Worker入口。`/api`と`/api/*`をAPIへ、それ以外をStartへ渡す |
-| `src/server/api.ts` / `app-api.ts` | health・入力検証・認証済みAPIのdispatch。未知APIはJSONの404 |
+| `src/server/api.ts` / `app-api.ts` | health・入力検証・認証済みAPIのdispatch。未知APIはJSONの404。任意拡張のpath→flagは`app-api.ts`の`EXTENSION_GATES`表だけで決める |
+| `src/server/conversations.ts` / `agent-routes.ts` | 会話の一覧・取得・削除 / エージェント拡張のnotes・承認API |
 | `src/server/runtime-policy.ts` / `runtime-guards.ts` | 設定の純粋判定 / 入口から呼ぶ実行時ガード。system promptは`chat-prompt.ts` |
 | `src/server/auth/` / `db/` | Better Auth・Access・認証schema |
 | `src/server/chat*.ts` / `agent-tools.ts` | 生成・履歴・原子的枠予約・人間承認 |

@@ -21,6 +21,11 @@ export function json(body: unknown, status = 200, headers?: HeadersInit) {
   });
 }
 
+export function requireMethod(request: Request, allowed: string[]): void {
+  if (!allowed.includes(request.method))
+    throw new ApiError(405, "method_not_allowed");
+}
+
 export async function readJson<T>(
   request: Request,
   schema: ZodType<T>,

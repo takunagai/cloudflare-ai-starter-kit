@@ -1,10 +1,10 @@
-import { z } from "zod";
-import { decideNote } from "./agent-tools";
+import { handleAgentRoutes } from "./agent-routes";
 import { listModels } from "./ai/providers";
 import { getIdentity, handleAuth } from "./auth";
 import { handleBilling } from "./billing";
 import { handleChat } from "./chat";
-import { chatRequestStatus, ownedConversation, rateLimit } from "./chat-store";
+import { chatRequestStatus, rateLimit } from "./chat-store";
+import { handleConversations } from "./conversations";
 import { handleDecisions } from "./decisions/routes";
 import { isEnabled, isLocalDevelopment } from "./env";
 import { handleExtensions } from "./extensions/routes";
@@ -13,7 +13,7 @@ import {
   errorResponse,
   guardRequestEnvironment,
   json,
-  readJson,
+  requireMethod,
   requireSameOrigin,
 } from "./http";
 import { handleMediaSource } from "./media/grants";
@@ -22,17 +22,61 @@ import { handleMedia, isMediaCreationPath } from "./media/routes";
 import {
   chatModelAllowed,
   checkChatRuntimePolicy,
-  checkExtensionRuntimePolicy,
   isStagingWithoutStandardPolicy,
   type RuntimeEnv,
   requireExtensionEnabled,
 } from "./runtime-guards";
 import { resolveRuntimePolicy } from "./runtime-policy";
 
-function method(request: Request, allowed: string[]) {
-  if (!allowed.includes(request.method))
-    throw new ApiError(405, "method_not_allowed");
-}
+const exactOrUnder = (base: string) => (path: string) =>
+  path === base || path.startsWith(`${base}/`);
+
+/**
+ * 任意拡張の入口。標準policyのないstagingでは全行を404で閉じ、flagがある行はOFFでも認証前に404。
+ * 上から最初に一致した行だけを使う。mediaはON/OFFを作成系だけで判定するためflagを持たない。
+ */
+const EXTENSION_GATES: {
+  matches: (path: string) => boolean;
+  flag?: (env: RuntimeEnv & MediaEnv) => string | undefined;
+}[] = [
+  {
+    matches: (path) => path.startsWith("/api/billing/"),
+    flag: (env) => env.ENABLE_BILLING,
+  },
+  {
+    matches: exactOrUnder("/api/extensions/rag"),
+    flag: (env) => env.ENABLE_RAG,
+  },
+  {
+    matches: exactOrUnder("/api/extensions/images"),
+    flag: (env) => env.ENABLE_IMAGES,
+  },
+  {
+    matches: exactOrUnder("/api/extensions/workflows"),
+    flag: (env) => env.ENABLE_WORKFLOWS,
+  },
+  { matches: (path) => path.startsWith("/api/extensions/") },
+  { matches: exactOrUnder("/api/media") },
+  { matches: exactOrUnder("/api/media-source") },
+  { matches: (path) => path === "/api/notes", flag: (env) => env.ENABLE_AGENT },
+  { matches: exactOrUnder("/api/approvals"), flag: (env) => env.ENABLE_AGENT },
+];
+/** handleAppが受け持つpath。ここにないpathはapi.tsでJSONの404になる。 */
+const APP_PATHS: ((path: string) => boolean)[] = [
+  (path) => path.startsWith("/api/auth/"),
+  (path) => path === "/api/session",
+  (path) => path === "/api/models",
+  exactOrUnder("/api/conversations"),
+  exactOrUnder("/api/chat"),
+  exactOrUnder("/api/decisions"),
+  ...EXTENSION_GATES.map((entry) => entry.matches),
+];
+export const isAppPath = (path: string) =>
+  APP_PATHS.some((matches) => matches(path));
+const isPrivateNoStorePath = (path: string) =>
+  exactOrUnder("/api/decisions")(path) ||
+  exactOrUnder("/api/media")(path) ||
+  exactOrUnder("/api/media-source")(path);
 
 export async function handleApp(
   request: Request,
@@ -44,54 +88,25 @@ export async function handleApp(
     const path = new URL(request.url).pathname;
     guardRequestEnvironment(request, env);
     const extensionsBlocked = isStagingWithoutStandardPolicy(env);
-    if (
-      extensionsBlocked &&
-      (path.startsWith("/api/billing/") ||
-        path.startsWith("/api/extensions/") ||
-        path === "/api/media" ||
-        path.startsWith("/api/media/") ||
-        path.startsWith("/api/media-source") ||
-        path === "/api/approvals" ||
-        path.startsWith("/api/approvals/") ||
-        path === "/api/notes")
-    )
-      throw new ApiError(404, "feature_disabled");
-    if (path.startsWith("/api/media-source"))
+    const gate = EXTENSION_GATES.find((entry) => entry.matches(path));
+    if (gate && extensionsBlocked) throw new ApiError(404, "feature_disabled");
+    if (exactOrUnder("/api/media-source")(path))
       return await handleMediaSource(request, env);
     if (isMediaCreationPath(path, request.method)) requireMediaEnabled(env);
     // OFFは認証前に404。ONのmethod/input/所有権は各handlerで先に確認。
-    if (path.startsWith("/api/billing/"))
-      requireExtensionEnabled(env, env.ENABLE_BILLING);
-    const feature = /^\/api\/extensions\/(rag|images|workflows)(?:\/|$)/.exec(
-      path,
-    )?.[1];
-    if (feature)
-      requireExtensionEnabled(
-        env,
-        feature === "rag"
-          ? env.ENABLE_RAG
-          : feature === "images"
-            ? env.ENABLE_IMAGES
-            : env.ENABLE_WORKFLOWS,
-      );
-    if (
-      path === "/api/notes" ||
-      path === "/api/approvals" ||
-      path.startsWith("/api/approvals/")
-    )
-      requireExtensionEnabled(env, env.ENABLE_AGENT);
+    if (gate?.flag) requireExtensionEnabled(env, gate.flag(env));
     if (path === "/api/billing/webhook")
       return (
         (await handleBilling(request, env, null)) ??
         json({ error: "not_found" }, 404)
       );
     if (path.startsWith("/api/auth/")) return await handleAuth(request, env);
-    if (path === "/api/decisions" || path.startsWith("/api/decisions/"))
+    if (exactOrUnder("/api/decisions")(path))
       return await handleDecisions(request, env, receivedAt);
     requireSameOrigin(request);
     const identity = await getIdentity(request, env);
     if (path === "/api/session") {
-      method(request, ["GET"]);
+      requireMethod(request, ["GET"]);
       const policy = resolveRuntimePolicy(env);
       const featuresAvailable = !extensionsBlocked && policy.boundary.ok;
       const chatAvailable = featuresAvailable && policy.chat.ok;
@@ -114,7 +129,7 @@ export async function handleApp(
     }
     if (!identity) throw new ApiError(401, "authentication_required");
     await rateLimit(env, identity.id, "api", 120);
-    if (path === "/api/media" || path.startsWith("/api/media/")) {
+    if (exactOrUnder("/api/media")(path)) {
       return (
         (await handleMedia(request, env, identity)) ??
         json({ error: "not_found" }, 404, {
@@ -125,7 +140,7 @@ export async function handleApp(
     const billing = await handleBilling(request, env, identity);
     if (billing) return billing;
     if (path === "/api/models") {
-      method(request, ["GET"]);
+      requireMethod(request, ["GET"]);
       let models = listModels(env);
       try {
         const policy = await checkChatRuntimePolicy(env);
@@ -138,103 +153,20 @@ export async function handleApp(
       }
       return json({ models });
     }
-    if (path === "/api/conversations") {
-      method(request, ["GET", "POST"]);
-      if (request.method === "GET") {
-        const { results } = await env.DB.prepare(
-          "SELECT id,title,updated_at FROM conversations WHERE owner_id=? ORDER BY updated_at DESC LIMIT 100",
-        )
-          .bind(identity.id)
-          .all();
-        return json({ conversations: results });
-      }
-      const { title } = await readJson(
-        request,
-        z
-          .object({
-            title: z.string().trim().min(1).max(100).default("新しい会話"),
-          })
-          .strict(),
-      );
-      const id = crypto.randomUUID();
-      const result = await env.DB.prepare(
-        "INSERT INTO conversations(id,owner_id,title,created_at,updated_at) SELECT ?,?,?,?,? WHERE (SELECT count(*) FROM conversations WHERE owner_id=?)<100",
-      )
-        .bind(id, identity.id, title, Date.now(), Date.now(), identity.id)
-        .run();
-      if (!result.meta.changes) throw new ApiError(429, "conversation_limit");
-      return json({ conversation: { id, title } }, 201);
-    }
-    const conversation = /^\/api\/conversations\/([a-f0-9-]{36})$/.exec(path);
-    if (conversation) {
-      method(request, ["GET", "DELETE"]);
-      const row = await ownedConversation(env, identity.id, conversation[1]);
-      if (request.method === "DELETE") {
-        const deleted = await env.DB.prepare(
-          "DELETE FROM conversations WHERE id=? AND owner_id=? AND (active_request_id IS NULL OR lock_until<?)",
-        )
-          .bind(row.id, identity.id, Date.now())
-          .run();
-        if (!deleted.meta.changes) throw new ApiError(409, "conversation_busy");
-        return json({ deleted: true });
-      }
-      const { results } = await env.DB.prepare(
-        "SELECT * FROM (SELECT id,role,content,status,created_at,sources_json FROM messages WHERE conversation_id=? ORDER BY created_at DESC LIMIT 1000) ORDER BY created_at ASC",
-      )
-        .bind(row.id)
-        .all();
-      return json({
-        conversation: { id: row.id, title: row.title },
-        messages: results.map(({ sources_json, ...message }) => ({
-          ...message,
-          sources: JSON.parse(String(sources_json)),
-        })),
-      });
-    }
+    const conversation = await handleConversations(request, env, identity);
+    if (conversation) return conversation;
     const chatRequest = /^\/api\/chat\/requests\/([a-f0-9-]{36})$/.exec(path);
     if (chatRequest) {
-      method(request, ["GET"]);
+      requireMethod(request, ["GET"]);
       return json(await chatRequestStatus(env, identity, chatRequest[1]));
     }
     if (path === "/api/chat") {
-      method(request, ["POST"]);
+      requireMethod(request, ["POST"]);
       return await handleChat(request, env, identity, ctx);
     }
-    if (
-      ["/api/approvals", "/api/notes"].includes(path) ||
-      path.startsWith("/api/approvals/")
-    ) {
-      if (!isEnabled(env.ENABLE_AGENT))
-        throw new ApiError(404, "feature_disabled");
-      if (path === "/api/notes") {
-        method(request, ["GET"]);
-        await checkExtensionRuntimePolicy(env);
-        const { results } = await env.DB.prepare(
-          "SELECT id,title,content,created_at FROM notes WHERE owner_id=? ORDER BY created_at DESC LIMIT 100",
-        )
-          .bind(identity.id)
-          .all();
-        return json({ notes: results });
-      }
-      if (path === "/api/approvals") {
-        method(request, ["GET"]);
-        await checkExtensionRuntimePolicy(env);
-        const { results } = await env.DB.prepare(
-          "SELECT id,title,content,status,expires_at FROM tool_approvals WHERE owner_id=? AND status='pending' AND expires_at>=? ORDER BY created_at DESC LIMIT 100",
-        )
-          .bind(identity.id, Date.now())
-          .all();
-        return json({ approvals: results });
-      }
-      const match = /^\/api\/approvals\/([a-f0-9-]{36})$/.exec(path);
-      if (match) {
-        method(request, ["POST"]);
-        const { decision } = await readJson(
-          request,
-          z.object({ decision: z.enum(["approve", "reject"]) }).strict(),
-        );
-        return json(await decideNote(env, identity, match[1], decision));
-      }
+    if (path === "/api/notes" || exactOrUnder("/api/approvals")(path)) {
+      const agent = await handleAgentRoutes(request, env, identity);
+      if (agent) return agent;
     }
     const extension = await handleExtensions(request, env, identity);
     if (extension) return extension;
@@ -242,13 +174,7 @@ export async function handleApp(
   } catch (error) {
     const response = errorResponse(error);
     const path = new URL(request.url).pathname;
-    if (
-      path === "/api/decisions" ||
-      path.startsWith("/api/decisions/") ||
-      path === "/api/media" ||
-      path.startsWith("/api/media/") ||
-      path.startsWith("/api/media-source")
-    )
+    if (isPrivateNoStorePath(path))
       response.headers.set("Cache-Control", "private, no-store");
     return response;
   }
