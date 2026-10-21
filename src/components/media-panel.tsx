@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { extensionFailureMessage } from "../lib/extension-errors";
 import {
   IMAGE_ENDPOINTS,
   IMAGE_PRESETS,
@@ -188,7 +189,7 @@ export function MediaPanel() {
       )}
       {error && (
         <p role="alert" className="app-error">
-          処理できませんでした：{error}
+          {extensionFailureMessage(error)}
         </p>
       )}
       {notice && (

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { extensionFailureMessage } from "../../lib/extension-errors";
 import { api, errorCode, safeCode } from "../api-client";
 
 export function useRemote<T>(path: string, initial: T, revision = 0) {
@@ -26,7 +27,7 @@ export function useRemote<T>(path: string, initial: T, revision = 0) {
 export function Failure({ code }: { code: string }) {
   return code ? (
     <p className="app-error" role="alert">
-      処理できませんでした：{code}
+      {extensionFailureMessage(code)}
     </p>
   ) : null;
 }
