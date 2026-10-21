@@ -7,55 +7,11 @@ import {
 } from "../lib/media-image-options";
 import { api, ClientError, errorCode, responseError } from "./api-client";
 import { AudioControls } from "./audio-controls";
+import { AssetList } from "./media/asset-list";
+import { JobHistory } from "./media/job-history";
+import type { Asset, Job, MediaModel } from "./media/media-types";
 import { VideoControls } from "./video-controls";
 
-type Asset = {
-  id: string;
-  source: string;
-  format: string;
-  bytes: number;
-  width: number;
-  height: number;
-  duration: number | null;
-  hasAlpha: boolean;
-  state: string;
-  expiresAt: number;
-  isAvailable: boolean;
-  canReference: boolean;
-};
-type Model = { id: string; hasAdapter: boolean; isExecutable: boolean };
-type Job = {
-  id: string;
-  model: string;
-  providerState: string;
-  collectionState: string;
-  terminalAt: number | null;
-  isCancellationRequested: boolean;
-  isUncertain: boolean;
-  isLegacy?: boolean;
-  bodyAvailable?: boolean;
-};
-const STATES: Record<string, string> = {
-  reserved: "枠予約済み",
-  submitting: "送信中",
-  submission_unknown: "受付不明（再送しません）",
-  queued: "待機中",
-  running: "生成中",
-  completed: "生成終了",
-  failed: "失敗",
-  cancelled: "停止確認済み",
-  pending: "回収待ち",
-  collecting: "回収中",
-  collection_failed: "回収未完了",
-  stored: "保存完了",
-  invalid: "不正な出力",
-  deleting: "削除待ち",
-  discarded: "破棄確認済み",
-  quarantined: "検証待ち",
-  ready: "利用可能",
-  deleted: "削除確認済み",
-  legacy_external_url: "旧方式の外部保存",
-};
 const modelLabel = (id: string) =>
   `${id.includes("/flare/") ? "Flare" : "Sunburst"} · ${id.endsWith("/edit") ? "参照画像の編集" : "テキストから生成"}`;
 
@@ -64,7 +20,7 @@ export function MediaPanel() {
     identity: unknown;
     features: { media?: boolean };
   } | null>(null);
-  const [models, setModels] = useState<Model[]>([]),
+  const [models, setModels] = useState<MediaModel[]>([]),
     [assets, setAssets] = useState<Asset[]>([]),
     [jobs, setJobs] = useState<Job[]>([]);
   const [model, setModel] = useState<string>(IMAGE_ENDPOINTS[0]),
@@ -109,7 +65,7 @@ export function MediaPanel() {
     setAssets(assetData.assets);
     setJobs(jobData.jobs);
     if (current.features.media) {
-      const data = await api<{ models: Model[] }>("/api/media/models");
+      const data = await api<{ models: MediaModel[] }>("/api/media/models");
       setModels(data.models);
     } else setModels([]);
   }, []);
@@ -566,252 +522,40 @@ export function MediaPanel() {
           });
         }}
       />
-      <section>
-        <h2>自分の素材</h2>
-        <div className="resource-cards">
-          {assets.map((asset) => (
-            <article className="resource-card" key={asset.id}>
-              {asset.isAvailable && asset.format === "mp4" && (
-                <video
-                  className="generated-image"
-                  controls
-                  preload="metadata"
-                  src={`/api/media/assets/${asset.id}/file`}
-                  aria-label="生成した動画"
-                >
-                  <track kind="captions" />
-                </video>
-              )}
-              {asset.isAvailable && ["wav", "mp3"].includes(asset.format) && (
-                <audio
-                  controls
-                  preload="metadata"
-                  src={`/api/media/assets/${asset.id}/file`}
-                  aria-label="生成した音声"
-                >
-                  <track kind="captions" />
-                </audio>
-              )}
-              {asset.isAvailable &&
-                ["png", "jpeg", "webp"].includes(asset.format) && (
-                  <img
-                    className="generated-image"
-                    src={`/api/media/assets/${asset.id}/file`}
-                    alt={
-                      asset.source === "result"
-                        ? "生成した画像"
-                        : "アップロードした参照画像"
-                    }
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                )}
-              <p>
-                {asset.format === "mp4"
-                  ? "生成動画"
-                  : ["wav", "mp3"].includes(asset.format)
-                    ? "生成音声"
-                    : asset.source === "result"
-                      ? "生成画像"
-                      : "参照画像"}{" "}
-                · {asset.format.toUpperCase()}{" "}
-                {asset.width && asset.height
-                  ? ` · ${asset.width} × ${asset.height}`
-                  : ""}
-                {asset.duration !== null && ` · ${asset.duration.toFixed(2)}秒`}
-              </p>
-              <p>
-                {asset.expiresAt <= Date.now()
-                  ? "期限切れ"
-                  : (STATES[asset.state] ?? "確認待ち")}{" "}
-                · 期限 {new Date(asset.expiresAt).toLocaleString("ja-JP")}
-              </p>
-              {!asset.canReference &&
-                ["png", "jpeg", "webp"].includes(asset.format) && (
-                  <p className="app-hint">
-                    {!asset.isAvailable
-                      ? "期限・削除・検証状態により利用できません。"
-                      : "参照画像の容量・寸法上限を超えています。保存用として取得できます。"}
-                  </p>
-                )}
-              <div className="button-row">
-                {["png", "jpeg", "webp"].includes(asset.format) && (
-                  <button
-                    type="button"
-                    className="secondary"
-                    disabled={
-                      isBusy ||
-                      !isEnabled ||
-                      !asset.canReference ||
-                      asset.expiresAt < Date.now() + 1800000
-                    }
-                    onClick={() => setVideoStart(asset.id)}
-                  >
-                    動画の開始画像に使う
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={
-                    isBusy ||
-                    !isEnabled ||
-                    !asset.canReference ||
-                    references.includes(asset.id) ||
-                    references.length >= 8 ||
-                    asset.expiresAt < Date.now() + 1_800_000
-                  }
-                  onClick={() => {
-                    setModel((current) =>
-                      current.includes("/flare/")
-                        ? IMAGE_ENDPOINTS[3]
-                        : IMAGE_ENDPOINTS[1],
-                    );
-                    setSize("auto");
-                    setReferences((current) => [...current, asset.id]);
-                    if (mask === asset.id) setMask("");
-                  }}
-                >
-                  編集の参照に使う
-                </button>
-                {asset.isAvailable && (
-                  <a
-                    href={`/api/media/assets/${asset.id}/file`}
-                    download={`media.${asset.format}`}
-                  >
-                    {asset.format === "mp4"
-                      ? "動画を保存"
-                      : ["wav", "mp3"].includes(asset.format)
-                        ? "音声を保存"
-                        : "画像を保存"}
-                  </a>
-                )}
-                <button
-                  type="button"
-                  className="link-button danger"
-                  disabled={isBusy}
-                  onClick={() => {
-                    void run(async () => {
-                      await api(
-                        `/api/media/assets/${asset.id}`,
-                        undefined,
-                        "DELETE",
-                      );
-                      setReferences((current) =>
-                        current.filter((id) => id !== asset.id),
-                      );
-                      if (mask === asset.id) setMask("");
-                      setNotice(
-                        "物理削除を確認しました。既に上流へ渡ったコピーの削除を意味しません。",
-                      );
-                    });
-                  }}
-                >
-                  削除
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-        {!assets.length && <p className="app-hint">素材はまだありません。</p>}
-      </section>
-      <section>
-        <h2>生成履歴</h2>
-        {jobs.map((job) => (
-          <article className="resource-card" key={job.id}>
-            <p>{job.isLegacy ? "旧方式の画像" : job.model}</p>
-            <p>
-              {STATES[job.providerState] ?? "状態確認が必要"} ·{" "}
-              {STATES[job.collectionState] ?? "回収確認が必要"}
-              {job.isCancellationRequested ? " · 取消依頼済み" : ""}
-            </p>
-            {job.isUncertain && (
-              <p className="app-notice">
-                処理は未確定です。利用枠を保持しています。
-              </p>
-            )}
-            <div className="button-row">
-              {!job.isLegacy && (
-                <>
-                  <button
-                    type="button"
-                    className="secondary"
-                    disabled={isBusy || !isEnabled || job.terminalAt !== null}
-                    onClick={() => {
-                      void run(async () => {
-                        await api(`/api/media/jobs/${job.id}/refresh`, {});
-                      });
-                    }}
-                  >
-                    状態を確認
-                  </button>
-                  {job.collectionState === "collection_failed" && (
-                    <button
-                      type="button"
-                      className="secondary"
-                      disabled={isBusy || !isEnabled}
-                      onClick={() => {
-                        void run(async () => {
-                          await api(
-                            `/api/media/jobs/${job.id}/retry-collection`,
-                            {},
-                          );
-                        });
-                      }}
-                    >
-                      同じ結果の回収を再開
-                    </button>
-                  )}
-                  {job.terminalAt === null && (
-                    <button
-                      type="button"
-                      className="link-button"
-                      disabled={isBusy || job.isCancellationRequested}
-                      onClick={() => {
-                        void run(async () => {
-                          await api(`/api/media/jobs/${job.id}/cancel`, {});
-                        });
-                      }}
-                    >
-                      取消を依頼
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="link-button danger"
-                    disabled={isBusy || !job.bodyAvailable}
-                    onClick={() => {
-                      void run(async () => {
-                        await api(
-                          `/api/media/jobs/${job.id}`,
-                          undefined,
-                          "DELETE",
-                        );
-                        setNotice(
-                          "ジョブ本文を消去しました。重複防止の利用記録は保持します。",
-                        );
-                      });
-                    }}
-                  >
-                    ジョブ本文を消去
-                  </button>
-                </>
-              )}
-            </div>
-          </article>
-        ))}
-        {!jobs.length && <p className="app-hint">生成履歴はまだありません。</p>}
-        <button
-          type="button"
-          className="secondary"
-          disabled={isBusy}
-          onClick={() => {
-            void run(async () => {});
-          }}
-        >
-          素材・履歴を更新
-        </button>
-      </section>
+      <AssetList
+        assets={assets}
+        references={references}
+        isBusy={isBusy}
+        isEnabled={isEnabled}
+        onVideoStart={setVideoStart}
+        onReference={(id) => {
+          setModel((current) =>
+            current.includes("/flare/")
+              ? IMAGE_ENDPOINTS[3]
+              : IMAGE_ENDPOINTS[1],
+          );
+          setSize("auto");
+          setReferences((current) => [...current, id]);
+          if (mask === id) setMask("");
+        }}
+        onDelete={(id) => {
+          void run(async () => {
+            await api(`/api/media/assets/${id}`, undefined, "DELETE");
+            setReferences((current) => current.filter((entry) => entry !== id));
+            if (mask === id) setMask("");
+            setNotice(
+              "物理削除を確認しました。既に上流へ渡ったコピーの削除を意味しません。",
+            );
+          });
+        }}
+      />
+      <JobHistory
+        jobs={jobs}
+        isBusy={isBusy}
+        isEnabled={isEnabled}
+        run={run}
+        onNotice={setNotice}
+      />
     </main>
   );
 }
