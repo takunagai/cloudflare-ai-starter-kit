@@ -42,7 +42,7 @@ export function validRequestKey(value: string) {
     date.toISOString().slice(0, 10) === value.slice(0, 10)
   );
 }
-export const inputSchema = z
+export const decisionInputSchema = z
   .object({
     input: z
       .string()
@@ -52,7 +52,7 @@ export const inputSchema = z
       ),
   })
   .strict();
-export const classifySchema = inputSchema
+export const classifySchema = decisionInputSchema
   .extend({ requestKey: z.string().refine(validRequestKey) })
   .strict();
 

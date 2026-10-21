@@ -7,8 +7,8 @@ import { fetchDecision } from "../src/server/decisions/adapter";
 import {
   classifySchema,
   decisionDefinitions,
+  decisionInputSchema,
   decisionLimits,
-  inputSchema,
   serializePayload,
   validateDecisionResponse,
   validRequestKey,
@@ -127,11 +127,12 @@ async function seed(
 describe("Jev contract and projected responses", () => {
   it.each(["", " ", "\0", "\ud800", "\udfff", "a".repeat(2001)])(
     "input rejects invalid text %#",
-    (s) => expect(inputSchema.safeParse({ input: s }).success).toBe(false),
+    (s) =>
+      expect(decisionInputSchema.safeParse({ input: s }).success).toBe(false),
   );
   it.each(["a".repeat(2000), "あ".repeat(2000), "😀".repeat(2000), " 目的 "])(
     "code points/UTF8 preserve accepted input %#",
-    (s) => expect(inputSchema.parse({ input: s }).input).toBe(s),
+    (s) => expect(decisionInputSchema.parse({ input: s }).input).toBe(s),
   );
   it("strict keys and actual calendar dates", () => {
     expect(

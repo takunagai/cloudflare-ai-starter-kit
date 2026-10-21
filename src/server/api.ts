@@ -1,4 +1,4 @@
-import { inputSchema } from "../lib/contracts";
+import { validateSchema } from "../lib/contracts";
 import { handleApp, isAppPath } from "./app-api";
 import type { AppEnv } from "./env";
 
@@ -72,7 +72,7 @@ export default {
       } catch {
         return json({ error: "invalid_json" }, 400);
       }
-      const result = inputSchema.safeParse(value);
+      const result = validateSchema.safeParse(value);
       if (!result.success) return json({ error: "invalid_input" }, 400);
       return json({ valid: true, length: result.data.message.length });
     }

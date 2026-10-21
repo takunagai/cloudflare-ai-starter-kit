@@ -10,8 +10,8 @@ import { DecisionTransportError, fetchDecision } from "./adapter";
 import {
   type DecisionDefinitionId,
   decisionDefinitions,
+  decisionInputSchema,
   decisionLimits,
-  inputSchema,
   serializePayload,
   validRequestKey,
 } from "./contracts";
@@ -140,7 +140,7 @@ export async function evaluateDecision(
     )
       throw new ApiError(400, "invalid_input");
     const definition = decisionDefinitions[definitionId];
-    const parsed = inputSchema.safeParse(state);
+    const parsed = decisionInputSchema.safeParse(state);
     if (!parsed.success) throw new ApiError(400, "invalid_input");
     const payload = serializePayload(definition, parsed.data);
     const existing = await dbWait(() => getDecisionRow(db, owner, requestKey));

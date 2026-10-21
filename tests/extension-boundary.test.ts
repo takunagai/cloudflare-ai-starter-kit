@@ -11,7 +11,7 @@ import { decideNote, noteTools } from "../src/server/agent-tools";
 import {
   chatModelCatalog,
   selectableChatModelIds,
-  workersAiFp8ModelId,
+  workersAiChatModelId,
 } from "../src/server/ai/catalog";
 import { getModel, listModels } from "../src/server/ai/providers";
 import api from "../src/server/api";
@@ -107,7 +107,7 @@ beforeEach(async () => {
     STAGING_POLICY: "standard",
     LOCAL_DEMO: "false",
     AI_MODE: "selected",
-    AI_ALLOWED_MODELS: JSON.stringify([workersAiFp8ModelId]),
+    AI_ALLOWED_MODELS: JSON.stringify([workersAiChatModelId]),
     AI_VERIFICATION_ENABLED: "false",
     AI_VERIFICATION_START: "",
     ENABLE_RAG: "true",
@@ -164,7 +164,7 @@ const imageInput = () => ({
 });
 const summaryInput = () => ({
   requestId: crypto.randomUUID(),
-  model: workersAiFp8ModelId,
+  model: workersAiChatModelId,
   input: "test",
 });
 function bill(
@@ -205,7 +205,7 @@ async function summary(state = "starting", owner = alice.id) {
       owner,
       crypto.randomUUID(),
       "TEST_ONLY_hash",
-      workersAiFp8ModelId,
+      workersAiChatModelId,
       "text",
       state,
       state === "awaiting_approval" ? "summary" : null,

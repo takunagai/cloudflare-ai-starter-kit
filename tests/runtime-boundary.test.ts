@@ -14,7 +14,7 @@ import {
   vi,
 } from "vitest";
 import * as agentTools from "../src/server/agent-tools";
-import { workersAiFp8ModelId } from "../src/server/ai/catalog";
+import { workersAiChatModelId } from "../src/server/ai/catalog";
 import { createLocalDemoModel } from "../src/server/ai/local-demo";
 import * as providers from "../src/server/ai/providers";
 import api from "../src/server/api";
@@ -57,7 +57,7 @@ beforeEach(async () => {
     ACCESS_AUD: "TEST_ONLY_B2_audience",
     STAGING_POLICY: "standard",
     AI_MODE: "selected",
-    AI_ALLOWED_MODELS: JSON.stringify([workersAiFp8ModelId]),
+    AI_ALLOWED_MODELS: JSON.stringify([workersAiChatModelId]),
     AI_VERIFICATION_ENABLED: "false",
     AI_VERIFICATION_START: "",
     LOCAL_DEMO: "false",
@@ -191,7 +191,7 @@ function input(conversationId: string): ChatInput {
   return {
     conversationId,
     requestId: crypto.randomUUID(),
-    modelId: workersAiFp8ModelId,
+    modelId: workersAiChatModelId,
     message: "x".repeat(201),
     rag: false,
     agent: false,
@@ -339,7 +339,7 @@ describe("B-2 authenticated standard staging on workerd/D1", () => {
           crypto.randomUUID(),
           identity.id,
           id,
-          workersAiFp8ModelId,
+          workersAiChatModelId,
           "TEST_ONLY_hash",
           Date.now(),
         ),
@@ -379,7 +379,7 @@ describe("B-2 authenticated standard staging on workerd/D1", () => {
         (await models(headers))
           .filter((model) => model.available)
           .map((model) => model.id),
-      ).toEqual([workersAiFp8ModelId]);
+      ).toEqual([workersAiChatModelId]);
       expect(run).not.toHaveBeenCalled();
       const id = await conversation(headers);
       const body = input(id);

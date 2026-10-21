@@ -5,6 +5,6 @@ export const healthSchema = z.object({
   runtime: z.literal("cloudflare-workers"),
 });
 
-export const inputSchema = z.strictObject({
+export const validateSchema = z.strictObject({
   message: z.string().trim().min(1).max(200),
 });
