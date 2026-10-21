@@ -51,7 +51,7 @@
 - [ ] リファクタリングの残り（2026-10-19登録、本人は推奨順で進めることを了承）。1段階ずつ`pnpm check`・smokeで確認しcommitする
 	1. ~~`app-api.ts`の拡張ゲートを「パス→フラグ」の表1つにまとめ、会話・notes・approvalsのhandlerを別ファイルへ分ける~~ 2026-10-21完了。`EXTENSION_GATES`表と`isAppPath`（`api.ts`の振り分け正規表現を置換）、`conversations.ts`・`agent-routes.ts`、`requireMethod`を`http.ts`へ移動。`/api/approvals`内の重複判定を削除。`/api/media-source`の判定を前方一致から「一致または配下」へ揃えた（`api.ts`が元から配下以外を404にしていたため外から見た動作は同じ）
 	2. ~~`chat.ts`から`agent-tools`と`extensions/rag`の静的importを外す~~ 2026-10-21完了。`handleChat`は`ChatExtensions`（`retrieveSources`・`createTools`）を引数で受け、組み立ては`chat-extensions.ts`。flagがONでも処理を渡されなければ404 `feature_disabled`（試験を追加）
-	3. AGENTS.mdのファイル配置表に、実在する`src/server/decisions/`・`media/`・`src/components/`・`build-policy.ts`・`scripts/*smoke*`・`scripts/d1-wire.ts`を足す
+	3. ~~AGENTS.mdのファイル配置表に、実在する場所を足す~~ 2026-10-21完了。`git ls-files`から導き直し、`env.ts`・`http.ts`・`ai/`・`decisions/`・`media/`・`src/lib/`・`src/components/`・smoke各種・`d1-wire.ts`・`build-policy.ts`・`examples/presets/`を追加
 	4. 小さな整理: `inputSchema`の同名3か所、`workersAiFp8ModelId`の名前、`src/server/http.ts`の直接テスト
 	5. 本人の判断待ち: media・decisions（Jev）を「標準同梱」と「任意拡張」のどちらとして扱うか。ナビの「依頼の分類」は常に表示されている。UIの大きいファイル（`src/routes/app.tsx`、`extensions-panel.tsx`）の分割はこの判断の後に行う
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)

@@ -31,16 +31,24 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `src/server/api.ts` / `app-api.ts` | health・入力検証・認証済みAPIのdispatch。未知APIはJSONの404。任意拡張のpath→flagは`app-api.ts`の`EXTENSION_GATES`表だけで決める |
 | `src/server/conversations.ts` / `agent-routes.ts` | 会話の一覧・取得・削除 / エージェント拡張のnotes・承認API |
 | `src/server/runtime-policy.ts` / `runtime-guards.ts` | 設定の純粋判定 / 入口から呼ぶ実行時ガード。system promptは`chat-prompt.ts` |
+| `src/server/env.ts` / `http.ts` | 環境型・flag判定 / JSON応答・入力読取り・method/origin確認・エラー変換 |
 | `src/server/auth/` / `db/` | Better Auth・Access・認証schema |
+| `src/server/ai/` | モデル一覧・provider生成・ローカル固定応答のデモモデル |
 | `src/server/chat*.ts` / `agent-tools.ts` | 生成・履歴・原子的枠予約・人間承認。`chat.ts`は拡張をimportせず、RAG・toolは`chat-extensions.ts`から引数で受ける |
-| `src/server/extensions/` / `billing.ts` | 任意拡張、外部API境界 |
+| `src/server/extensions/` / `billing.ts` | 任意拡張（RAG・画像・Workflows）/ Polar決済。外部API境界 |
+| `src/server/decisions/` | Jevの依頼分類（route・service・台帳・adapter） |
+| `src/server/media/` | 画像・動画・音声の生成ジョブ、素材、検査、保持期限 |
 | `migrations/` | 履歴管理されたD1 SQL |
-| `src/lib/contracts.ts` | 入出力のZod schema |
+| `src/lib/` | サーバーと画面で共有する定義。`contracts.ts`は入出力のZod schema、`reliability.ts`は失敗分類、`media-*-options.ts`はmedia入力の選択肢 |
+| `src/components/` | 画面の部品とブラウザ側のAPI呼出し（`api-client.ts`・`request-recovery.ts`） |
 | `src/styles.css` | Tailwindと共通スタイル。色はトークン参照のみ |
 | `src/theme.css` | テーマカラー・角丸の設定。配色の変更はここだけ |
 | `tests/` | 実workerdでのAPIテスト |
-| `scripts/smoke.mjs` | ローカルHTTPの統合確認 |
-| `wrangler.jsonc` / `vite.config.ts` | Worker環境・ビルド・事前生成設定 |
+| `scripts/smoke.mjs` / `app-smoke.mjs` | ローカルHTTPの統合確認（`pnpm smoke`が両方を実行） |
+| `scripts/media-*smoke.mjs` | media各段階（M2〜M5）の隔離確認。手動で実行し、`pnpm smoke`には含まない |
+| `scripts/d1-wire.ts` | trigger入りmigrationをリモートD1へ1本ずつ送るSQL整形 |
+| `wrangler.jsonc` / `vite.config.ts` / `build-policy.ts` | Worker環境・ビルド・事前生成設定 / build modeと環境の純粋判定 |
+| `examples/presets/` | 用途別に`wrangler.jsonc`のtop-levelへ適用する設定断片。単独ではdeployできない |
 | `.github/workflows/ci.yml` | 品質チェック。自動deployなし |
 | `docs/` / `references/` | 設計・進捗・検証記録・運用手順 / 公式根拠 |
 | `docs/archive/` / `scripts/archive/` | 役目を終えた文書・旧工程の操作script。通常の再開では読まない |
