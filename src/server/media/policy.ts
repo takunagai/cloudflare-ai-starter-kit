@@ -15,8 +15,6 @@ export type MediaEnv = AppEnv &
     MEDIA_VERIFIED_IMAGE_MODELS?: string;
     MEDIA_VERIFIED_VIDEO_MODELS?: string;
     MEDIA_VERIFIED_AUDIO_MODELS?: string;
-    ENABLE_MEDIA_PROBE?: string;
-    MEDIA_PROBE_APPROVAL_VERSION?: string;
   };
 export function mediaPolicy(
   env: Pick<MediaEnv, "ENABLE_MEDIA" | "MEDIA_ALLOWED_MODELS">,

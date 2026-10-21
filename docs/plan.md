@@ -34,7 +34,7 @@ Cloudflareを中心とする、別プロジェクトへ複製できるAIアプ�
 
 **2026-10-06・ON版の本人照合完了/送信窓未確定:** 本人から新ON成果物の`all_passed: true`を受領した。build/dry-run成功版を維持し、実WorkerはOFFの配備2回のまま。新run/slot登録・実fal送信は0。新隔離の課金/上流削除helperと、固定時刻を受け取って本体と同じ入力hashから私有登録migrationを作るscriptはdummyで検証済み。開始・終了の新しい絶対30分窓は未確定で、本人の採用後にだけ登録/ON配備へ進む。旧run/旧資源は維持。
 
-**2026-10-06・新run登録の準備:** 新Accessアプリに限定した認証ログで許可1件・本人1名を値なしで確認し、ownerの構成要素はツール内だけに保持した。Cookie/JWT/メール/IPを取得していない。[登録準備script](../scripts/prepare-e-registration.mjs)は採用済みの固定prompt/設定を本体の正規化・入力ハッシュ関数で処理し、新しい絶対窓を受け取ったときだけ私有manifestと原子的な追加migration1本を0600で用意する。dummyのverify-onlyとBiome/構文は成功。実窓・私有登録ファイル・D1 run/slotはまだ作っていない。新WorkerはOFF配備2回、ON成果物はbuild/dry-run成功・本人照合待ち。
+**2026-10-06・新run登録の準備:** 新Accessアプリに限定した認証ログで許可1件・本人1名を値なしで確認し、ownerの構成要素はツール内だけに保持した。Cookie/JWT/メール/IPを取得していない。登録準備script（`scripts/prepare-e-registration.mjs`、撤去済み）は採用済みの固定prompt/設定を本体の正規化・入力ハッシュ関数で処理し、新しい絶対窓を受け取ったときだけ私有manifestと原子的な追加migration1本を0600で用意する。dummyのverify-onlyとBiome/構文は成功。実窓・私有登録ファイル・D1 run/slotはまだ作っていない。新WorkerはOFF配備2回、ON成果物はbuild/dry-run成功・本人照合待ち。
 
 **2026-10-06・ON成果物と新要求の終了準備:** 本人の`source_prepared: true`を受領し、新管理外設定のprobeだけONへ切替。新専用targetでclient/Worker buildとdeploy dry-runはexit0、実配備はまだOFFの2回。本人の生成成果物`all_passed`照合済み。旧固定日付/要求先を持つ終了helperは再利用せず、[新隔離用helper](../scripts/archive/e/工程E-新隔離fal終了操作.py)を用意した。対象モデル/request ID、課金照合の起点、早期失敗または自然期限観測後の削除gateを私有ファイルで一度だけ準備し、既存ADMINキーを本人が非表示入力する。dummy4件・Python構文成功、実管理API/新requestでは未実行。新run登録/実fal送信0、次の固定窓は未定。
 

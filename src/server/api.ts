@@ -77,7 +77,7 @@ export default {
       return json({ valid: true, length: result.data.message.length });
     }
     if (
-      /^\/api\/(auth\/|session$|models$|conversations(?:\/|$)|chat(?:\/|$)|approvals(?:\/|$)|notes$|decisions(?:\/|$)|media(?:\/|$)|media-source(?:\/|$)|media-probe(?:\/|$)|extensions\/|billing\/)/.test(
+      /^\/api\/(auth\/|session$|models$|conversations(?:\/|$)|chat(?:\/|$)|approvals(?:\/|$)|notes$|decisions(?:\/|$)|media(?:\/|$)|media-source(?:\/|$)|extensions\/|billing\/)/.test(
         path,
       )
     ) {

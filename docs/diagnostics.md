@@ -10,9 +10,9 @@
 2. 下表から原因候補を区別できるローカル確認を選ぶ。既にある分類を先に使い、同じ検査や同期・送信を理由なく繰り返さない。
 3. 必要な証拠が残っていなければ原因未確定とする。次回用の診断を合成データで検証してから実行案を作る。新しい実送信は別の許可が必要。
 
-## 工程Eの回収拒否
+## 画像の回収拒否
 
-所有者にだけ返す`/api/media-probe`の`job.invalidReason`を使う。[image-driver.ts](../src/server/media/image-driver.ts)の分類と[回収試験](../tests/media-image-driver.test.ts)、[専用経路試験](../tests/media-probe.test.ts)を対応させる。
+[image-driver.ts](../src/server/media/image-driver.ts)は回収結果を受け入れないとき、下表の固定分類（`MediaInvalidReason`）を返す。対応する試験は[回収試験](../tests/media-image-driver.test.ts)。分類を利用者へ返していたのは工程Eの専用経路`/api/media-probe`だけで、2026-10-19にその経路を撤去した。通常の`/api/media`はジョブを`invalid`で終端させるだけで、分類を返さない。分類を通常経路で使う場合は、所有者だけに返す形で別途設計する。
 
 | 固定分類 | 分かること | 次に担当エージェントが確認すること |
 | --- | --- | --- |
@@ -23,9 +23,9 @@
 | `image_bytes` | 実画像が受入条件に合わない | 形式・実寸法・透過・容量の判定を合成画像で確認する。特定の条件が原因だったとは断定しない |
 | `null`で終端が`invalid` | 古い版などで理由が残っていない | 配備版とmigrationの証拠を照合する。今回の原因を推測で補わない |
 
-## 短期token・自然期限の観測
+## 短期token・自然期限の観測（工程E、撤去済み）
 
-`evidence[].diagnostic_reason`を使う。分類は[probe-diagnostics.ts](../src/server/media/probe-diagnostics.ts)、保存制約は[0014](../migrations/0014_media_probe_observation_reason.sql)を参照する。実値や生レスポンスを追加取得して説明しない。
+工程Eの専用経路は`evidence[].diagnostic_reason`に下表の分類を保存していた。2026-10-19に専用経路と診断コードを撤去したため、新しい観測は行われない。撤去前の実装はコミット`a719d99`の`src/server/media/probe-diagnostics.ts`、保存制約は[0014](../migrations/0014_media_probe_observation_reason.sql)にある。tableは[0016](../migrations/0016_drop_media_probe.sql)で外した。実値や生レスポンスを追加取得して説明しない。
 
 | 固定分類 | 分かること | 次に確認すること |
 | --- | --- | --- |
@@ -38,7 +38,7 @@
 | `other_response` | 自然期限の確認が既知の分類に合わない | 固定分類を追加する必要性を検討し、合成試験で区別する |
 | `observation_error` | 通信・中断・上限・DB等を含む観測処理の失敗 | 既存の回数/状態と実行経路を照合する。この分類だけで通信失敗と断定しない |
 
-過去runの個別HTTP状態は残っていない。0014の未配備版を既存runへ適用しても、過去の原因が復元されるわけではない。UIは判定中心で、上表の分類を詳しく案内する画面は未実装。運用担当は許可済みの所有者API/台帳の必要項目だけを使う。
+過去runの個別HTTP状態は残っていない。工程EのWorker・D1は2026-10-19に削除済みで、過去の原因は復元できない。
 
 ## 次に診断を実装するときの条件
 

@@ -24,15 +24,6 @@ import {
   type MediaEnv,
   requireMediaEnabled,
 } from "./policy";
-import {
-  assertProbeJobReadable,
-  checkProbeExecution,
-  closedProbeJobs,
-  isProbeJob,
-  type MediaProbePermit,
-  recordProbeInvalidReason,
-  stopMediaProbe,
-} from "./probe-permit";
 
 /** 媒体別adapterが検査/保存したreceiptだけを渡す内部境界。HTTPからは受け付けない。 */
 export interface MediaReceipt {
@@ -101,31 +92,6 @@ export interface MediaContext {
   identity: Identity;
   driver?: MediaDriver;
   timeoutMs?: number;
-  probe?: MediaProbePermit;
-}
-async function checkContextExecution(context: MediaContext, modelId: string) {
-  if (context.probe) {
-    await checkProbeExecution(
-      context.probe,
-      context.env,
-      context.identity.id,
-      modelId,
-    );
-  } else await checkMediaExecution(context.env, modelId);
-}
-async function requireJobExecutionAuthority(
-  context: MediaContext,
-  job: MediaJob,
-) {
-  if (context.probe) {
-    if (
-      context.probe.requestKey !== job.request_key ||
-      (context.probe.jobId && context.probe.jobId !== job.id)
-    )
-      throw new ApiError(403, "media_probe_not_authorized");
-    await checkContextExecution(context, job.model_id);
-  } else if (await isProbeJob(context.env.DB, job.id))
-    throw new ApiError(403, "media_probe_not_authorized");
 }
 async function timedOperation<T>(
   operation: (signal: AbortSignal) => Promise<T>,
@@ -203,7 +169,6 @@ export async function getMediaJob(
 }
 export async function listMediaJobs(env: MediaEnv, identity: Identity) {
   const now = Date.now();
-  const closedJobs = await closedProbeJobs(env.DB, identity.id);
   const result = await mediaDatabase(
     env.DB.prepare(
       "SELECT * FROM media_jobs WHERE owner_id=? AND (terminal_at IS NULL OR terminal_at>?) ORDER BY created_at DESC LIMIT 50",
@@ -220,12 +185,10 @@ export async function listMediaJobs(env: MediaEnv, identity: Identity) {
   );
   return {
     jobs: [
-      ...result.results
-        .filter((job) => !closedJobs.has(job.id))
-        .map((job) => ({
-          ...mediaMetadata(job),
-          isLegacy: false,
-        })),
+      ...result.results.map((job) => ({
+        ...mediaMetadata(job),
+        isLegacy: false,
+      })),
       ...legacy.results.map((job) => ({
         id: job.id,
         model: job.model,
@@ -280,9 +243,8 @@ async function finishUnstored(
 }
 export async function submitMedia(context: MediaContext, raw: unknown) {
   const { env, identity, driver } = context;
-  if (!context.probe) requireMediaEnabled(env);
+  requireMediaEnabled(env);
   const media = normalizeMedia(raw);
-  if (context.probe) await checkContextExecution(context, media.model.id);
   const hash = await inputHash(media);
   const existing = await getMediaRequest(
     env.DB,
@@ -290,8 +252,6 @@ export async function submitMedia(context: MediaContext, raw: unknown) {
     media.request.requestId,
   );
   if (existing) {
-    await assertProbeJobReadable(env.DB, identity.id, existing.id);
-    await requireJobExecutionAuthority(context, existing);
     if (existing.input_hash !== hash)
       throw new ApiError(409, "idempotency_conflict");
     if (
@@ -301,7 +261,7 @@ export async function submitMedia(context: MediaContext, raw: unknown) {
       throw new ApiError(409, "media_request_expired");
     return mediaMetadata(existing);
   }
-  await checkContextExecution(context, media.model.id);
+  await checkMediaExecution(context.env, media.model.id);
   await requireMediaRecoveryReady(env.DB);
   if (!driver) throw new ApiError(503, "media_adapter_not_ready");
   driver.assertReady?.(media.model.id);
@@ -318,18 +278,12 @@ export async function submitMedia(context: MediaContext, raw: unknown) {
     hash,
     assets,
     Date.now(),
-    context.probe,
   );
   if (!reservation.isNew) return mediaMetadata(reservation.job);
-  const job = await claimMediaSubmission(
-    env.DB,
-    reservation.job,
-    Date.now(),
-    context.probe,
-  );
+  const job = await claimMediaSubmission(env.DB, reservation.job, Date.now());
   let hasDispatched = false;
   try {
-    await checkContextExecution(context, media.model.id);
+    await checkMediaExecution(context.env, media.model.id);
     await requireMediaRecoveryReady(env.DB);
     const current = await ownedMediaJob(env.DB, identity.id, job.id);
     if (
@@ -396,11 +350,9 @@ export async function submitMedia(context: MediaContext, raw: unknown) {
           .bind(Date.now(), job.id, identity.id, job.lease_token)
           .run(),
       );
-    if (context.probe) await stopMediaProbe(env, identity.id).catch(() => {});
     if (error instanceof ApiError) throw error;
     throw new ApiError(502, "media_submission_unknown");
   }
-  if (context.probe) await stopMediaProbe(env, identity.id);
   return mediaMetadata(await ownedMediaJob(env.DB, identity.id, job.id));
 }
 export async function requestMediaCancellation(
@@ -667,11 +619,9 @@ async function discardCollected(
 }
 export async function advanceMediaJob(context: MediaContext, id: string) {
   const { env, identity, driver } = context;
-  let invalidReason: MediaInvalidReason | undefined;
   let job = await ownedMediaJob(env.DB, identity.id, id);
-  await requireJobExecutionAuthority(context, job);
   if (job.terminal_at !== null) return mediaMetadata(job);
-  await checkContextExecution(context, job.model_id);
+  await checkMediaExecution(context.env, job.model_id);
   await requireMediaRecoveryReady(env.DB);
   if (!driver) throw new ApiError(503, "media_adapter_not_ready");
   driver.assertReady?.(job.model_id);
@@ -679,7 +629,7 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
   if (!token) return mediaMetadata(job);
   try {
     job = await ownedMediaJob(env.DB, identity.id, id);
-    await checkContextExecution(context, job.model_id);
+    await checkMediaExecution(context.env, job.model_id);
     await requireMediaRecoveryReady(env.DB);
     if (
       job.cancel_requested_at !== null &&
@@ -782,7 +732,6 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
       throw error;
     }
     if (collection.hasInvalidOutput) {
-      invalidReason = collection.invalidReason;
       await mediaDatabase(
         env.DB.prepare(
           "UPDATE media_jobs SET collection_state='invalid' WHERE id=? AND owner_id=? AND lease_token=? AND terminal_at IS NULL",
@@ -791,8 +740,6 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
           .run(),
       );
       await discardCollected(context, job, token, "invalid");
-      if (context.probe && invalidReason)
-        await recordProbeInvalidReason(env, identity.id, id, invalidReason);
     } else if (collection.isComplete) {
       const now = Date.now();
       const result = await mediaDatabase(
@@ -866,18 +813,14 @@ export async function advanceMediaJob(context: MediaContext, id: string) {
         .run(),
     );
   }
-  const metadata = mediaMetadata(await ownedMediaJob(env.DB, identity.id, id));
-  return context.probe && invalidReason
-    ? { ...metadata, invalidReason }
-    : metadata;
+  return mediaMetadata(await ownedMediaJob(env.DB, identity.id, id));
 }
 
 /** 同じprovider IDの回収のみ再開。生成POST/受付不明の解放はしない。 */
 export async function resumeMediaCollection(context: MediaContext, id: string) {
   const { env, identity } = context;
   const job = await ownedMediaJob(env.DB, identity.id, id);
-  await requireJobExecutionAuthority(context, job);
-  await checkContextExecution(context, job.model_id);
+  await checkMediaExecution(context.env, job.model_id);
   await requireMediaRecoveryReady(env.DB);
   if (!context.driver) throw new ApiError(503, "media_adapter_not_ready");
   context.driver.assertReady?.(job.model_id);

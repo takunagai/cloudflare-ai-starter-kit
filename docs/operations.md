@@ -2,7 +2,9 @@
 
 現在の進捗・有効な許可・次の担当は[current-state.md](current-state.md)を参照する。本書の各日付付き追記は当時の記録であり、新しい実行許可ではない。失敗時の固定分類と確認順は[診断手順](diagnostics.md)を使う。
 
-2026-10-06・工程Eの観測unknown向けに[固定分類migration 0014](../migrations/0014_media_probe_observation_reason.sql)と通常コードをローカル追加した。期限切れtoken/媒体の合格条件は緩めず、分類は非権威の診断補足として保持し、復旧witnessの旧列形を維持する。閉鎖済みの10月6日専用runは管理外0013を使用済みで、当時の[SQL準備script](../scripts/prepare-e-wire.mjs)は公開0001〜0012の12本だけに固定した。新0014の実配備・既存D1へのmigration適用は未許可/未実施。次回の実確認には新対象と別承認が必要。[現在地](current-state.md)を参照。
+2026-10-19・工程Eの専用経路（`/api/media-probe`、`/media-probe`画面、`ENABLE_MEDIA_PROBE`、専用の準備script・試験）をコードから撤去した。工程Eの資源は同日に削除済み。migration 0011・0012・0014は履歴として残し、そのtableとtrigger（`media_jobs`に付いていた1本を含む）は[0016](../migrations/0016_drop_media_probe.sql)で外す。通常のmedia経路は工程Eの台帳を参照しない。撤去前の実装はコミット`a719d99`にある。以下の工程Eに関する記述は当時の履歴。
+
+2026-10-06・工程Eの観測unknown向けに[固定分類migration 0014](../migrations/0014_media_probe_observation_reason.sql)と通常コードをローカル追加した。期限切れtoken/媒体の合格条件は緩めず、分類は非権威の診断補足として保持し、復旧witnessの旧列形を維持する。閉鎖済みの10月6日専用runは管理外0013を使用済みで、当時のSQL準備script（`scripts/prepare-e-wire.mjs`、2026-10-19撤去）は公開0001〜0012の12本だけに固定した。新0014の実配備・既存D1へのmigration適用は未許可/未実施。次回の実確認には新対象と別承認が必要。[現在地](current-state.md)を参照。
 
 2026-10-06・新隔離の限定実接続を終了。1要求は上流completed/回収stored、本人品質・作成時ACL/匿名拒否pass、300秒token/3600秒自然期限unknown。自然期限unknownでも当該要求の削除を行う本人の追加判断を受け、[本人用終了helper](../scripts/archive/e/工程E-新隔離fal終了操作.py)の`finish --allow-unverified-expiry`を当該1要求に限り使用した。管理API結果は本人報告で、課金GET200/一致1/$1以内、上流DELETE200/1試行/CDN結果0/unknown。Cloudflare private R2画像1を物理削除しroot0、本文/出力参照0、容量held0/解放1、アプリ閉鎖1。Access Allow0/Block1・当該token取消の監査成功、OFF配備と本人Secret除去の即時配備を含め計6回。実WorkerはFAL_KEY不在/probe・通常生成/画像・AI/Jev OFF、通常gate空、専用D1/R2一致、workers.dev/preview無効。本人の一時falキー失効報告を受領し、既存ADMINキーは変更しない。OFFのWorker/D1/R2と本文なし最小台帳は保持。短期token/自然期限・上流消去/最終請求/Cloudflare増分費用は未確定で、M-0は未達。[結果と証拠の限界](工程E-制御実装と隔離検証.md)を参照。以下は各時点の履歴。
 
@@ -99,7 +101,7 @@ Cloudflareの`wrangler secret put`は即時deployを伴う外部変更として�
 
 `migrations/`の連番SQLを履歴管理する。認証はDrizzle schemaとSQLの列・制約一致を実D1テストで確認する。チャットと拡張の枠予約・冪等処理は明示SQLとD1の原子的batchを使う。自動schema pushは使わず、変更ごとに次番号のSQLを追加してレビューする。適用済みSQLを編集しない。空DBへの全適用・再適用と、既存データを保持した追加migrationを検証する。
 
-ローカルは`pnpm db:migrate:local`。認証・会話・資料metadata・ジョブ・課金台帳・Jev要求metadata・共通メディア/限定確認基盤を同じ環境のD1へ保存し、現行は0001〜0012と0014・0015（0013は管理外の欠番、公開14本）。工程Eではこの通常コマンドを元DBへ実行せず、新しい専用`--persist-to`/Vite `persistState`の隔離DBだけへ全11本を適用した。リモートは別承認後に対象の管理外設定・環境・DB bindingを明示して適用する。公開wranglerのダミーIDや旧verificationの設定を新しい通常stagingへ流用しない。productionも対象を明示して別に適用する。M-1〜M-4の隔離検証とC-1の未適用記録は各時点の結果として保持する。
+ローカルは`pnpm db:migrate:local`。認証・会話・資料metadata・ジョブ・課金台帳・Jev要求metadata・共通メディア/限定確認基盤を同じ環境のD1へ保存し、現行は0001〜0012と0014〜0016（0013は管理外の欠番、公開15本）。工程Eではこの通常コマンドを元DBへ実行せず、新しい専用`--persist-to`/Vite `persistState`の隔離DBだけへ全11本を適用した。リモートは別承認後に対象の管理外設定・環境・DB bindingを明示して適用する。公開wranglerのダミーIDや旧verificationの設定を新しい通常stagingへ流用しない。productionも対象を明示して別に適用する。M-1〜M-4の隔離検証とC-1の未適用記録は各時点の結果として保持する。
 
 複製先はスターターの履歴を引き継がず、複製時点の番号から自分の連番を続ける。スターターへ汎用の列・表を逆輸入するときは、複製先の番号を流用せずスターター側の次番号で新設し、両者の履歴が分岐することを許容する（2026-10-08合意）。複製先を再同期する操作は行わない。
 

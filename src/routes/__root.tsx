@@ -60,7 +60,6 @@ function Root() {
               <Link to="/app">AIチャット</Link>
               <Link to="/decisions">依頼の分類</Link>
               <Link to="/media">画像と素材</Link>
-              <Link to="/media-probe">限定確認</Link>
             </nav>
             <ThemeToggle />
           </div>

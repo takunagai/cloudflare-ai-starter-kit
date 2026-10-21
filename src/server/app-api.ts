@@ -18,11 +18,6 @@ import {
 } from "./http";
 import { handleMediaSource } from "./media/grants";
 import { type MediaEnv, requireMediaEnabled } from "./media/policy";
-import {
-  PROBE_ACCESS_LIFETIME_SECONDS,
-  requireProbeConfiguration,
-} from "./media/probe-permit";
-import { handleMediaProbe } from "./media/probe-routes";
 import { handleMedia, isMediaCreationPath } from "./media/routes";
 import {
   chatModelAllowed,
@@ -56,8 +51,6 @@ export async function handleApp(
         path === "/api/media" ||
         path.startsWith("/api/media/") ||
         path.startsWith("/api/media-source") ||
-        path === "/api/media-probe" ||
-        path.startsWith("/api/media-probe/") ||
         path === "/api/approvals" ||
         path.startsWith("/api/approvals/") ||
         path === "/api/notes")
@@ -66,8 +59,6 @@ export async function handleApp(
     if (path.startsWith("/api/media-source"))
       return await handleMediaSource(request, env);
     if (isMediaCreationPath(path, request.method)) requireMediaEnabled(env);
-    if (path === "/api/media-probe" || path.startsWith("/api/media-probe/"))
-      requireProbeConfiguration(env);
     // OFFは認証前に404。ONのmethod/input/所有権は各handlerで先に確認。
     if (path.startsWith("/api/billing/"))
       requireExtensionEnabled(env, env.ENABLE_BILLING);
@@ -98,13 +89,7 @@ export async function handleApp(
     if (path === "/api/decisions" || path.startsWith("/api/decisions/"))
       return await handleDecisions(request, env, receivedAt);
     requireSameOrigin(request);
-    const identity = await getIdentity(
-      request,
-      env,
-      env.ENABLE_MEDIA_PROBE === "true"
-        ? PROBE_ACCESS_LIFETIME_SECONDS
-        : undefined,
-    );
+    const identity = await getIdentity(request, env);
     if (path === "/api/session") {
       method(request, ["GET"]);
       const policy = resolveRuntimePolicy(env);
@@ -129,8 +114,6 @@ export async function handleApp(
     }
     if (!identity) throw new ApiError(401, "authentication_required");
     await rateLimit(env, identity.id, "api", 120);
-    if (path === "/api/media-probe" || path.startsWith("/api/media-probe/"))
-      return await handleMediaProbe(request, env, identity);
     if (path === "/api/media" || path.startsWith("/api/media/")) {
       return (
         (await handleMedia(request, env, identity)) ??
