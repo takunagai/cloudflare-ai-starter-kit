@@ -67,11 +67,28 @@ assert.equal(app.status, 200);
 assert.equal(app.headers.get("Referrer-Policy"), "no-referrer");
 assert.equal(app.headers.get("Cache-Control"), "no-store");
 assert.match(await app.text(), /noindex/);
-const registered = await call("/api/auth/sign-up/email", {
-  name: "HTTP検証",
-  email: `smoke-${crypto.randomUUID()}@example.test`,
-  password: "TEST_ONLY_local_signup_password",
-});
+// Better Authの既定制限（sign-upは10秒に3回）はD1に残る。smokeを続けて回すと429になるため、
+// 制限は緩めず、X-Retry-Afterの秒数だけ待って1回だけ再試行する。
+const MAX_SIGNUP_WAIT_SECONDS = 15;
+async function signUp() {
+  return call("/api/auth/sign-up/email", {
+    name: "HTTP検証",
+    email: `smoke-${crypto.randomUUID()}@example.test`,
+    password: "TEST_ONLY_local_signup_password",
+  });
+}
+let registered = await signUp();
+if (registered.status === 429) {
+  const waitSeconds = Number(registered.headers.get("X-Retry-After"));
+  assert.ok(
+    Number.isFinite(waitSeconds) &&
+      waitSeconds >= 0 &&
+      waitSeconds <= MAX_SIGNUP_WAIT_SECONDS,
+    "signup rate limit must give a short X-Retry-After",
+  );
+  await new Promise((resolve) => setTimeout(resolve, (waitSeconds + 1) * 1000));
+  registered = await signUp();
+}
 assert.equal(registered.status, 200, "local dummy signup");
 cookie = registered.headers
   .getSetCookie()
