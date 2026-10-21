@@ -10,6 +10,15 @@ import {
   safeCode,
 } from "../components/api-client";
 import { AuthPanel } from "../components/auth-panel";
+import {
+  type Conversation,
+  consumeEvents,
+  type Message,
+  type Source,
+} from "../components/chat/chat-stream";
+import { ConversationSidebar } from "../components/chat/conversation-sidebar";
+import { MessageList } from "../components/chat/message-list";
+import { RequestRecoveryCard } from "../components/chat/request-recovery-card";
 import { ExtensionsPanel } from "../components/extensions-panel";
 import {
   forgetRequest,
@@ -39,66 +48,6 @@ type Session = {
   localDemo: boolean;
   features: Features;
 };
-type Conversation = { id: string; title: string; updated_at?: number };
-type Message = {
-  id: string;
-  role: string;
-  content: string;
-  status: string;
-  sources?: Source[];
-};
-type Source = { id: string; title: string; text?: string };
-type StreamEvent = {
-  type: string;
-  text?: string;
-  code?: string;
-  sources?: Source[];
-};
-
-async function consumeEvents(
-  response: Response,
-  receive: (event: StreamEvent) => void,
-) {
-  if (!response.body) throw new ClientError("empty_stream");
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      buffer += done
-        ? decoder.decode()
-        : decoder.decode(value, { stream: true });
-      buffer = buffer.replace(/\r\n/g, "\n");
-      if (buffer.length > 262144) throw new ClientError("invalid_stream");
-      let boundary = buffer.indexOf("\n\n");
-      while (boundary !== -1) {
-        const chunk = buffer.slice(0, boundary);
-        buffer = buffer.slice(boundary + 2);
-        const data = chunk
-          .split("\n")
-          .filter((line) => line.startsWith("data:"))
-          .map((line) => line.slice(5).trimStart())
-          .join("\n");
-        if (data && data !== "[DONE]") {
-          let event: StreamEvent;
-          try {
-            event = JSON.parse(data) as StreamEvent;
-          } catch {
-            throw new ClientError("invalid_stream");
-          }
-          if (!event || typeof event.type !== "string")
-            throw new ClientError("invalid_stream");
-          receive(event);
-        }
-        boundary = buffer.indexOf("\n\n");
-      }
-      if (done) break;
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
 
 function Workspace() {
   const [session, setSession] = useState<Session | null>(null);
@@ -526,85 +475,36 @@ function Workspace() {
         </p>
       )}
       {pending && !sending && (
-        <section className="resource-card" aria-label="送信結果の確認">
-          <h2>再送前に、前の要求を確認してください</h2>
-          <p>要求ID：{pending.requestId}</p>
-          <p>確認は保存済み台帳と履歴だけを読みます。回答生成は行いません。</p>
-          {receipt && (
-            <p>
-              {receipt.status === "pending"
-                ? "処理中です。時間を置いて確認してください。"
-                : receipt.canRetry
-                  ? "推論開始前の失敗を確認しました。"
-                  : "処理結果または課金が不明です。新しい要求として再送しないでください。"}
-            </p>
-          )}
-          {receipt?.failureCode && <p>{failureMessage(receipt.failureCode)}</p>}
-          <button
-            type="button"
-            disabled={isCheckingRequest}
-            onClick={() => void reconcileRequest()}
-          >
-            要求の状態と履歴を確認
-          </button>
-          {receipt?.canRetry && receipt.requestId === pending.requestId && (
-            <button
-              type="button"
-              onClick={() => {
-                if (!identityId) return;
-                try {
-                  forgetRequest(identityId, pending.requestId);
-                  setPending(null);
-                  setReceipt(null);
-                } catch (caught) {
-                  setError(errorCode(caught));
-                }
-              }}
-            >
-              推論前の失敗を確認して、入力を再開
-            </button>
-          )}
-        </section>
+        <RequestRecoveryCard
+          pending={pending}
+          receipt={receipt}
+          isChecking={isCheckingRequest}
+          onReconcile={() => void reconcileRequest()}
+          onResume={() => {
+            if (!identityId) return;
+            try {
+              forgetRequest(identityId, pending.requestId);
+              setPending(null);
+              setReceipt(null);
+            } catch (caught) {
+              setError(errorCode(caught));
+            }
+          }}
+        />
       )}
       <div className="chat-layout">
-        <aside className="conversation-sidebar" aria-label="会話履歴">
-          <button
-            type="button"
-            className="full-width"
-            disabled={sending}
-            onClick={newConversation}
-          >
-            ＋ 新しい会話
-          </button>
-          <h2>これまでの会話</h2>
-          {!conversations.length && (
-            <p className="app-hint">会話を始めると、ここに履歴が残ります。</p>
-          )}
-          <ul>
-            {conversations.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className={
-                    selected === item.id
-                      ? "conversation-link selected"
-                      : "conversation-link"
-                  }
-                  aria-current={selected === item.id ? "true" : undefined}
-                  disabled={sending}
-                  onClick={() => {
-                    setSelected(item.id);
-                    setSources([]);
-                    setError("");
-                    setNotice("");
-                  }}
-                >
-                  {item.title}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </aside>
+        <ConversationSidebar
+          conversations={conversations}
+          selected={selected}
+          sending={sending}
+          onNew={newConversation}
+          onSelect={(id) => {
+            setSelected(id);
+            setSources([]);
+            setError("");
+            setNotice("");
+          }}
+        />
         <section className="chat-main" aria-label="AIチャット">
           <div className="chat-toolbar">
             <label>
@@ -660,61 +560,13 @@ function Workspace() {
               利用できるモデルがありません。管理者が接続先を設定すると選択できます。
             </p>
           )}
-          <div className="message-list" aria-busy={sending || loadingHistory}>
-            {loadingHistory ? (
-              <p role="status">履歴を読み込んでいます…</p>
-            ) : messages.length ? (
-              messages.map((message) => (
-                <article
-                  key={message.id}
-                  className={`chat-message ${message.role === "user" ? "user-message" : "assistant-message"}`}
-                >
-                  <p className="message-author">
-                    {message.role === "user" ? "あなた" : "アシスタント"}
-                  </p>
-                  <div className="message-content">
-                    {message.content ||
-                      (sending
-                        ? "応答を待っています…"
-                        : "応答は保存されていません。")}
-                  </div>
-                  {!!message.sources?.length && (
-                    <details className="saved-sources">
-                      <summary>
-                        参照した資料（{message.sources.length}件）
-                      </summary>
-                      <ul>
-                        {message.sources.map((source) => (
-                          <li key={source.id}>
-                            <strong>{source.title}</strong>
-                            {source.text && <p>{source.text.slice(0, 300)}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
-                  )}
-                  {!["complete", "completed", "streaming", "pending"].includes(
-                    message.status,
-                  ) && (
-                    <p className="app-hint">状態：{safeCode(message.status)}</p>
-                  )}
-                </article>
-              ))
-            ) : (
-              <div className="chat-empty">
-                <span aria-hidden="true">✳</span>
-                <h2>
-                  {currentConversation?.title ?? "いま、何を進めましょう？"}
-                </h2>
-                <p>
-                  アイデアの整理、文章の下書き、仕事の相談。
-                  <br />
-                  下の入力欄から会話を始められます。
-                </p>
-              </div>
-            )}
-            <div ref={end} />
-          </div>
+          <MessageList
+            messages={messages}
+            loadingHistory={loadingHistory}
+            sending={sending}
+            emptyTitle={currentConversation?.title}
+            endRef={end}
+          />
           {sources.length > 0 && (
             <details className="chat-sources">
               <summary>参照した資料（{sources.length}件）</summary>
