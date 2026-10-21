@@ -32,7 +32,7 @@
 | [presets/](presets/local.md) | 用途別の入口: [local](presets/local.md) / [個人・社内](presets/internal.md) / [公開サービス](presets/public.md) |
 | [launch-checklist.md](launch-checklist.md) | 公開前チェックと、Cloudflare実配備の受入項目 |
 | [diagnostics.md](diagnostics.md) | 失敗時の診断の順序、固定分類、既知の警告 |
-| [リポジトリ-公開情報と履歴管理.md](リポジトリ-公開情報と履歴管理.md) | 実環境情報を公開用ソースから分ける方針、PR運用 |
+| [リポジトリ-公開情報と履歴管理.md](リポジトリ-公開情報と履歴管理.md) | リポジトリの公開範囲と関連設定、実環境情報を公開用ソースから分ける方針、PR運用 |
 | [development-workflow.md](development-workflow.md) | 開発作業の進め方と、評価の方針 |
 
 ## 履歴
