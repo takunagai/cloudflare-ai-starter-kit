@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type SubmitEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   api,
   ClientError,
@@ -10,12 +16,15 @@ import {
   safeCode,
 } from "../components/api-client";
 import { AuthPanel } from "../components/auth-panel";
+import { ChatComposer, StreamSources } from "../components/chat/chat-composer";
 import {
   type Conversation,
   consumeEvents,
   type Message,
+  PRE_ACCEPTANCE_ERRORS,
   type Source,
 } from "../components/chat/chat-stream";
+import { ChatToolbar } from "../components/chat/chat-toolbar";
 import { ConversationSidebar } from "../components/chat/conversation-sidebar";
 import { MessageList } from "../components/chat/message-list";
 import { RequestRecoveryCard } from "../components/chat/request-recovery-card";
@@ -235,7 +244,7 @@ function Workspace() {
       setError(errorCode(caught));
     }
   }
-  async function send(event: React.FormEvent<HTMLFormElement>) {
+  async function send(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const message = draft.trim();
     if (
@@ -322,21 +331,7 @@ function Workspace() {
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const code = responseError(data);
-        // 受付前に確定した4xxは要求が台帳に残らないため、記録を消して入力を再開できる。
-        if (
-          [
-            "invalid_input",
-            "invalid_json",
-            "payload_too_large",
-            "unsupported_media_type",
-            "unknown_model",
-            "model_unavailable",
-            "feature_disabled",
-            "conversation_not_found",
-            "quota_or_concurrency_limit",
-            "rate_limit_exceeded",
-          ].includes(code)
-        ) {
+        if (PRE_ACCEPTANCE_ERRORS.includes(code)) {
           forgetRequest(identityId, requestId);
           setPending(null);
         }
@@ -506,60 +501,16 @@ function Workspace() {
           }}
         />
         <section className="chat-main" aria-label="AIチャット">
-          <div className="chat-toolbar">
-            <label>
-              モデル
-              <select
-                value={modelId}
-                disabled={sending}
-                onChange={(event) => setModelId(event.target.value)}
-              >
-                <option value="" disabled>
-                  利用するモデルを選択
-                </option>
-                {models.map((model) => (
-                  <option
-                    key={model.id}
-                    value={model.id}
-                    disabled={!model.available}
-                  >
-                    {model.label}
-                    {model.available ? "" : "（未設定）"}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {selected && (
-              <button
-                type="button"
-                className="link-button"
-                disabled={sending || loadingHistory}
-                onClick={() => setRevision((value) => value + 1)}
-              >
-                履歴を更新
-              </button>
-            )}
-            {selected && (
-              <button
-                type="button"
-                className="link-button danger"
-                disabled={sending || loadingHistory}
-                onClick={removeConversation}
-              >
-                会話を削除
-              </button>
-            )}
-          </div>
-          {modelId === "local/demo" && (
-            <p className="demo-label">
-              AI未使用 · 動作確認用の固定応答です。外部へ送信しません。
-            </p>
-          )}
-          {!modelId && (
-            <p className="app-notice">
-              利用できるモデルがありません。管理者が接続先を設定すると選択できます。
-            </p>
-          )}
+          <ChatToolbar
+            models={models}
+            modelId={modelId}
+            sending={sending}
+            loadingHistory={loadingHistory}
+            hasConversation={!!selected}
+            onModelChange={setModelId}
+            onRefresh={() => setRevision((value) => value + 1)}
+            onDelete={removeConversation}
+          />
           <MessageList
             messages={messages}
             loadingHistory={loadingHistory}
@@ -567,85 +518,32 @@ function Workspace() {
             emptyTitle={currentConversation?.title}
             endRef={end}
           />
-          {sources.length > 0 && (
-            <details className="chat-sources">
-              <summary>参照した資料（{sources.length}件）</summary>
-              <ul>
-                {sources.map((source, index) => (
-                  <li key={source.id ?? index}>
-                    {source.title}
-                    {source.text && <p>{source.text.slice(0, 300)}</p>}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
-          <form onSubmit={send} className="chat-composer">
-            <label className="sr-only" htmlFor="chat-message">
-              メッセージ
-            </label>
-            <textarea
-              id="chat-message"
-              placeholder="メッセージを入力…"
-              value={draft}
-              required
-              maxLength={8000}
-              rows={3}
-              disabled={sending || loadingHistory}
-              onChange={(event) => setDraft(event.target.value)}
-            />
-            <div className="composer-actions">
-              <div className="feature-toggles">
-                {session.features.rag && (
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={useRag}
-                      disabled={sending}
-                      onChange={(event) => setUseRag(event.target.checked)}
-                    />
-                    資料を参照
-                  </label>
-                )}
-                {session.features.agent && (
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={useAgent}
-                      disabled={sending}
-                      onChange={(event) => setUseAgent(event.target.checked)}
-                    />
-                    ツールを使用
-                  </label>
-                )}
-              </div>
-              {sending ? (
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => controller.current?.abort()}
-                >
-                  応答を中断
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={
-                    !draft.trim() ||
-                    !modelId ||
-                    loadingHistory ||
-                    !!pending ||
-                    !isRecoveryReady
-                  }
-                >
-                  送信する →
-                </button>
-              )}
-            </div>
-            <p className="app-hint">
-              AIの回答は誤ることがあります。重要な内容は確認してください。
-            </p>
-          </form>
+          <StreamSources sources={sources} />
+          <ChatComposer
+            draft={draft}
+            sending={sending}
+            loadingHistory={loadingHistory}
+            canSubmit={
+              !!draft.trim() &&
+              !!modelId &&
+              !loadingHistory &&
+              !pending &&
+              isRecoveryReady
+            }
+            rag={
+              session.features.rag
+                ? { checked: useRag, onChange: setUseRag }
+                : null
+            }
+            agent={
+              session.features.agent
+                ? { checked: useAgent, onChange: setUseAgent }
+                : null
+            }
+            onDraftChange={setDraft}
+            onSubmit={send}
+            onAbort={() => controller.current?.abort()}
+          />
         </section>
       </div>
       <ExtensionsPanel

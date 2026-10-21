@@ -16,6 +16,20 @@ export type StreamEvent = {
   sources?: Source[];
 };
 
+/** 受付前に確定した4xx。要求が台帳に残らないため、記録を消して入力を再開できる。 */
+export const PRE_ACCEPTANCE_ERRORS: readonly string[] = [
+  "invalid_input",
+  "invalid_json",
+  "payload_too_large",
+  "unsupported_media_type",
+  "unknown_model",
+  "model_unavailable",
+  "feature_disabled",
+  "conversation_not_found",
+  "quota_or_concurrency_limit",
+  "rate_limit_exceeded",
+];
+
 /** SSEの`data:`行をJSONのイベントとして順に渡す。形式外は`invalid_stream`。 */
 export async function consumeEvents(
   response: Response,
