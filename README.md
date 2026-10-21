@@ -116,3 +116,7 @@ Git管理する`wrangler.jsonc`はローカル用・配備用のテンプレー�
 - **429**: 利用回数または同時処理上限です。失敗・中断した生成も日次枠を消費します。
 
 共通開発ルールは[AGENTS.md](AGENTS.md)、公式根拠は[references/README.md](references/README.md)、現在地と次の作業は[docs/current-state.md](docs/current-state.md)、合意した仕様は[docs/architecture-proposal.md](docs/architecture-proposal.md)、過去の経緯は[docs/archive/](docs/archive/README.md)にあります。
+
+## ライセンス
+
+[MIT](LICENSE)
