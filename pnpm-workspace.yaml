@@ -3,9 +3,6 @@ allowBuilds:
   esbuild: true
   workerd: true
   sharp: false
-minimumReleaseAgeExclude:
-  - '@ai-sdk/gateway@4.0.96'
-  - ai@7.0.118
 # Better Auth's optional Drizzle CLI resolves a legacy esbuild helper.
 # Keep its transform API on a patched version; see docs/operations.md.
 overrides:
