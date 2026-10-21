@@ -3,6 +3,7 @@ import { listModels } from "./ai/providers";
 import { getIdentity, handleAuth } from "./auth";
 import { handleBilling } from "./billing";
 import { handleChat } from "./chat";
+import { CHAT_EXTENSIONS } from "./chat-extensions";
 import { chatRequestStatus, rateLimit } from "./chat-store";
 import { handleConversations } from "./conversations";
 import { handleDecisions } from "./decisions/routes";
@@ -162,7 +163,7 @@ export async function handleApp(
     }
     if (path === "/api/chat") {
       requireMethod(request, ["POST"]);
-      return await handleChat(request, env, identity, ctx);
+      return await handleChat(request, env, identity, ctx, CHAT_EXTENSIONS);
     }
     if (path === "/api/notes" || exactOrUnder("/api/approvals")(path)) {
       const agent = await handleAgentRoutes(request, env, identity);

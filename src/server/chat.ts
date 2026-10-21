@@ -1,7 +1,6 @@
-import { stepCountIs, streamText } from "ai";
+import { stepCountIs, streamText, type ToolSet } from "ai";
 import { z } from "zod";
 import { FAILURE_MESSAGES } from "../lib/reliability";
-import { noteTools } from "./agent-tools";
 import { getModel, listModels } from "./ai/providers";
 import { chatSystemPrompt } from "./chat-prompt";
 import {
@@ -12,7 +11,6 @@ import {
   reserveChat,
 } from "./chat-store";
 import { type Identity, isEnabled } from "./env";
-import { retrieveRag } from "./extensions/rag";
 import { ApiError, json, readJson } from "./http";
 import {
   chatModelAllowed,
@@ -31,12 +29,34 @@ const chatSchema = z
   })
   .strict();
 
+/**
+ * 任意拡張がチャットへ差し込む処理。組み立ては`chat-extensions.ts`が行い、標準チャットは拡張moduleをimportしない。
+ * flagがONでも渡されていない処理は`feature_disabled`として扱う。
+ */
+export interface ChatExtensions {
+  retrieveSources?: (
+    env: RuntimeEnv,
+    identity: Identity,
+    query: string,
+  ) => Promise<{
+    sources: { id: string; title: string; text: string }[];
+    indexState: string;
+  }>;
+  createTools?: (
+    env: RuntimeEnv,
+    identity: Identity,
+    onApproval: (approval: unknown) => void,
+  ) => ToolSet;
+}
+
 export async function handleChat(
   request: Request,
   env: RuntimeEnv,
   identity: Identity,
   ctx: ExecutionContext,
+  extensions: ChatExtensions = {},
 ) {
+  const { retrieveSources, createTools } = extensions;
   const input = await readJson(request, chatSchema, 40000);
   await ownedConversation(env, identity.id, input.conversationId);
   const policy = await checkChatRuntimePolicy(env);
@@ -51,8 +71,8 @@ export async function handleChat(
       throw new ApiError(503, "model_unavailable");
   };
   if (
-    (input.rag && !isEnabled(env.ENABLE_RAG)) ||
-    (input.agent && !isEnabled(env.ENABLE_AGENT))
+    (input.rag && (!isEnabled(env.ENABLE_RAG) || !retrieveSources)) ||
+    (input.agent && (!isEnabled(env.ENABLE_AGENT) || !createTools))
   )
     throw new ApiError(404, "feature_disabled");
   await rateLimit(env, identity.id, "chat", 10);
@@ -93,9 +113,14 @@ export async function handleChat(
           );
           failureCode = "request_preparation_failed";
           await recheckPolicy();
-          const sources = input.rag
-            ? await retrieveRag(env, identity, input.message.slice(0, 2000))
-            : null;
+          const sources =
+            input.rag && retrieveSources
+              ? await retrieveSources(
+                  env,
+                  identity,
+                  input.message.slice(0, 2000),
+                )
+              : null;
           if (sources) {
             savedSources = sources.sources;
             send({ type: "sources", ...sources });
@@ -139,9 +164,9 @@ export async function handleChat(
                 : []),
               { role: "user", content: input.message },
             ],
-            ...(input.agent
+            ...(input.agent && createTools
               ? {
-                  tools: noteTools(env, identity, (approval) =>
+                  tools: createTools(env, identity, (approval) =>
                     send({ type: "approval", approval }),
                   ),
                 }

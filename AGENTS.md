@@ -32,7 +32,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `src/server/conversations.ts` / `agent-routes.ts` | 会話の一覧・取得・削除 / エージェント拡張のnotes・承認API |
 | `src/server/runtime-policy.ts` / `runtime-guards.ts` | 設定の純粋判定 / 入口から呼ぶ実行時ガード。system promptは`chat-prompt.ts` |
 | `src/server/auth/` / `db/` | Better Auth・Access・認証schema |
-| `src/server/chat*.ts` / `agent-tools.ts` | 生成・履歴・原子的枠予約・人間承認 |
+| `src/server/chat*.ts` / `agent-tools.ts` | 生成・履歴・原子的枠予約・人間承認。`chat.ts`は拡張をimportせず、RAG・toolは`chat-extensions.ts`から引数で受ける |
 | `src/server/extensions/` / `billing.ts` | 任意拡張、外部API境界 |
 | `migrations/` | 履歴管理されたD1 SQL |
 | `src/lib/contracts.ts` | 入出力のZod schema |

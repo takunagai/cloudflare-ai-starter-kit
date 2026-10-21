@@ -10,6 +10,7 @@ import * as providers from "../src/server/ai/providers";
 import { handleApp } from "../src/server/app-api";
 import { handleAuth } from "../src/server/auth";
 import { handleChat } from "../src/server/chat";
+import { CHAT_EXTENSIONS } from "../src/server/chat-extensions";
 import {
   type ChatInput,
   finishChat,
@@ -115,6 +116,7 @@ describe("Chat admission and persistence on D1", () => {
       enabled,
       alice,
       ctx,
+      CHAT_EXTENSIONS,
     );
     const stream = await response.text();
     await waitOnExecutionContext(ctx);
@@ -295,6 +297,18 @@ describe("Chat admission and persistence on D1", () => {
           createExecutionContext(),
         ),
       ).rejects.toMatchObject({ status: expect.any(Number) });
+    }
+    // flagがONでも、拡張の処理を渡されていなければ受け付けない。
+    const flagsOn = { ...local, ENABLE_RAG: "true", ENABLE_AGENT: "true" };
+    for (const body of [input({ rag: true }), input({ agent: true })]) {
+      await expect(
+        handleChat(
+          req("/api/chat", body),
+          flagsOn,
+          alice,
+          createExecutionContext(),
+        ),
+      ).rejects.toMatchObject({ status: 404, code: "feature_disabled" });
     }
     expect(
       (
