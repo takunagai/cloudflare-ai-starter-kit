@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { authFailureMessage } from "../lib/auth-errors";
 import { api, ClientError, errorCode } from "./api-client";
 
 type Mode = "signin" | "signup" | "forgot" | "reset" | "verify";
@@ -208,7 +209,7 @@ export function AuthPanel({
       </form>
       {error && (
         <p className="app-error" role="alert">
-          処理できませんでした：{error}
+          {authFailureMessage(error)}
         </p>
       )}
       {notice && (

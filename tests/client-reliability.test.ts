@@ -40,6 +40,32 @@ describe("通信結果と再読込用の要求記録", () => {
       });
     },
   );
+  it.each([
+    [
+      "/api/auth/sign-in/email",
+      401,
+      { code: "INVALID_EMAIL_OR_PASSWORD" },
+      "INVALID_EMAIL_OR_PASSWORD",
+    ],
+    ["/api/auth/sign-in/email", 401, {}, "authentication_required"],
+    ["/api/conversations", 401, { error: "架空" }, "authentication_required"],
+    [
+      "/api/auth/sign-up/email",
+      429,
+      { message: "Too many requests." },
+      "rate_limited",
+    ],
+    ["/api/chat", 429, { error: "rate_limit_exceeded" }, "rate_limit_exceeded"],
+  ])(
+    "認証APIの固定コードと429を分類する: %s %s",
+    async (path, status, body, code) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => Response.json(body, { status })),
+      );
+      await expect(api(path, {})).rejects.toMatchObject({ code });
+    },
+  );
   it("再読込後に要求IDだけを復元し、本文・出典をブラウザ保存へ追加しない", () => {
     const values = new Map<string, string>();
     vi.stubGlobal("localStorage", {

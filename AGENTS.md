@@ -39,7 +39,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 | `src/server/decisions/` | Jevの依頼分類（route・service・台帳・adapter） |
 | `src/server/media/` | 画像・動画・音声の生成ジョブ、素材、検査、保持期限 |
 | `migrations/` | 履歴管理されたD1 SQL |
-| `src/lib/` | サーバーと画面で共有する定義。`contracts.ts`は入出力のZod schema、`reliability.ts`は失敗分類、`extension-errors.ts`は拡張・mediaのエラー表示文、`media-*-options.ts`はmedia入力の選択肢 |
+| `src/lib/` | サーバーと画面で共有する定義。`contracts.ts`は入出力のZod schema、`reliability.ts`は失敗分類、`extension-errors.ts`は拡張・mediaのエラー表示文、`auth-errors.ts`は認証画面のエラー表示文、`media-*-options.ts`はmedia入力の選択肢 |
 | `src/components/` | 画面の部品とブラウザ側のAPI呼出し（`api-client.ts`・`request-recovery.ts`）。`chat/`・`media/`・`extensions/`は各画面の表示部品で、状態は画面側（`app.tsx`・`media-panel.tsx`・`extensions-panel.tsx`）が持つ |
 | `src/styles.css` | Tailwindと共通スタイル。色はトークン参照のみ |
 | `src/theme.css` | テーマカラー・角丸・グレーの色味の設定。アクセントや角丸の変更はここだけ |

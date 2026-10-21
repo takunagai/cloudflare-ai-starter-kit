@@ -31,14 +31,28 @@ export async function api<T>(
   }).catch(() => {
     throw new ClientError("network_unconfirmed");
   });
-  if (response.status === 401 || response.redirected)
+  // Better Authの401は誤パスワード等の固定コードを本文に持つため、/api/auth/だけ読む。
+  const isAuthPath = path.startsWith("/api/auth/");
+  if (response.redirected || (response.status === 401 && !isAuthPath))
     throw new ClientError("authentication_required");
   if (!response.headers.get("Content-Type")?.includes("application/json"))
-    throw new ClientError("unexpected_response");
+    throw new ClientError(
+      response.status === 401
+        ? "authentication_required"
+        : "unexpected_response",
+    );
   const data = await response.json().catch(() => {
     throw new ClientError("unexpected_response");
   });
-  if (!response.ok) throw new ClientError(responseError(data));
+  if (!response.ok) {
+    const code = responseError(data);
+    // Better Authの429は本文にcodeを持たない。
+    if (code === "request_failed" && response.status === 429)
+      throw new ClientError("rate_limited");
+    if (code === "request_failed" && response.status === 401)
+      throw new ClientError("authentication_required");
+    throw new ClientError(code);
+  }
   return data as T;
 }
 
