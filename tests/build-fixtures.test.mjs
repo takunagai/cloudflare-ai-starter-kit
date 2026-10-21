@@ -228,3 +228,69 @@ test("実plugin: 未知mode/環境不一致/不在/解決先不一致でbuild停
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+// dev:extensionsの生成設定。起動は開発者のポートとローカル状態を使うため、ここでは設定だけを検査する。
+test("dev:extensions: 全拡張ON・localのみ・キーなしの設定を生成し、local以外は拒否", async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "starter-extensions-preview-"));
+  const generator = path.join(project, "scripts/extensions-preview-config.mjs");
+  try {
+    const base = JSON.parse(
+      await readFile(path.join(project, "wrangler.jsonc"), "utf8"),
+    );
+    await writeFile(path.join(dir, "wrangler.jsonc"), JSON.stringify(base));
+    await run(process.execPath, [generator], { cwd: dir, timeout: 30000 });
+    const config = JSON.parse(
+      await readFile(
+        path.join(dir, ".wrangler/extensions-preview/wrangler.jsonc"),
+        "utf8",
+      ),
+    );
+    assert.equal(config.vars.APP_ENV, "local");
+    assert.equal(config.vars.APP_ORIGIN, "http://127.0.0.1:4198");
+    for (const flag of [
+      "ENABLE_RAG",
+      "ENABLE_AGENT",
+      "ENABLE_WORKFLOWS",
+      "ENABLE_IMAGES",
+      "ENABLE_MEDIA",
+      "ENABLE_BILLING",
+    ])
+      assert.equal(config.vars[flag], "true", flag);
+    assert.equal(config.vars.JEV_MODE, "remote");
+    // falのダミーキーとmediaの許可はWorkerが実行時に足す。Jev・Polarのキーは置かない。
+    assert.deepEqual(
+      Object.keys(config.vars).filter((name) =>
+        /KEY|TOKEN|SECRET|MEDIA_ALLOWED/.test(name),
+      ),
+      [],
+    );
+    assert.equal(config.workers_dev, false);
+    assert.equal(config.preview_urls, false);
+    assert.equal("routes" in config, false);
+    assert.equal("env" in config, false);
+    assert.equal("ai_search" in config, false);
+    assert.deepEqual(
+      config.r2_buckets.map((bucket) => bucket.binding),
+      ["RAG_BUCKET", "MEDIA_BUCKET"],
+    );
+    assert.equal(config.workflows[0].class_name, "SummaryWorkflow");
+    // 相対パスは生成先からプロジェクトの実ファイルへ解決する。
+    const generated = path.join(project, ".wrangler/extensions-preview");
+    await readFile(path.resolve(generated, config.main));
+    await readFile(
+      path.resolve(
+        generated,
+        config.d1_databases[0].migrations_dir,
+        "0001_auth.sql",
+      ),
+    );
+
+    base.vars.APP_ENV = "staging";
+    await writeFile(path.join(dir, "wrangler.jsonc"), JSON.stringify(base));
+    await assert.rejects(
+      run(process.execPath, [generator], { cwd: dir, timeout: 30000 }),
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
