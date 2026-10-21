@@ -1,5 +1,7 @@
 # 実AI検証制御の実装状況
 
+> 履歴記録。旧検証モード（2026-10-19廃止）の設計・実装の記録で、本文の現在形の記述は当時のもの。現在の通常stagingの動作は[実行時方針](../runtime-policy.md)を参照。
+
 ## 2026-10-19 旧検証モードの廃止
 
 確認日: 2026-10-19。本人の決定（2026-10-18）で、2026-09-28〜29の旧検証モード（指定FP8・固定30分・総3回）をコードから削除した。実装とローカル検証のみで、配備済みのstaging Worker・実D1・実設定は変更していない。以下の節は各時点の履歴で、旧検証の記述は現在の動作ではない。
@@ -17,17 +19,17 @@
 
 ## 2026-10-02 B-4完了の参照
 
-[公開5設定例とbuild境界](公開プリセットとbuild境界.md)はB-4として実装/ローカル検証済み。全例Jev/任意拡張OFF、旧検証staging閉鎖・通常staging別Worker/別DBを保持し、実設定/旧台帳を変更していない。[B-4の証拠と次セッション](archive/B4完了-次セッション開始プロンプト.md)を参照。以下のB-3J/B-3/B-2の未実装欄は各時点の履歴。C以降/メディア/実接続/配備は未実施で、M-0未回答と工程E前の未確定条件は残る。
+[公開5設定例とbuild境界](../公開プリセットとbuild境界.md)はB-4として実装/ローカル検証済み。全例Jev/任意拡張OFF、旧検証staging閉鎖・通常staging別Worker/別DBを保持し、実設定/旧台帳を変更していない。[B-4の証拠と次セッション](B4完了-次セッション開始プロンプト.md)を参照。以下のB-3J/B-3/B-2の未実装欄は各時点の履歴。C以降/メディア/実接続/配備は未実施で、M-0未回答と工程E前の未確定条件は残る。
 
 ## 2026-10-02 B-3Jの独立判断API
 
-確認日: 2026-10-02。採用済み[Jev契約](Jev-B3J-実装前契約.md)の固定fetch/3型service・分類POSTと本人metadata GETを実装しました。共有境界/旧台帳存在検査を各guardで再確認し、Jev設定はチャットAI_MODEから独立。OFF/旧検証は新規分類404、remoteの認証/入力後に設定不備503。状態GETはJev OFF/設定不備/旧台帳不適合でも回復し、要求状態を更新せず利用制限counterだけを更新します。
+確認日: 2026-10-02。採用済み[Jev契約](../Jev-B3J-実装前契約.md)の固定fetch/3型service・分類POSTと本人metadata GETを実装しました。共有境界/旧台帳存在検査を各guardで再確認し、Jev設定はチャットAI_MODEから独立。OFF/旧検証は新規分類404、remoteの認証/入力後に設定不備503。状態GETはJev OFF/設定不備/旧台帳不適合でも回復し、要求状態を更新せず利用制限counterだけを更新します。
 
-`decision_requests`を0007で追加し、予約・1claim・終端保存を原子的に検証。所有者20/UTC日・5/直近60秒・同時1、環境200/UTC日・同時3、終端90日・結果非保存、unknownの同時枠保持を維持します。管理場所と変更時の影響・保持/復元停止は契約書、最終検証は[B-3J引き継ぎ](archive/B3J完了-次セッション開始プロンプト.md)が正本。実接続・SDK導入・実配備設定は未変更で、M-0未回答も維持。以下はB-3までの履歴です。
+`decision_requests`を0007で追加し、予約・1claim・終端保存を原子的に検証。所有者20/UTC日・5/直近60秒・同時1、環境200/UTC日・同時3、終端90日・結果非保存、unknownの同時枠保持を維持します。管理場所と変更時の影響・保持/復元停止は契約書、最終検証は[B-3J引き継ぎ](B3J完了-次セッション開始プロンプト.md)が正本。実接続・SDK導入・実配備設定は未変更で、M-0未回答も維持。以下はB-3までの履歴です。
 
 ## 2026-10-02 B-3のモデル選択と別入口統合
 
-確認日: 2026-10-02。B-2の境界を保持し、B-3の実装・ローカル検証・文書更新だけを行った。実環境の設定・認証・費用条件・配備・旧台帳は変更していない。[入口契約](用途別プリセット-開発計画.md#判定順と台帳の扱い)、[検証と引き継ぎ](archive/B3完了-次セッション開始プロンプト.md)を併読する。
+確認日: 2026-10-02。B-2の境界を保持し、B-3の実装・ローカル検証・文書更新だけを行った。実環境の設定・認証・費用条件・配備・旧台帳は変更していない。[入口契約](用途別プリセット-開発計画.md#判定順と台帳の扱い)、[検証と引き継ぎ](B3完了-次セッション開始プロンプト.md)を併読する。
 
 | 対象 | 動作と理由 | 管理場所・変更時の影響 |
 | --- | --- | --- |
@@ -40,7 +42,7 @@
 
 旧検証stagingの省略/verification/フラグfalseは拡張を404で閉じる。指定FP8・固定窓・単一所有者・総3回・失敗消費は保持。通常stagingは別Worker/別DB・0006のtableあり/行なしが前提で、guardだけで共有DBの同時運用を認めない。台帳本文の取得/書換え、設定修復のための削除、行なしcacheは行わない。
 
-検証結果は[進捗](plan.md)と[B-3引き継ぎ](archive/B3完了-次セッション開始プロンプト.md)を参照。HTTP/直接adapter/実ローカルWorkflowと、再開・故障注入のstep fakeを区別する。Jev service（B-3J）、公開例/build（B-4）、新メディア、別名複製、最新CI、audit再照会、実接続・配備は未実施。M-0の採用済み条件・回答未受領・上流検証待ちは変更していない。
+検証結果は[進捗](plan.md)と[B-3引き継ぎ](B3完了-次セッション開始プロンプト.md)を参照。HTTP/直接adapter/実ローカルWorkflowと、再開・故障注入のstep fakeを区別する。Jev service（B-3J）、公開例/build（B-4）、新メディア、別名複製、最新CI、audit再照会、実接続・配備は未実施。M-0の採用済み条件・回答未受領・上流検証待ちは変更していない。
 
 以下のB-2節は当時の検証済み境界と段階制限の履歴として保持する。
 
@@ -67,7 +69,7 @@
 
 ## 2026-09-29の限定した実接続結果
 
-終了記録のcommit `060bb0c`の両CIは最後のauditでundiciの指摘1件により失敗した。実AI完了とは分けて記録し、後続で推移依存のundiciのみ7.29.1へ限定更新した。ローカルcheck（201テストを含む）・HTTP smoke・auditは成功し、previewは終了。依存更新後のソースは実配備しておらず、以下の実AI結果のソースcommitは変わらない。[公式根拠と更新範囲](../references/undici-security-20260929.md)。
+終了記録のcommit `060bb0c`の両CIは最後のauditでundiciの指摘1件により失敗した。実AI完了とは分けて記録し、後続で推移依存のundiciのみ7.29.1へ限定更新した。ローカルcheck（201テストを含む）・HTTP smoke・auditは成功し、previewは終了。依存更新後のソースは実配備しておらず、以下の実AI結果のソースcommitは変わらない。[公式根拠と更新範囲](../../references/undici-security-20260929.md)。
 
 追加承認後、修正版ソース`7abc1696980c8d88e05452ad1ae370558a920553`を本人が既存stagingへ配備した。FP8による試験会話Aの2回の非空応答、SSE finish/EOF、複数delta（23/24個）、完了前のUI更新、再読み込み後の2件/4件の役割・本文完全一致、会話削除後の非復活を確認した。残枠は3→2→1で、会話削除後も1のまま。任意の3回目は使っていない。
 
@@ -77,7 +79,7 @@
 
 修正commit `739d0a497309761cd1c4858de6b686b5477baf90`を通常pushし、既存ドラフトPR #3の本文を実装・ローカル検証・実環境中止の結果に合わせて更新した。送信前にステージ全体・全25コミットの本文/メッセージ/作者を検査し未解決候補0件。送信後はhead・仮マージを新規fetchし、API先端・親・tree・生成作者情報の一致を確認、仮マージを含む26コミットとPR本文の未解決候補0件。生成作者2件は既存許可との一致であり、未知の非公開情報の不存在保証ではない。リポジトリprivate、PR #2のheadとopen/draft、PR #3のbaseとopen/draftを維持している。
 
-同じ修正headの[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36492561011)と[pull_request CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36492566245)は、どちらもcompleted・success。結果記録とREADME・運用資料の追記だけを行う後続commitも、通常push後に新しいhead/仮マージと最新headの両CIを再確認する。上記runは修正commitの結果であり、後続commitのCI成功を代用しない。最終の最新状態は[PR #3のChecks](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3/checks)を参照する。
+同じ修正headの[push CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36492561011)と[pull_request CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36492566245)は、どちらもcompleted・success。結果記録とREADME・運用資料の追記だけを行う後続commitも、通常push後に新しいhead/仮マージと最新headの両CIを再確認する。上記runは修正commitの結果であり、後続commitのCI成功を代用しない。最終の最新状態は[PR #3のChecks](https://github.com/OWNER/cloudflare-ai-starter-kit/pull/3/checks)を参照する。
 
 実配備後に発見した状態APIのdispatch登録漏れを修正した。`src/server/api.ts`から`/api/ai-verification`を既存の認証付き処理へ渡す1経路を追加し、状態処理・推論制限・公開設定は変更していない。
 
@@ -105,7 +107,7 @@
 | --- | --- |
 | モデル | 公開ID`workers-ai/llama-3.1-8b-fp8`・表示名・upstream IDをFP8版へ変更。旧IDは不明モデルとして拒否し、無言で転送しない |
 | 検査モジュール（`src/server/ai-verification.ts`、2026-10-19削除） | staging・Access・拡張全OFF・固定30分窓・入力200 code units・system/履歴込み4,096 UTF-8 bytesをチャット経路で検査 |
-| [migration 0006](../migrations/0006_ai_verification.sql) | 検証開始時刻・期限・所有者・消費数0〜3を保持する単一行テーブル。一時テストD1と既存のローカルD1へ適用。remote未適用 |
+| [migration 0006](../../migrations/0006_ai_verification.sql) | 検証開始時刻・期限・所有者・消費数0〜3を保持する単一行テーブル。一時テストD1と既存のローカルD1へ適用。remote未適用 |
 | 原子的な枠予約 | 会話lock・request/messages作成・総枠消費を同じD1 batch内で実施。最初の所有者に固定し、日付・会話削除・再有効化・設定開始時刻変更で枠を増やさない |
 | 履歴・timeout・API | 直前の完了済みuser/assistant 2件または履歴0のみ。切詰めなし。推論直前に期限再確認し、中断は60秒と期限までの残り時間の短い方。認証済みGET `/api/ai-verification`はready/remaining/期限だけを返し、所有者IDは返さない |
 | 独立テスト・統合テスト（`tests/ai-verification*.test.ts`、2026-10-19削除） | レビューで4件追加し20件＋19件成功。全体checkは15ファイル197テスト・lint・型検査・build成功。fake binding限定 |
@@ -142,7 +144,7 @@ SDK中断は上流課金の即時停止保証ではない。stale予約は従来
 
 原子的予約、同一request IDの重複、期限前後、失敗時の消費、provider/拡張入口、local/productionへの影響をレビューした。追加4テストは並行重複の1枠消費、message書込み失敗時の台帳/lock/requestの一括rollback、履歴取得中の期限切れで上流0回、失敗履歴を省略せず拒否する動作。いずれも成功し、制限制御の追加修正は不要と判断した。transaction全体が失敗した場合は予約自体が成立せず、予約成立後の失敗では枠を返さないという区別を確認した。
 
-Node.js 26.10.0・pnpm 12.6.0で`pnpm check`成功（lint57ファイル・型検査・197テスト/15ファイル・build）。UIコードは今回変更しておらず、ブラウザ操作は前回確認結果と区別する。公式モデル仕様・料金も再確認し、[見積り](../references/workers-ai-minimal-verification.md)を維持。共有枠・契約・実接続は未確認。
+Node.js 26.10.0・pnpm 12.6.0で`pnpm check`成功（lint57ファイル・型検査・197テスト/15ファイル・build）。UIコードは今回変更しておらず、ブラウザ操作は前回確認結果と区別する。公式モデル仕様・料金も再確認し、[見積り](../../references/workers-ai-minimal-verification.md)を維持。共有枠・契約・実接続は未確認。
 
 今回のbuildでローカルpreviewを起動し、HTTP smokeのSSR/asset/API、全拡張OFF、固定応答・保存・復元・replay・試験会話削除・logoutが成功。自分で起動したpreviewは停止した。通常テストは一時ローカルD1へ0006を含むmigrationを適用し、既存ローカルD1でもHTTP経路が成功。remoteへの適用は行っていない。
 
@@ -152,14 +154,14 @@ Node.js 26.10.0・pnpm 12.6.0で`pnpm check`成功（lint57ファイル・型検
 
 ## 実装PRの初回送信と生成情報・CI確認
 
-実装を[65d2bb3](https://github.com/takunagai/cloudflare-ai-starter-kit/commit/65d2bb30f00bb7fe9259e9a879a29df6c095ee30)へcommitし、共通フックを通して通常push。[ドラフトPR #3](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3)を作成した。baseは文書PR #2の`codex/pr1-merge-verification`で、26ファイルの実装・関連記録差分。PR #2は先端`10329cf`・open/draftのまま、アプリ変更を混ぜていない。
+実装を[65d2bb3](https://github.com/OWNER/cloudflare-ai-starter-kit/commit/65d2bb30f00bb7fe9259e9a879a29df6c095ee30)へcommitし、共通フックを通して通常push。[ドラフトPR #3](https://github.com/OWNER/cloudflare-ai-starter-kit/pull/3)を作成した。baseは文書PR #2の`codex/pr1-merge-verification`で、26ファイルの実装・関連記録差分。PR #2は先端`10329cf`・open/draftのまま、アプリ変更を混ぜていない。
 
 | 検査の区分 | 初回headの結果 |
 | --- | --- |
 | ローカル公開可否 | ステージ全体、push前の全23コミットの本文・メッセージ、author/committer、PRタイトル/本文を別検査。未解決候補0件。匿名identityと共通フックを維持 |
 | GitHub生成情報 | base・PR head・仮マージを新規fetchし、API先端と親・treeの一致を確認。仮マージを含む全24コミットの本文・メッセージ・作者情報は未解決候補0件。生成作者2件は既存の許可済みの同じ名前・account/service noreplyに一致 |
-| ブランチCI | [push run](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36426994497)は上記実装headでcompleted・success |
-| PR CI | [pull_request run](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36427029653)は同じheadでcompleted・success |
+| ブランチCI | [push run](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36426994497)は上記実装headでcompleted・success |
+| PR CI | [pull_request run](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36427029653)は同じheadでcompleted・success |
 
 privateを再確認し、PRはdraft・未merge。実AI・Cloudflare変更・remote migration・実配備・Secret投入・実メールは今回すべて0件。次の承認対象は[最小検証計画の具体的な許可範囲](実AI接続-最小検証計画.md#レビュー完了後に求める実環境の許可範囲)へまとめた。
 

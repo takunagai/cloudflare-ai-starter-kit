@@ -1,6 +1,6 @@
 # チャット・履歴・承認付きツール
 
-確認日: 2026-10-08。`src/server/chat.ts`、`chat-store.ts`、`agent-tools.ts`が実装の正本。通常CIは外部AIを呼ばず、Workers内でD1とSDK経路を検証する。
+`src/server/chat.ts`、`chat-store.ts`、`agent-tools.ts`が実装の正本。通常CIは外部AIを呼ばず、Workers内でD1とSDK経路を検証する。
 
 ## データと権限
 
@@ -28,9 +28,9 @@
 
 自動モデルretryは0回。通信断・中断・deadline後も上流処理や課金が止まる保証はない。プロバイダー側の予算・請求上限も設定する。日次回数は金額上限ではなく、toolモードの1要求には最大3回のモデル呼出しが含まれる。
 
-SSEは`start`→`delta`→`finish`。失敗時は固定の`error`コードを送り、途中本文をfailed/cancelledで保存する。履歴保存に失敗した場合は完了表示せず`history_save_failed`とし、残った予約は期限後に回復する。SDK例外、入力、認証情報はログへ出さない。ページ再読込によるストリーム途中からの再開は対象外。
+SSEは`start`→（RAG有効時は`sources`）→`delta`→`finish`。失敗時は固定の`error`コードを送り、途中本文をfailed/cancelledで保存する。履歴保存に失敗した場合は完了表示せず`history_save_failed`とし、残った予約は期限後に回復する。SDK例外、入力、認証情報はログへ出さない。ページ再読込によるストリーム途中からの再開は対象外。
 
-## 要求台帳と再送（2026-10-08、複製先private-rag-chatから逆輸入）
+## 要求台帳と再送
 
 通信断やストリーム中断の後に同じ入力を再送して二重に推論・課金しないよう、要求ごとの台帳と失敗分類を持つ。管理場所は`migrations/0015_chat_reliability.sql`、`src/lib/reliability.ts`、`src/components/request-recovery.ts`。
 

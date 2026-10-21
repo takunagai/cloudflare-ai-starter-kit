@@ -1,5 +1,7 @@
 # main取り込み前の最終レビューと次の用途
 
+> 履歴記録。当時の状態と判断を残したもので、現在の仕様・許可ではない。現在の状態は[current-state.md](../current-state.md)、現行の文書は[文書の索引](../README.md)から辿る。
+
 確認日: 2026-09-29（JST）。作成時は未承認の具体案でしたが、同日、本人がPR #2/#3の通常merge・PR #3の必要なbase変更・main同期/検査を明示承認しました。追加配備・実AI再開は含みません。全工程の現在地は[進捗](plan.md)、費用は[使用量・請求確認](実AI検証-使用量と請求確認.md)を正本とします。
 
 ## 取り込みの実行記録
@@ -13,13 +15,13 @@
 | 取り込み完了時のmain | `061b0ba20d2f00091b32627fe2e49eae2023b898`。親はPR #2実mainとPR #3確認済みhead。全履歴とレビュー済み仮マージのtreeを保持 |
 | 手元同期 | HEAD/main・origin/main・GitHub先端の一致、作業ツリーcleanを確認 |
 
-- 最終PR headの[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36506469827): completed・success。
-- mainをbaseとする同じheadの[PR CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36506474162): completed・success。
-- 実merge先端の[main CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36506852047): completed・success。上記SHAとCIは取り込み完了時の版の証拠で、後続の文書更新headのCIは別確認します。
+- 最終PR headの[push CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36506469827): completed・success。
+- mainをbaseとする同じheadの[PR CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36506474162): completed・success。
+- 実merge先端の[main CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36506852047): completed・success。上記SHAとCIは取り込み完了時の版の証拠で、後続の文書更新headのCIは別確認します。
 
 実mainの全32コミット・本文/メッセージ・PRタイトル/本文・生成情報の検査は未解決候補0件、生成情報3コミットは既存許可に一致。API先端・親・tree・生成作者、匿名ローカルidentity、全index・保護フック有効、相対リンク235件/アンカー44件の欠落0件も確認しました。private・両既存ブランチを保持しています。これは検査対象の結果で、未知の非公開情報の不存在保証ではありません。
 
-PR #2だけを取り込んだ中間mainの[CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36505841198)は最後のauditで失敗し、install・check・local migration・HTTP smokeは成功しました。CI生ログは取得せず、具体的な指摘は未確認です。中間lockfileのundiciは7.29.0、PR #3には2依存元だけの7.29.1修正が含まれます。中間の失敗は保持し、取り込み完了は新baseのPR CIと最終main CIの成功を根拠にしています。
+PR #2だけを取り込んだ中間mainの[CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36505841198)は最後のauditで失敗し、install・check・local migration・HTTP smokeは成功しました。CI生ログは取得せず、具体的な指摘は未確認です。中間lockfileのundiciは7.29.0、PR #3には2依存元だけの7.29.1修正が含まれます。中間の失敗は保持し、取り込み完了は新baseのPR CIと最終main CIの成功を根拠にしています。
 
 追加配備・実AI再開は行っていません。費用内訳・確定請求は未確定のまま、用途別の接続は未選択です。以下の対象表と「未実行」の手順見出しは取り込み前のレビュー時点の記録で、現在状態ではありません。
 
@@ -28,8 +30,8 @@ PR #2だけを取り込んだ中間mainの[CI](https://github.com/takunagai/clou
 | 対象 | 現在の状態・差分 |
 | --- | --- |
 | main | `4f091e3698034305a77f7782d58b80559938eef9`。PR #1 merge済み |
-| [文書PR #2](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/2) | base main、head `10329cfd3e81af38b578f6ae549e75d43e472c17`。12文書、open・draft。初期計画とPR #1のmerge検査記録 |
-| [実装PR #3](https://github.com/takunagai/cloudflare-ai-starter-kit/pull/3) | base `codex/pr1-merge-verification`、headは`codex/workers-ai-verification-guards`。引き継ぎhead `f2f7847c117b16e40222042b2140202ef7be6ade`の32ファイルと、今回の文書整理をレビュー対象にする |
+| [文書PR #2](https://github.com/OWNER/cloudflare-ai-starter-kit/pull/2) | base main、head `10329cfd3e81af38b578f6ae549e75d43e472c17`。12文書、open・draft。初期計画とPR #1のmerge検査記録 |
+| [実装PR #3](https://github.com/OWNER/cloudflare-ai-starter-kit/pull/3) | base `codex/pr1-merge-verification`、headは`codex/workers-ai-verification-guards`。引き継ぎhead `f2f7847c117b16e40222042b2140202ef7be6ade`の32ファイルと、今回の文書整理をレビュー対象にする |
 | 実AI検証ソース | `7abc1696980c8d88e05452ad1ae370558a920553`。後続のundici更新は実配備していない |
 
 最終レビューでは、限定した検証制御を妨げる追加のコード不具合は見つかりませんでした。現在状態と旧計画が混在する文書、および複製後のstaging制約の説明を修正しました。費用は取得した事実と未確認項目を分けて記録しています。PR #2単独は当時の計画の保存であり、現在の完成版の説明としてはPR #3の更新まで併せて取り込む必要があります。PR #2のheadや本文は変更しません。
@@ -47,8 +49,8 @@ PR #2だけを取り込んだ中間mainの[CI](https://github.com/takunagai/clou
 
 ## 検証証拠と残る制約
 
-- 引き継ぎhead `f2f7847c`の[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36498907896)・[PR CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36498912029)は同じheadでcompleted・successを再取得して確認。固定install、check（201テスト/15ファイル）、local migration、HTTP smoke、auditが対象です。
-- PR #2のhead `10329cf`も[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386816438)・[PR CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36386821028)成功を現在のAPIで確認しました。
+- 引き継ぎhead `f2f7847c`の[push CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36498907896)・[PR CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36498912029)は同じheadでcompleted・successを再取得して確認。固定install、check（201テスト/15ファイル）、local migration、HTTP smoke、auditが対象です。
+- PR #2のhead `10329cf`も[push CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36386816438)・[PR CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36386821028)成功を現在のAPIで確認しました。
 - 引き継ぎの新規fetchではmain/#2/#3と両仮マージの全到達30コミットを現行検査実装で検査。本文・メッセージ・PRタイトル/本文・作者の未解決候補0件、生成情報3コミットは以前許可された同じ作者情報に一致。両PRのAPI先端・親・tree・生成作者との一致、匿名identityと共通フック有効も確認しました。後続pushの新しい検査は別に実施します。
 - 今回は文書変更のため、既に成功した全アプリテスト・build・実AI・実メールを理由なく再実行しません。lint・空白・リンク/アンカー・公開可否検査を行い、追加push後は最新headの両CIを確認します。上記runを追加commitの成功証拠へ流用しません。
 - 文書整理後のローカルlintは57ファイル成功、`git diff --check`成功。追跡文書と今回の新規文書36ファイルで相対リンク236件・アンカー44件の欠落0件を確認しました。これらは文書の検査で、最新ソースのクリーン複製や新しい実接続の証拠ではありません。

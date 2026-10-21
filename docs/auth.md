@@ -1,17 +1,15 @@
 # 認証の導入と検証
 
-2026-10-02・C-1: 導入は[local](presets/local.md)・[個人/社内](presets/internal.md)・[公開サービス](presets/public.md)から選びます。全用途の開発開始はlocal Better Auth、配備先の認証はinternal=Access、public=Better Authです。[公開5例/build境界](公開プリセットとbuild境界.md)に沿って必要項目を整理した文書更新で、実設定・許可対象・session期間は変更していません。非localの認証が未設定でもbuild/公開healthは起動し得ますが、認証や実アプリ利用の成功を示しません。実操作は[工程E前の停止条件](operations.md#工程e前の停止条件)の確定と別承認後です。
+導入先は[local](presets/local.md)・[個人/社内](presets/internal.md)・[公開サービス](presets/public.md)から選ぶ。開発開始はlocalのBetter Auth、配備先の認証はinternal=Access、public=Better Auth。必要項目は[公開5例/build境界](公開プリセットとbuild境界.md)に沿って整理する。非localの認証が未設定でもbuildと公開healthは起動し得るが、認証や実アプリ利用の成功を示さない。実接続の操作は[実接続前の停止条件](operations.md#実接続前の停止条件)の確定と別承認が先。
 
-標準は Better Auth のメール＋パスワード認証です。Google は追加設定した場合だけ有効になります。社内・個人用では `AUTH_MODE=access` に切り替えられます。いずれもアプリの会話・資料・ジョブ・契約の所有権チェックを省略しません。
-
-2026-10-02・B-3: 通常stagingの拡張一括404を各入口へ置き換え、OFFは認証前404、ONは認証・入力/所有権/状態の後に設定/台帳を検査します。決済webhookはsessionを要求せず署名を先に確認します。B-2で検証した両認証方式と回復境界を維持し、AI OFF・設定不備・旧台帳による生成拒否でも認証/session/logout/所有者の会話CRUDは継続します。認証方式・session期間・実Access設定は変更していません。[設定メモ](実AI検証制御-実装状況.md#2026-10-02-b-3のモデル選択と別入口統合)。
+標準は Better Auth のメール＋パスワード認証です。Google は追加設定した場合だけ有効になります。社内・個人用では `AUTH_MODE=access` に切り替えられます。いずれもアプリの会話・資料・ジョブ・契約の所有権チェックを省略しません。AI OFF・設定不備・旧台帳による生成拒否でも、認証・session・logout・所有者の会話CRUDは継続します。拡張の入口の判定は[実行時方針](runtime-policy.md)に従います。
 
 ## ローカルの標準起動
 
 `APP_ENV=local` かつ `APP_ORIGIN` が localhost / 127.0.0.1 / ::1 の完全な origin の場合だけ、公開された開発用ダミーsecretとメール確認省略を許可します。実Secret・実Google設定・実メール送信は不要です。パスワードは12〜128文字で、D1にハッシュとして保存されます。
 
 1. READMEの固定Node/pnpm環境と依存を用意します。
-2. ローカルD1にmigrationを適用します。プロジェクトのDB適用コマンドまたは `pnpm exec wrangler d1 migrations apply DB --local` を使います。`--remote` を付けないでください。
+2. ローカルD1にmigrationを適用します。`pnpm db:migrate:local`を使います。`--remote`は付けません。
 3. `pnpm dev` を起動し、ログイン画面でテスト用ユーザーを登録します。
 4. ログアウト、再ログイン、再読み込み後の履歴を確認します。`pnpm preview` の4173番も開発用の許可originに含みます。
 
@@ -34,7 +32,7 @@
 
 **採用provider:** Cloudflare Email Service（Email Sending、Public Beta）。`EMAIL.send({from,to,subject,html,text})` のadapterを実装済みです。認証URLをHTML属性用にescapeし、送り先や外部SDK例外をログへ出しません。
 
-本番または通常stagingへの導入は、対象・送信先/回数・費用・終了方法を別承認した後に次の順で行います。C-1の文書整備を設定変更の許可にせず、[工程E前](operations.md#工程e前の停止条件)で止まれます。現在、アプリの実メール設定・実送信は未実施です。
+本番または通常stagingへの導入は、対象・送信先/回数・費用・終了方法を別承認した後に次の順で行います。現在、アプリの実メール設定・実送信は未実施です。
 
 1. 対象ドメインをCloudflare DNSで管理し、Cloudflare Dashboard → Compute → Email Service → Email Sendingから送信ドメインをonboardします。DNS変更を伴うので、対象と変更内容の承認後に行います。
 2. 対象Wrangler環境に `send_email: [{ name: "EMAIL" }]` と非秘密設定 `EMAIL_FROM` を追加します。fromはonboard済みドメインの送信アドレスです。設定は必要な環境だけに追加します。
@@ -53,15 +51,46 @@ Googleの本物のアプリ・資格情報・callback疎通は通常CIでは検�
 
 ## Cloudflare Accessを選ぶ場合
 
-新しい通常staging/productionの利用者・保護範囲・session期間は未確定です。新環境の1時間は既存計画の推奨案、Better Authの7日/更新間隔1日は現行実装の値で、今回変更・適用していません。Accessの実ID/AUD/個別URLは本人管理とし、公開例では空欄です。Accessの通知/OTPはアプリメールとは別の実接続で、追加送信を自動で行いません。
-
-`AUTH_MODE=access`、`ACCESS_TEAM_DOMAIN=自分のteam.cloudflareaccess.com`、`ACCESS_AUD=対象AccessアプリのAUD` を設定します。team domainにURL scheme・pathは入れません。Access app/policyの作成や変更はここでは自動実行しません。
+`AUTH_MODE=access`、`ACCESS_TEAM_DOMAIN=自分のteam.cloudflareaccess.com`、`ACCESS_AUD=対象AccessアプリのAUD` を設定します。team domainにURL scheme・pathは入れません。Accessの実ID/AUD/個別URLは本人管理とし、公開例では空欄です。Access app/policyの作成や変更はアプリからは自動実行しません。Accessの通知/OTPはアプリメールとは別の経路で、追加送信を自動で行いません。
 
 アプリは `cf-access-jwt-assertion` をJOSEで検証します。RS256署名、固定teamのissuer、対象appのaudience、有効期限、発行時刻、not-before、subject、email、アプリ用tokenであることを確認します。公開鍵は設定したteamの `/cdn-cgi/access/certs` から取得し、期限付きでcacheします。メールを名乗るヘッダーだけでは認証しません。JWT検証不能・鍵取得失敗時も拒否します。
 
-IDは `access:example-team1.cloudflareaccess.com:subject`、Better Authは `better-auth:userId` に分けます。同じメールアドレスを理由に自動的に同一ユーザーへ統合しません。認証方式やAccess teamの変更時は所有権移行を明示的に設計してください。AccessモードではBetter Authのcookieや認証APIを受け付けません。
+IDは `access:example-team1.cloudflareaccess.com:subject`、Better Authは `better-auth:userId` に分けます。同じメールアドレスを理由に自動的に同一ユーザーへ統合しません。認証方式やAccess teamの変更時は所有権移行（利用者ID、会話・資料・ジョブ・契約の所有権、全session失効、復旧）を明示的に設計してください。AccessモードではBetter Authのcookieや認証APIを受け付けません。
 
-Accessの保護範囲は `/app` と保護対象APIに絞り、公開トップ/ヘルプ、Polar webhookを対話ログインで遮断しないように設定します。webhookは独立した署名検証で保護します。TanStack Startでは `ctx.access` 伝播に制約があるため、アプリは未検証のcontext情報に依存しません。Access logoutの導線はAccessの `/cdn-cgi/access/logout` を使い、アプリに残った利用者stateも消去します。
+Accessの保護範囲は用途で決めます。公開トップ/ヘルプやPolar webhookを持つ構成では、`/app` と保護対象APIに絞り、それらを対話ログインで遮断しないようにします。webhookは独立した署名検証で保護します。本人専用で公開ページを持たない環境は、Worker全体を保護してbypassを置かない構成にできます。TanStack Startでは `ctx.access` 伝播に制約があるため、アプリは未検証のcontext情報に依存しません。Access logoutの導線はAccessの `/cdn-cgi/access/logout` を使い、アプリに残った利用者stateも消去します。
+
+### 推奨する設定
+
+本人1名だけの個人・社内向けstagingで採用した方針です（2026-09-28〜29に確認した旧stagingの設定。そのWorker・Accessアプリは2026-10-19に削除済みで、新環境の設定は新たに確定します）。実メール・AUD・ホスト名・個別URLは記録しません。
+
+| 項目 | 方針 | 影響・理由 |
+| --- | --- | --- |
+| 保護対象 | 専用Worker全体（公開ページを持たない場合） | 全URL・API・静的ファイルでログイン必須 |
+| bypass | なし | トップ、ヘルプ、healthも保護される |
+| 許可条件 | 本人1名のメール完全一致、Allow | ドメイン全体やアカウントメンバー全員を許可しない |
+| セッション期間 | 1時間（推奨案） | 発行したセッションの期限で、無操作時間ではない。Better Authの7日/更新間隔1日とは別の設定 |
+| 認証方法 | ワンタイムPIN（OTP） | ログインのたびにメール送信を伴う |
+| IdPの固定 | なし（有効なIdPを利用） | IdPを追加したら影響を再確認する |
+| アプリ側の検証 | Access JWTの署名・issuer・audience | 外側のAccess保護だけに依存しない |
+| 公開入口 | Custom Domainのみ | `workers_dev=false`・`preview_urls=false`、通常routeなし |
+| データ | 専用のD1 | ローカル・productionから分離 |
+
+### 変更時の注意
+
+- 管理場所は、Cloudflare Dashboard → Workers & Pages → 対象Worker → Access（保護範囲）と、Zero Trust → Access → Applications（対象アプリ、セッション期間、ポリシー）。実メールは本人が管理画面で照合する。
+- 許可ポリシーは再利用できる。複数のアプリで共有している場合、条件の編集は関連アプリすべてへ影響する。
+- ログイン画面の組織表示名は組織内のAccessアプリで共通。表示名を変える目的で認証用のteam domainを変更しない。
+- Accessアプリを再作成するとAUDが変わる。手元の設定を更新し、再build・dry-run・配備後に、未認証の遮断と本人ログインを確認する。生成済みの設定へ`--env`を重ねない。
+- 新しい公開入口は、専用WorkerのAccess保護を確認してから追加する（[運用手順](operations.md)）。
+
+### OTPが届かない場合
+
+1. 許可ポリシーの本人メールと入力文字列・受信先を本人が照合します。
+2. 迷惑メール・隔離・受信拒否設定を確認します。OTP、メール本文、Cookieを会話やリポジトリへ貼りません。
+3. 再送を連打せず、最新コードを一度だけ送信します。使用済みと出た場合は、同じブラウザでアプリを開き、既にログインできていないか確認します。
+4. 解決しなければ[Cloudflareのメール未着手順](https://developers.cloudflare.com/support/troubleshooting/general-troubleshooting/not-receiving-cloudflare-emails/)を確認します。配送状態を確認せず送信抑止と断定しません。
+
+送信済み表示だけでは配送成功を証明できません。[公式OTP手順](https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/one-time-pin/)を参照してください。
 
 ## データとmigration
 
@@ -73,8 +102,8 @@ Drizzle adapterではD1が対応しないinteractive transactionを無効化し�
 
 ## 検証範囲
 
-`tests/auth.test.ts` はworkerd＋D1で登録・ログイン・ログアウト・失効・cookie属性・Origin拒否・永続rate limit・認証方式分離・メール確認・一度だけのパスワード再設定を検証します。`tests/auth-access.test.ts` は実RSA署名とJOSE検証を使い、署名/issuer/audience/期限/不正claims/鍵/方式を検証します。Access JWKS取得とメール配送だけをfake化します。
+`tests/auth.test.ts` はworkerd＋D1で登録・ログイン・ログアウト・失効・cookie属性・Origin拒否・永続rate limit・認証方式分離・メール確認・一度だけのパスワード再設定を検証します。`tests/auth-access.test.ts` は実RSA署名とJOSE検証を使い、署名/issuer/audience/期限/不正claims/鍵/方式を検証します。Access JWKS取得とメール配送だけをfake化します。`tests/auth-email.test.ts` は送信adapterをfake bindingで検証します。
 
-アプリの実メール配送、Google認証、新しい通常staging/productionのCloudflare Accessは未接続です。旧本人限定検証stagingでは過去のAccessログイン確認を実施済みですが、新環境の実Access/JWKS/OTP・公開サービスのメール確認には流用しません。ローカル/fakeのテスト合格を実疎通成功と読み替えないでください。[B-4までの証拠](archive/B4完了-次セッション開始プロンプト.md)と[C-1文書検証](archive/C1完了-次セッション開始プロンプト.md)を区別します。
+アプリの実メール配送、Google認証、通常staging/productionのCloudflare Accessの実疎通は、リポジトリ側では未確認です（複製先では個人・社内向けのAccess保護を実配備で確認済み。実績は複製先の文書で管理する）。ローカル/fakeのテスト合格を実疎通成功と読み替えないでください。
 
 一次資料: [Better Auth Email & Password](https://better-auth.com/docs/authentication/email-password)、[Drizzle adapter](https://better-auth.com/docs/adapters/drizzle)、[Security](https://better-auth.com/docs/reference/security)、[Rate Limit](https://better-auth.com/docs/concepts/rate-limit)、[Cloudflare Access JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)。確認日: 2026-09-27。

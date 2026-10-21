@@ -2,7 +2,7 @@
 
 # Workers・テスト・開発支援MCP: 事前調査
 
-確認日: 2026-09-27。公式資料・公開npmレジストリの直接取得に基づく。下記は調査時点の記録。第1段階ではVite/Cloudflare/Vitest等の候補版を実際に固定・検証した。結果は [検証記録](../docs/phase1-verification.md)。
+確認日: 2026-09-27。公式資料・公開npmレジストリの直接取得に基づく。下記は調査時点の記録。第1段階ではVite/Cloudflare/Vitest等の候補版を実際に固定・検証した。結果は [検証記録](../docs/archive/phase1-verification.md)。
 
 ## 公式の事実
 

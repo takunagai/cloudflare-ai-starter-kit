@@ -20,7 +20,7 @@ AI Searchの現行料金にはmanaged storage/vector indexing/crawlingの項目�
 
 ## 再現性
 
-以下の初期候補から、第1段階ではNode 26.10.0 / pnpm 12.6.0 / Tailwind 4.3.3 / Zod 4.6.5を固定して実行確認した。グローバル環境は変更していない。CVA / clsx / tailwind-mergeは第2段階の共有UIで必要になった時点で導入する。最新の運用手順は [運用文書](../docs/operations.md)、結果は [検証記録](../docs/phase1-verification.md)。
+以下の初期候補から、第1段階ではNode 26.10.0 / pnpm 12.6.0 / Tailwind 4.3.3 / Zod 4.6.5を固定して実行確認した。グローバル環境は変更していない。CVA / clsx / tailwind-mergeは第2段階の共有UIで必要になった時点で導入する。最新の運用手順は [運用文書](../docs/operations.md)、結果は [検証記録](../docs/archive/phase1-verification.md)。
 
 - ユーザー指定のNode.js 26.xを採用。[公式リリース](https://nodejs.org/en/blog/release/v26.10.0)で26.10.0 Currentを確認。LTSとは記載しない。ローカル現状26.5.1との差を解消し、プロジェクト/CIで同じ版に固定する案。
 - pnpmは公開registry latest 12.6.0を確認。ローカル現状は11.21.0。採用候補を12.6.0として `packageManager` とlockfileに固定する。グローバル設定を無断変更しない。

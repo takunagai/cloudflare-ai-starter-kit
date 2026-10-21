@@ -1,16 +1,16 @@
 # 合意済み構成と受け入れ条件
 
-整理日: 2026-10-07。合意した仕様の参照先。実装・検証・許可の現在地は[current-state.md](current-state.md)、過去の追記と変更理由は[旧版](archive/architecture-history.md)に分離した。状態報告は本書へ重複追記しない。
+整理日: 2026-10-21。合意した仕様の参照先。実装・検証・許可の現在地は[current-state.md](current-state.md)、過去の追記と変更理由は[旧版](archive/architecture-history.md)に分離した。状態報告は本書へ重複追記しない。
 
 ## 次期整備方針の合意（2026-09-29）
 
 1つの共通スターターと、ローカル試作・個人/社内利用・公開サービスの3つの導入入口を採用する。用途、環境、AI接続、任意拡張は独立に選ぶ。3用途を順番に移行する必要はない。対話式セットアップと認証方式間のID/所有権/session移行は初版に含めない。
 
-通常stagingは旧検証環境と別Worker/DBにする。AI_MODE（OFF/固定応答/選択モデル）と許可モデルをサーバーで確認し、資格情報だけでは実AIを有効化しない。旧検証モードは2026-10-19に廃止した。`STAGING_POLICY=standard`を明示しないstagingは閉じ、旧台帳に行があるD1を通常stagingに再利用しない。認証・logout・所有者の履歴参照/削除を生成設定の不備で妨げない。[用途別計画](用途別プリセット-開発計画.md)と[公開設定/build境界](公開プリセットとbuild境界.md)を正本とする。
+通常stagingは専用のWorker/DBにする。AI_MODE（OFF/固定応答/選択モデル）と許可モデルをサーバーで確認し、資格情報だけでは実AIを有効化しない。旧検証モードは2026-10-19に廃止した。`STAGING_POLICY=standard`を明示しないstagingは閉じ、旧台帳に行があるD1を通常stagingに再利用しない。認証・logout・所有者の履歴参照/削除を生成設定の不備で妨げない。[実行時方針](runtime-policy.md)と[公開設定/build境界](公開プリセットとbuild境界.md)を正本とする。
 
-TypeSafe AI Jevは標準の判断基盤。Choice/Score/Noul、分類APIと利用画面をチャットから独立して扱い、RAG/agentを前提にしない。既定OFF、接続時は固定版モデルとサーバー側Secretを要求する。認証・所有権・副作用承認をモデルへ委譲せず、unknownの消費/同時枠を自動解放しない。数値、台帳保持、未確認の上流条件は[Jev契約](Jev-B3J-実装前契約.md)を参照する。
+TypeSafe AI Jevは任意拡張（2026-10-21に本人が決定）。Choice/Score/Noul、分類APIと利用画面をチャットから独立して扱い、RAG/agentを前提にしない。既定OFF（`JEV_MODE=off`）、接続時は固定版モデルとサーバー側Secretを要求する。認証・所有権・副作用承認をモデルへ委譲せず、unknownの消費/同時枠を自動解放しない。数値、台帳保持、未確認の上流条件は[Jev契約](Jev-B3J-実装前契約.md)を参照する。
 
-falは従来の画像サンプルに加え、[画像・動画・音声の初版設計](fal-画像動画音声-初版設計.md)と[M-0の設定契約](fal-メディア-M0差分設計.md)を採用する。専用private R2と通常Workerの限定素材取得経路を使う。参照画像7日・生成物30日・所有者1 GiB/環境10 GiB、ジョブ本文終端30日・本文なし台帳終端90日と、unknown保持の補足を維持する。Directorは対象外。通常生成の解放にはM-0の実確認が必要で、ローカル成功だけで解放しない。
+falは従来の画像サンプルに加え、[画像・動画・音声の初版設計](fal-画像動画音声-初版設計.md)と[M-0の設定契約](fal-メディア-M0差分設計.md)を採用する。専用private R2と通常Workerの限定素材取得経路を使う。参照画像7日・生成物30日・所有者1 GiB/環境10 GiB、ジョブ本文終端30日・本文なし台帳終端90日と、unknown保持の補足を維持する。Directorは対象外。媒体ごとの実上流の確認（`MEDIA_VERIFIED_*_MODELS`）が通常生成の解放条件で、ローカル成功だけで解放しない。mediaも任意拡張で、既定OFF。
 
 ## 採用構成と固定版
 
@@ -18,17 +18,17 @@ falは従来の画像サンプルに加え、[画像・動画・音声の初版�
 
 | 層 | 推奨案 | 目的・代替案・留保 |
 | --- | --- | --- |
-| 開発環境 | Node.js 26.10.0 / pnpm 12.6.0 | インストール・ローカル検証済み。グローバル環境は変更せず一時toolchainを使用 |
-| Web | React 19.3.0 + TanStack Start 1.168.58 / Router 1.170.39 | strict peer解決・SSR・prerender・ブラウザ通信を確認。公式RC表記を了承して採用。基本機能に絞る |
-| ビルド | Vite 8.3.1 / CF Vite plugin 1.60.2 / Wrangler 4.141.0 | 開発・previewのWorker処理をworkerdで実行 |
-| 品質 | TypeScript 7.0.2 / Biome 2.5.14 / Vitest 4.1.11 / CF Vitest plugin 1.2.8 | 版は採用時点の値。2026-10-19にVitest 5.0.5・CF Vitest plugin 1.4.4へ更新した（[記録](../references/vitest5-20261019.md)） |
-| UI / 入力 | Tailwind CSS 4.3.3 / Zod 4.6.5 | 導入済み。CVA / clsx / tailwind-mergeは現行UIで不要なため未採用 |
-| 認証・DB | Better Auth 1.7.6 + D1 + Drizzle ORM 0.45.3（migrationは明示SQL）。社内・個人用はCloudflare Accessも選択可能 | Better Authはメール＋パスワード標準、Google追加可能。認証方式によらず会話・ジョブ・契約権限の所有権をアプリで確認 |
+| 開発環境 | Node.js 26.10.0 / pnpm 12.6.0 | グローバル環境は変更せず、`.node-version`と`package.json`の`engines`を正本とする |
+| Web | React + TanStack Start / Router | strict peer解決・SSR・prerender・ブラウザ通信を確認。公式RC表記を了承して採用。基本機能に絞る |
+| ビルド | Vite / Cloudflare Vite plugin / Wrangler | 開発・previewのWorker処理をworkerdで実行 |
+| 品質 | TypeScript / Biome / Vitest / Cloudflare Vitest plugin | Vitestはpluginのpeerに合わせる |
+| UI / 入力 | Tailwind CSS / Zod | CVA / clsx / tailwind-mergeは現行UIで不要なため未採用 |
+| 認証・DB | Better Auth + D1 + Drizzle ORM（migrationは明示SQL）。社内・個人用はCloudflare Accessも選択可能 | Better Authはメール＋パスワード標準、Google追加可能。認証方式によらず会話・ジョブ・契約権限の所有権をアプリで確認 |
 | モデル | AI SDK 7 + 各provider | 選択境界だけ共通化。設定済みかつ許可したモデルのみ実行 |
 | 永続チャット | D1の会話・メッセージテーブル | HTTP streamingと履歴保存を標準にする。DO/AIChatAgentによるストリーム再開は今回の標準要件に含めない提案 |
 | 可観測性 | Workers Logs + 最小限の構造化ログ | 会話本文・個人情報・秘密値を不要に保存しない。Traces等のBeta機能はコア必須にしない |
 
-依存の正本は`package.json`と`pnpm-lock.yaml`。直接依存をexact version、推移依存をlockfileで固定する。compatibility_dateは対応workerdとの整合を確認して更新する。過去の検証は[第2段階の記録](phase2-verification.md)、直近の対象版と未配備差分は[current-state.md](current-state.md)を参照する。
+固定版の正本は`package.json`と`pnpm-lock.yaml`（この表に版を重ねて書かない）。直接依存をexact version、推移依存をlockfileで固定する。compatibility_dateは対応workerdとの整合を確認して更新する。過去の検証は[第2段階の記録](archive/phase2-verification.md)、直近の対象版と未配備差分は[current-state.md](current-state.md)を参照する。
 
 ## フロントエンドの決定
 
@@ -40,7 +40,7 @@ falは従来の画像サンプルに加え、[画像・動画・音声の初版�
 
 ## 第1段階の実装と完了証拠
 
-開発基盤の受け入れ条件は、固定依存、型/lint、workerd API、SSR/prerender、build/previewとHTTP smoke、環境別の運用手順。過去の検証版は[第2段階の検証記録](phase2-verification.md)と[構成資料の旧版](archive/architecture-history.md#第1段階の実装と完了証拠)で確認する。現在の進捗は[current-state.md](current-state.md)で管理する。
+開発基盤の受け入れ条件は、固定依存、型/lint、workerd API、SSR/prerender、build/previewとHTTP smoke、環境別の運用手順。過去の検証版は[第2段階の検証記録](archive/phase2-verification.md)と[構成資料の旧版](archive/architecture-history.md#第1段階の実装と完了証拠)で確認する。現在の進捗は[current-state.md](current-state.md)で管理する。
 
 ## 第2段階: 標準機能の受け入れ条件
 

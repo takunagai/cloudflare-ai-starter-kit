@@ -1,6 +1,6 @@
 # 失敗時の診断と次の確認
 
-確認日: 2026-10-07。既存の実装・合成試験を参照した運用設計。新しい実接続や再試行を許可するものではない。
+既存の実装・合成試験を参照した運用設計。新しい実接続や再試行を許可するものではない。
 
 ## 最初にすること
 
@@ -12,7 +12,7 @@
 
 ## 画像の回収拒否
 
-[image-driver.ts](../src/server/media/image-driver.ts)は回収結果を受け入れないとき、下表の固定分類（`MediaInvalidReason`）を返す。対応する試験は[回収試験](../tests/media-image-driver.test.ts)。分類を利用者へ返していたのは工程Eの専用経路`/api/media-probe`だけで、2026-10-19にその経路を撤去した。通常の`/api/media`はジョブを`invalid`で終端させるだけで、分類を返さない。分類を通常経路で使う場合は、所有者だけに返す形で別途設計する。
+[image-driver.ts](../src/server/media/image-driver.ts)は回収結果を受け入れないとき、下表の固定分類を返す（型`MediaInvalidReason`は[service.ts](../src/server/media/service.ts)で定義）。対応する試験は[回収試験](../tests/media-image-driver.test.ts)。分類を利用者へ返していたのは工程Eの専用経路`/api/media-probe`だけで、2026-10-19にその経路を撤去した。通常の`/api/media`はジョブを`invalid`で終端させるだけで、分類をどこにも保存せず返さない。分類を通常経路で使う場合は、所有者だけに返す形で別途設計する。
 
 | 固定分類 | 分かること | 次に担当エージェントが確認すること |
 | --- | --- | --- |
@@ -21,24 +21,19 @@
 | `url_policy` | 取得先が許可条件に合わない | 公開仕様の配信元とURL検証条件。実URLを記録せず、ダミーURLで境界を検証する |
 | `duplicate_url` | 同じ取得先が複数含まれる | 配列の重複をダミーで再現し、上流仕様との対応を確認する |
 | `image_bytes` | 実画像が受入条件に合わない | 形式・実寸法・透過・容量の判定を合成画像で確認する。特定の条件が原因だったとは断定しない |
-| `null`で終端が`invalid` | 古い版などで理由が残っていない | 配備版とmigrationの証拠を照合する。今回の原因を推測で補わない |
 
 ## 短期token・自然期限の観測（工程E、撤去済み）
 
-工程Eの専用経路は`evidence[].diagnostic_reason`に下表の分類を保存していた。2026-10-19に専用経路と診断コードを撤去したため、新しい観測は行われない。撤去前の実装はコミット`a719d99`の`src/server/media/probe-diagnostics.ts`、保存制約は[0014](../migrations/0014_media_probe_observation_reason.sql)にある。tableは[0016](../migrations/0016_drop_media_probe.sql)で外した。実値や生レスポンスを追加取得して説明しない。
+工程Eの専用経路は、観測の失敗を固定分類（所有者取得不能、期限後も取得可、通信・DB等の観測失敗など8種）で保存していた。2026-10-19に専用経路と診断コードを撤去し、新しい観測は行われない。撤去前の実装はコミット`a719d99`の`src/server/media/probe-diagnostics.ts`、保存制約は[0014](../migrations/0014_media_probe_observation_reason.sql)にあり、tableは[0016](../migrations/0016_drop_media_probe.sql)で外した。工程EのWorker・D1も同日に削除済みで、過去runの個別HTTP状態は残っていないため、過去の原因は復元できない。分類の一覧と当時の判断は[工程Eの記録](archive/工程E-制御実装と隔離検証.md)を参照する。
 
-| 固定分類 | 分かること | 次に確認すること |
-| --- | --- | --- |
-| `initial_owner_unreadable` | 期限前の所有者取得を確認できない | token応答の形式、有効期限の解釈、ACLと取得処理のダミー試験 |
-| `fresh_token_unreadable` | 新tokenでも正常取得を確認できない | 期限切れ試験の比較対象が成立していない。新token側と通信失敗を先に切り分ける |
-| `expired_token_readable` | 期限後の旧tokenで取得できた | 有効期限の解釈と観測時刻。期限後拒否の成功と扱わない |
-| `expired_token_other` | 期限後応答が想定する拒否でも正常取得でもない | リダイレクトや他の応答の扱いをダミーで再現する |
-| `owner_token_denied` | 自然期限の確認で所有者認証が拒否された | 認証拒否とファイル消去を分ける。消去成功とは判断しない |
-| `media_still_readable` | 自然期限の観測時に取得できた | 保持条件と起算時刻を確認する。実際の消去時刻は断定しない |
-| `other_response` | 自然期限の確認が既知の分類に合わない | 固定分類を追加する必要性を検討し、合成試験で区別する |
-| `observation_error` | 通信・中断・上限・DB等を含む観測処理の失敗 | 既存の回数/状態と実行経路を照合する。この分類だけで通信失敗と断定しない |
+## 既知の非致命的な警告
 
-過去runの個別HTTP状態は残っていない。工程EのWorker・D1は2026-10-19に削除済みで、過去の原因は復元できない。
+build・テストの出力に次の警告が出ても、失敗の原因とは限らない。出たときは、失敗したassertionやエラーと分けて扱う。警告を一律に抑制しない。
+
+- TanStack route生成（`tsr generate`）で、依存内の循環参照に関する`replaceRouteChunk`警告が出る。生成・型検査・build・ブラウザ動作は成功する。依存更新時に再確認する。
+- 環境別buildのprerender時に、展開済み設定に`staging`/`production`の節がない旨の警告が出る。Worker名が意図した環境のものか、dry-runが成功するかで確認する。生成設定を手編集して警告を隠さない。
+- 一部のSDK配布物でsourcemapの元ファイルが同梱されていない旨の警告が出る（OpenRouterなど）。テストの失敗ではない。
+- Workflowsの失敗系テストでは、ローカルruntimeが`WorkflowTimeoutError`、固定のtest failure、`SUMMARY_WORKFLOW_FAILED`のstackを出す。期待どおりの失敗経路で、実入力や秘密は使わない。
 
 ## 次に診断を実装するときの条件
 

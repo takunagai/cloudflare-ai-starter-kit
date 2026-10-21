@@ -1,70 +1,43 @@
 # 現在地と次の作業
 
-更新日: 2026-10-19。再開時の入口はこの文書。実クラウドの最終確認は2026-10-06で、今回再照会していない。2026-10-08にCodexからClaude Codeへ担当を引き継いだ。ローカルD1は0016まで適用済み（2026-10-21）。
+確認日: 2026-10-21（コードと文書の突合）。再開時の入口はこの文書。実クラウドの最終確認は2026-10-06で、再照会していない。担当は2026-10-08にCodexからClaude Codeへ移った。ローカルD1は0016まで適用済み（2026-10-21）、実D1には未適用。
+
+現在地は追記で積み重ねず、該当する行を更新する。履歴の許可待ち・未実施は当時の状態であり、現在の判断に使わない。GitのHEADや差分、テスト件数は必要時に実Gitと実行結果で確認する。文書の一覧は[docs の索引](README.md)。
 
 ## 成果物と残件
 
 | 対象 | 確認済みの範囲 | 残件・制約 |
 | --- | --- | --- |
-| 共通スターター | 認証・モデル切替・チャット・履歴、Jevの判断API/画面、用途別の導入例を実装。D-2の当該版で複製を検証 | 全providerの実接続を完了した意味ではない |
-| 任意拡張 | RAG・agent・Workflows・Polar・fal、メディア12モデルと素材/ジョブ管理を実装。M-5の当該版で統合/隔離複製を検証 | 実モデルの一律検証・通常生成の解放は未完了 |
-| 工程Eの限定fal接続 | 10月6日の1要求で画像のprivate保存、本人品質、ACL/匿名拒否を確認。終了処理も完了 | 短期token・自然期限はunknown、M-0条件未達。最終費用・上流消去完了は未確定。2026-10-19に工程Eの新旧Worker・D1・R2・Accessを本人判断で全削除し、最小台帳も失われた（[削除の記録](工程E-制御実装と隔離検証.md#2026-10-19-工程eの資源を削除)）。以後の照合はfal側の画面・請求明細だけで行う。同日に専用経路のコードも撤去した（コード構成の行を参照） |
-| 失敗理由の診断 | 回収拒否と観測不明の固定分類を追加し、関連ローカル試験済み | 0014と診断修正は未配備。過去runの原因を後から確定できない。2026-10-19に工程Eの専用経路を撤去し、観測分類の記録は止まった。回収拒否の分類はimage-driverに残るが、APIでは返さない（[診断手順](diagnostics.md)） |
-| 最初の用途別複製 | 別プロジェクトへ複製し、本人1名・Access保護の通常stagingで実配備と受入まで完了（複製先の記録）。踏んだ注意点を[運用手順](operations.md#複製先の実配備で確認した注意点)へ、確認項目を[公開前チェック](launch-checklist.md)へ反映 | 複製先固有の機能・運用状態は複製先自身の文書で管理する。公開向け（Better Auth＋実メール）の実績はない |
-| 複製先からの逆輸入 | private-rag-chat（2026-10-06複製、Ver.0.1運用中）の差分を分類。Wave 1（CIシェル修正、source-map-js/sharpのoverride、画像fixtureのbeforeAll）と Wave 2（チャット要求台帳・復旧: 0015で`inference_started`/`failure_code`、`GET /api/chat/requests/:id`、ブラウザの要求ID記録と再送抑止、`api()`の失敗分類）を取り込み、check・audit 0件・preview smokeを確認。復旧UIはdevのブラウザで、成功後の応答消失（再読込→確認カード→台帳照合→履歴復元）と推論前失敗（照合→「入力を再開」→記録消去→送信可能）の2経路を実測し、その際に見つけた受付記録APIの振り分け漏れを修正。通常stagingの`/help`をSSRにする`prerenderHelpFor`も採用。設計は[チャット設計](chat.md#要求台帳と再送2026-10-08複製先private-rag-chatから逆輸入)、根拠は[CI依存](../references/ci-dependencies-20261008.md) | RAG専用（rag-*、trial台帳、rag_sync、索引UI）は逆輸入しない。0015は実環境に未配備。複製先の`src/server/api.ts`にも同じ振り分け漏れがある見込みで、複製先のセッションで確認が要る |
-| コード構成 | 共通の実行時ガードを`runtime-guards.ts`へ分離（2026-10-09、動作変更なし）。2026-10-19に旧検証モードを廃止し、`ai-verification.ts`と`/api/ai-verification`を削除。system promptは`chat-prompt.ts`、環境型は`RuntimeEnv`へ統一。`STAGING_POLICY`省略のstagingは503 `missing_staging_policy`で閉じる。check（45ファイル885件）・preview smoke済み。記録は[廃止の記録](実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)。同日、工程Eの専用経路（`/api/media-probe`、`/media-probe`画面とナビ、`ENABLE_MEDIA_PROBE`、Access JWTの寿命上限引数、専用の準備script・試験の計14ファイル）を撤去し、通常のmedia経路から工程Eの台帳参照を外した。migration 0011・0012・0014と`scripts/d1-wire.ts`は残し、tableとtriggerは0016で外した（2026-10-21にローカルD1へ適用。実D1へは未適用） | 工程E撤去は`547f0d4`でcommit（未push）。撤去前の実装は`a719d99`にある。旧検証モード廃止は`17470cb`でcommit・CI成功。2026-10-19に旧検証staging Workerを閉鎖版で再配備（[作業ログ](staging-work-log.md#2026-10-19-0830-jst-旧検証stagingを閉鎖版で再配備)）。Access認証後の動作を本人が確認した後、同日に旧stagingのWorker・D1・Accessアプリ/policyと手元の管理外設定、`staging-local` build modeを削除した（[作業ログ](staging-work-log.md#2026-10-19-旧stagingを削除)）。工程Eの資源も同日に削除した（工程Eの行を参照）。複製先とのファイル差分が増える。複製先へは同期しない |
-| 依存 | 2026-10-18にaudit critical 2件（TanStack Startの反射型XSS、GHSA-qx66-fv34-fjm8）を受け、メジャー更新を除く直接依存を更新し、効いていないoverride 3件を削除。audit 0件、check（47ファイル929件）、preview smokeを確認。根拠は[依存更新の記録](../references/dependency-update-20261018.md) | commit・GitHub CI確認済み、未配備。vitest 5、@polar-sh/sdk 1.0、`compatibility_date`は見送り。同じ版を使う複製先は未修正の見込み。2026-10-19に`compatibility_date`を2026-10-12へ更新（check・smoke済み、[記録](../references/compatibility-date-20261019.md)）。同日にvitestを5.0.5へ更新（check・smoke済み、[記録](../references/vitest5-20261019.md)）、@polar-sh/sdkを1.0.2へ更新（check・smoke済み、実Polar未接続、[記録](../references/polar-sdk1-20261019.md)） |
-| 文書配置 | 2026-10-18に役目を終えた文書を[docs/archive/](archive/README.md)へ、工程Eの操作scriptを`scripts/archive/e/`へ移し、相対リンクを張り替えた（リンク切れ0件）。完了済みのhandover 2本は、複製先のVaultアーカイブに同一原文があることを確認してtrashした | `docs/plan.md`は被参照が多いため移動していない |
+| 共通スターター | 認証（Better Auth・Access）、モデル切替、チャット、履歴、要求台帳と再送、用途別の導入例5つ。別名・空DBへの複製で固定install・check・dev/preview・画面を検証済み（版ごと） | 全providerの実接続を完了した意味ではない |
+| 任意拡張 | RAG・agent・Workflows・Polar・旧画像・メディア12モデル（素材/ジョブ管理）・Jev（型付き判断）を実装し、すべて既定OFF。ナビは`/api/session`の`features`でONのものだけ表示。ローカル/fakeで検証 | 実モデルの一律検証と通常生成の解放は未完了（`MEDIA_VERIFIED_*_MODELS`は既定で空）。ON時のナビ表示・拡張パネルの各タブ・素材/履歴のある一覧はブラウザで未確認（型検査・試験のみ） |
+| 旧検証モードと旧staging | 旧検証モード（固定30分・総3回・指定FP8）は2026-10-19に廃止（`17470cb`）。`STAGING_POLICY`を省略したstagingは503 `missing_staging_policy`で全経路を閉じる。旧stagingのWorker・D1・Accessアプリと`staging-local` build modeは同日に削除。通常stagingの台帳存在検査は残した（[実行時方針](runtime-policy.md)） | 経緯は[廃止の記録](archive/実AI検証制御-実装状況.md#2026-10-19-旧検証モードの廃止)と[作業ログ](archive/staging-work-log.md#2026-10-19-旧stagingを削除) |
+| 工程Eの限定fal接続 | 2026-10-06の1要求で画像のprivate保存、本人品質、ACL/匿名拒否を確認し、終了処理も完了。2026-10-19に工程Eの専用経路（`/api/media-probe`、画面、`ENABLE_MEDIA_PROBE`等の14ファイル）を撤去（`547f0d4`）し、新旧のWorker・D1・R2・Accessを本人判断で全削除。migration 0011・0012・0014は残し、tableとtriggerは0016で外した | 短期token・自然期限はunknown、M-0条件は未達。最終費用・上流消去の完了は未確定で、以後の照合はfal側の画面・請求明細だけで行う。再実行する場合は撤去前の実装（`a719d99`）を参照して実装し直す（[削除の記録](archive/工程E-制御実装と隔離検証.md#2026-10-19-工程eの資源を削除)） |
+| 失敗理由の診断 | 画像回収拒否の固定分類（5種）が`image-driver.ts`に残る（[診断手順](diagnostics.md)） | 分類はAPIで返さず保存もしない。過去runの原因は後から確定できない |
+| 最初の用途別複製 | 別プロジェクトへ複製し、本人1名・Access保護の通常stagingで実配備と受入まで完了（複製先の記録）。踏んだ注意点を[運用手順](operations.md#複製先の実配備で確認した注意点)、確認項目を[公開前チェック](launch-checklist.md)へ反映 | 複製先固有の機能・運用状態は複製先自身の文書で管理する。公開向け（Better Auth＋実メール）の実績はない |
+| 複製先からの逆輸入 | 複製先の差分を分類し、Wave 1（CIシェル修正、overrides、画像fixture）とWave 2（チャット要求台帳・復旧: migration 0015、`GET /api/chat/requests/:id`、ブラウザの要求ID記録と再送抑止、`api()`の失敗分類）、通常stagingの`/help`SSRを取り込み済み。設計は[チャット設計](chat.md#要求台帳と再送) | RAG専用（rag-*、trial台帳、rag_sync、索引UI）は逆輸入しない。0015は実環境に未配備。工程E撤去により複製先とのファイル差分が増えるが、複製先へは同期しない |
+| 依存・設定 | audit 0件。TanStack Startの反射型XSS（GHSA-qx66-fv34-fjm8）への対応、`compatibility_date`（2026-10-12）、Vitest 5.0.5、`@polar-sh/sdk` 1.0.2へ更新済み。根拠は[依存更新](../references/dependency-update-20261018.md)・[compatibility_date](../references/compatibility-date-20261019.md)・[Vitest 5](../references/vitest5-20261019.md)・[Polar SDK 1.0](../references/polar-sdk1-20261019.md) | 更新後の版は未配備。実Polarは未接続。同じ版を使う複製先は未修正の見込み |
+| コード構成 | 実行時ガードを`runtime-guards.ts`へ分離。拡張ゲートを`app-api.ts`の`EXTENSION_GATES`表へ集約し、会話・agentのhandlerを別ファイル化。`chat.ts`は拡張をimportしない。UIの大きいファイル（拡張パネル・チャット・media）を部品へ分割 | 配置は[AGENTS.md](../AGENTS.md#ファイル配置)を参照 |
+| 文書構成 | 2026-10-21に全文書を実装と突合し、仕様・手順・履歴に分けて再編。履歴は[archive](archive/README.md)、新設は[runtime-policy.md](runtime-policy.md)と[docs の索引](README.md) | 複製先の文書は対象外 |
 
-## 今回の改善と有効な許可
+## 有効な許可と担当
 
-本人の2026-10-07「推奨の順序で進めて」に基づき、通常作業の終了条件、文書の分離、許可の再利用、質問/次の行動の案内、ソース名の誤検知、失敗時の診断手順を改善し、文書確認と保護フックの回帰検証を完了した。今回の変更は対象ごとのリポジトリで管理する。通常の実作業での時間短縮と応答品質の評価は残る。
-
-クラウド変更、実AI/メール/決済、実Secret、旧runの再実行/枠復活、commit/pushは今回の改善範囲に含めない。以前の固定時刻・回数付きの実行許可は完了済みで、新しい実行へ流用しない。
-
-共通のモデル設定は変更しない。Codex担当時の主な利用モデルは本人報告でGPT-6.1 Sol、高〜極高。2026-10-08以降はClaude Codeが担当する。今回の改善による時間短縮は実運用で評価し、設定ファイルや文書の変更だけで実証済みにしない。
+継続して有効な実行許可はない。クラウド変更、実AI/メール/決済、実Secret、公開範囲の変更、commit/pushは、そのつど対象・影響・費用を具体化して本人が許可する。以前の固定時刻・回数付きの実行許可は完了済みで、新しい実行へ流用しない。共通のモデル設定は変更しない。開発運用の評価方針は[開発運用の改善記録](development-workflow.md)。
 
 ## 次に進めること
 
-### TODO
-
-- [x] 2026-10-18の依存更新と文書整理をcommitし、GitHub CIを確認する（2026-10-19、`cc49cb0`・`e170dad`をpush、CIのverify成功）
-- [x] 旧検証モード（ai-verification）を廃止する（2026-10-18決定、2026-10-19実装・`17470cb`・旧staging再配備済み）。本人の選択は「構造の分離にとどめず、旧検証モードを廃止する」。実施した手順と完了条件は次のとおり。`requiresVerificationLedgerCheck`は`requiresCleanLedgerCheck`へ改名した
-	1. 汎用品を移す: `chatSystemPrompt`はchat側へ、`VerificationEnv`は`RuntimeEnv`へ置き換える
-	2. 旧検証の判定（`verificationScope`、`verificationSettings`、`checkVerificationInput`、`verificationStatus`）と`/api/ai-verification`を削除する。削除後の`/api/ai-verification`は未知APIとしてJSONの404を返す
-	3. `runtime-policy.ts`の`verification`種別をなくし、`STAGING_POLICY`を省略したstaging（既存の`staging-local`を含む）を固定の理由コードでfail-closedにする。`AI_VERIFICATION_*`が残っている設定は、引き続き拒否する
-	4. 通常stagingの`requiresVerificationLedgerCheck`（0006の台帳がtableあり・行なしであることの確認）は残す（2026-10-19本人決定）。旧モードの名残ではなく「別用途に使ったD1の再利用を拒否する」通常stagingの境界チェックとして位置づけ、名前とコメントをその意味に改める。動作と理由コード（`verification_ledger_unavailable`、`legacy_verification_ledger`）は変えない。0006のtableはmigrationなので削除しない
-	5. tests（`ai-verification*.test.ts`、runtime-boundary・extension-boundary・providersの該当部分）、`scripts/app-smoke.mjs`、`wrangler.jsonc`の`AI_VERIFICATION_*`、README・operations・構成資料の旧検証の記述を更新する
-	6. 完了条件: `pnpm check`、preview smoke、`/api/ai-verification`の404、`STAGING_POLICY`省略時のfail-closed、通常stagingとlocalの回帰をworkerdで確認する。配備済みの旧staging Workerは再配備するまで影響を受けず、再配備は別承認とする
-- [x] 複製先private-rag-chatへ、TanStack StartのXSS修正（react-start 1.168.60以上）と、受付記録APIの振り分け漏れの確認を伝える（2026-10-19）。振り分け漏れは複製先で修正済み（複製先の`2c27dd6`）だった。XSSは複製先が react-start 1.168.58 / start-server-core 1.169.37 のままだったため、複製先の`handover/`に指示書を置き、本人が複製先のセッションで実施中。修正版の配備は複製先で別に判断する
-- [x] 2026-10-19に3件とも完了（GitHub CI verify成功、未配備）。見送った更新（vitest 5、@polar-sh/sdk 1.0、`compatibility_date`）を、変更履歴とworkerdの動作変更を確認して別作業で行う。2026-10-19時点でaudit 0件のため急がない。推奨順（1件ずつ`pnpm check`・smokeで確認しcommit）
-	1. 完了（2026-10-19）: `compatibility_date`を2026-09-25から2026-10-12へ更新。根拠と検証は[記録](../references/compatibility-date-20261019.md)
-	2. 完了（2026-10-19）: vitestを4.1.11から5.0.5へ更新。plugin不具合（workers-sdk#16331）の回避策を`tests/setup.ts`に入れた。修正版のpluginが出たら`applyD1Migrations`へ戻す。根拠と検証は[記録](../references/vitest5-20261019.md)
-	3. 完了（2026-10-19）: @polar-sh/sdkを0.49.0から1.0.2へ更新し、`billing.ts`を追従。実Polarは未接続。根拠と検証は[記録](../references/polar-sdk1-20261019.md)
-- [ ] [cloudflare/workers-sdk#16331](https://github.com/cloudflare/workers-sdk/issues/16331)の修正版`@cloudflare/vitest-plugin`が出たら、`tests/setup.ts`の回避策（pluginと同じmigration適用処理）を`cloudflare:test`の`applyD1Migrations`呼び出しへ戻す（2026-10-19登録）。戻した後に`--maxWorkers=1`を含む`pnpm test`で全件成功を確認する。経緯は[Vitest 5の記録](../references/vitest5-20261019.md#3-既知の不具合と回避策)
-- [ ] 2026-10-19の更新（`compatibility_date`、vitest 5、@polar-sh/sdk 1.0.2）の配備と、Polar sandboxでの実接続確認（2026-10-19登録、本人判断で保留）。旧stagingは同日削除済みのため配備先がない。進めるときは次の順で、各段階の対象・費用を具体化して本人の承認を得る
-	1. 新しい通常stagingのWorker・専用D1・Accessを決めて作る。migration 0001〜0012・0014〜0016を`scripts/d1-wire.ts`の送信用SQLで1本ずつ適用し、SELECTで照合する（[運用手順](operations.md)）
-	2. 全拡張OFF・公開経路なしでbuild（`--mode standard-staging-local`）→ dry-run → 配備し、Access保護とホスト接続を確認する
-	3. 本人がPolar sandboxで組織・継続課金商品・tokenを作り、`POLAR_ACCESS_TOKEN`と`POLAR_WEBHOOK_SECRET`を会話外で投入する。`ENABLE_BILLING=true`・`POLAR_SERVER=sandbox`・`POLAR_PRODUCT_ID`を設定し、`/api/billing/webhook`をAccessで遮断しない（[決済の設定](billing.md)）
-	4. 購入→webhook→状態表示→Portalを確かめ、API版`2026-10`の実応答が`billing.ts`の応答検証を通ることを記録する（[SDK 1.0の記録](../references/polar-sdk1-20261019.md)の未確認項目）
-- [ ] GitHub CIのHTTP smokeで、`/api/media/*`（OFF時は認証前に404）が500を返した原因を特定する（2026-10-19登録）。docsだけの`204c6ba`のrun 1回目で1度だけ発生し、再実行で成功した。ローカルではpreviewへsmokeを8回流して再現しなかった。アプリは想定外の例外を`internal_error`とだけ返して記録しない（`src/server/http.ts`の`errorResponse`）ため、当時の原因は分からない。`423c166`から、smoke失敗時にpreviewログの末尾と応答本文がCIログに出る。再発したら、本文が`internal_error`（アプリ内の例外）か、それ以外（preview・workerd側）かで切り分ける。2回目が出るまでは実装を変えない。2026-10-21にローカルのpreviewで2回目が出た。smokeの`GET /api/media/models`が500で、本文は`internal_error`ではなくCloudflare Vite pluginのHTMLエラーページ（`TypeError: fetch failed`、miniflareの`dispatchFetch`）だった。直前の`POST /api/decisions/classify`は404で正常に返り、workerd側のログには何も出ていない。同じpreviewへ直後に5回直接要求するとすべて404、smokeの再実行3回も成功した。アプリ内の例外ではなく、previewからworkerdへの接続が切れたものとみられる。次は、previewを起動したままsmokeを繰り返して頻度を測り、workerdが再起動しているかを確かめる
-- [x] リファクタリングの残り（2026-10-19登録、本人は推奨順で進めることを了承。2026-10-21に1〜5を完了、未push）。1段階ずつ`pnpm check`・smokeで確認しcommitする
-	1. ~~`app-api.ts`の拡張ゲートを「パス→フラグ」の表1つにまとめ、会話・notes・approvalsのhandlerを別ファイルへ分ける~~ 2026-10-21完了。`EXTENSION_GATES`表と`isAppPath`（`api.ts`の振り分け正規表現を置換）、`conversations.ts`・`agent-routes.ts`、`requireMethod`を`http.ts`へ移動。`/api/approvals`内の重複判定を削除。`/api/media-source`の判定を前方一致から「一致または配下」へ揃えた（`api.ts`が元から配下以外を404にしていたため外から見た動作は同じ）
-	2. ~~`chat.ts`から`agent-tools`と`extensions/rag`の静的importを外す~~ 2026-10-21完了。`handleChat`は`ChatExtensions`（`retrieveSources`・`createTools`）を引数で受け、組み立ては`chat-extensions.ts`。flagがONでも処理を渡されなければ404 `feature_disabled`（試験を追加）
-	3. ~~AGENTS.mdのファイル配置表に、実在する場所を足す~~ 2026-10-21完了。`git ls-files`から導き直し、`env.ts`・`http.ts`・`ai/`・`decisions/`・`media/`・`src/lib/`・`src/components/`・smoke各種・`d1-wire.ts`・`build-policy.ts`・`examples/presets/`を追加
-	4. ~~小さな整理~~ 2026-10-21完了。`inputSchema`を`validateSchema`（`/api/validate`）と`decisionInputSchema`へ改名（`agent-tools.ts`の`inputSchema`はAI SDKの項目名なので残す）、`workersAiFp8ModelId`を`workersAiChatModelId`へ改名、`tests/http.test.ts`を追加（`guardRequestEnvironment`は既存のAPI試験で扱う）
-	5. 2026-10-21に本人がmedia・decisions（Jev）を両方とも任意拡張と決めた。`/api/session`に`features.decisions`（`JEV_MODE=remote`で設定が正しいときだけtrue）を追加し、ナビを`site-nav.tsx`へ分けて、ONの拡張だけを表示する形にした（SSRと取得失敗時は隠す。画面のURLは直接開ける）。全OFFのpreviewで、ナビが2件だけになりコンソールのエラーが0件であることを確認した。ONのときの表示はブラウザで未確認（試験のみ）。同日にUIの大きいファイルを分割した: `extensions-panel.tsx` 720→64行（パネルを`extensions/`へ）、`app.tsx` 807→659行（会話履歴・メッセージ一覧・再送前の確認カード・SSE解析を`chat/`へ）、`media-panel.tsx` 817→約560行（型・素材一覧・生成履歴を`media/`へ）。ブラウザでは、固定応答モデルでの送信・会話の切替と、media OFFの画面表示・更新を確認した。拡張パネルの各タブ（flag ON時）と、素材・履歴がある状態の一覧はブラウザで未確認（型検査・試験のみ）
-- [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
-
-今回の改善結果と検証は[開発運用の改善記録](development-workflow.md)を参照する。次は実際の通常作業で、担当エージェントが確認範囲・所要時間・再質問・手戻りを点検する。今回の変更を記録する場合は、本人からコミットの依頼を受けて各リポジトリの対象差分だけを扱う。測定のためだけのコミットや実接続は行わない。
-
-工程Eの専用経路は2026-10-19に撤去した。再実行する場合は、撤去前の実装（`a719d99`）を参照して実装し直す前提で、担当エージェントが[診断と次の確認](diagnostics.md)に沿って新しい対象・回数・費用・終了方法を具体化し、未許可の実操作だけ本人へ確認する。
+- [ ] [cloudflare/workers-sdk#16331](https://github.com/cloudflare/workers-sdk/issues/16331)の修正版`@cloudflare/vitest-plugin`が出たら、`tests/setup.ts`の回避策（pluginと同じmigration適用処理）を`cloudflare:test`の`applyD1Migrations`呼び出しへ戻す。戻した後に`--maxWorkers=1`を含む`pnpm test`で全件成功を確認する。経緯は[Vitest 5の記録](../references/vitest5-20261019.md#3-既知の不具合と回避策)
+- [ ] 2026-10-19の更新（`compatibility_date`、Vitest 5、`@polar-sh/sdk` 1.0.2）の配備と、Polar sandboxでの実接続確認（本人判断で保留）。旧stagingは削除済みで配備先がない。進めるときは、各段階の対象・費用を具体化して本人の承認を得る
+  1. 新しい通常stagingのWorker・専用D1・Accessを決めて作る。migration 0001〜0012・0014〜0016を`scripts/d1-wire.ts`の`renderD1Wire`で生成した送信用SQLで1本ずつ適用し、SELECTで照合する（[運用手順](operations.md#複製先の実配備で確認した注意点)）
+  2. 全拡張OFF・公開経路なしでbuild（`CLOUDFLARE_ENV=staging pnpm build --mode standard-staging-local`）→ dry-run → 配備し、Access保護とホスト接続を確認する
+  3. 本人がPolar sandboxで組織・継続課金商品・tokenを作り、`POLAR_ACCESS_TOKEN`と`POLAR_WEBHOOK_SECRET`を会話外で投入する。`ENABLE_BILLING=true`・`POLAR_SERVER=sandbox`・`POLAR_PRODUCT_ID`を設定し、`/api/billing/webhook`をAccessで遮断しない（[決済](billing.md)）
+  4. 購入→webhook→状態表示→Portalを確かめ、API版`2026-10`の実応答が`billing.ts`の応答検証を通ることを記録する（[SDK 1.0の記録](../references/polar-sdk1-20261019.md)の未確認項目）
+- [ ] GitHub CIのHTTP smokeで`/api/media/*`（OFF時は認証前に404）が500を返した原因を特定する。CIで1度（docsだけの`204c6ba`のrun 1回目、再実行で成功）、ローカルのpreviewで1度（2026-10-21、`GET /api/media/models`が500）発生した。ローカルの500は本文が`internal_error`ではなく、Cloudflare Vite pluginのHTMLエラーページ（`TypeError: fetch failed`、miniflareの`dispatchFetch`）で、workerd側のログは空だった。直後の再要求5回とsmoke再実行3回は成功し、アプリ内の例外ではなくpreviewからworkerdへの接続断とみられる。`423c166`から、smoke失敗時にpreviewログの末尾と応答本文がCIログに出る。次は、previewを起動したままsmokeを繰り返して頻度を測り、workerdが再起動しているかを確かめる。それまで実装は変えない
+- [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、公開向けの準備へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
+- [ ] リポジトリを公開する前に、公開基準での確認を全履歴・PR・Issueに対して行う。作業ツリーの文書に残っていたGitHubアカウント名は`OWNER`へ置換済み（2026-10-21）だが、過去のコミット・PR・CIログには残る
 
 ## 必要なときだけ読む資料
 
-- 合意した仕様: [構成と受け入れ条件](architecture-proposal.md)。仕様変更時に該当節だけ読む。
-- 設定・操作: [運用手順](operations.md)、[公開プリセットとbuild境界](公開プリセットとbuild境界.md)。対象環境を操作するときに読む。
-- 証拠: [D-2](D2-実行記録と再開.md)、[M-5](M5-メディア統合と隔離複製検証.md)、[工程E](工程E-制御実装と隔離検証.md)。検証版や未解決の論点を照合するときに読む。
-- 過去の経緯: [開発履歴](plan.md)、[構成資料の旧版](archive/architecture-history.md)、[READMEの旧版](archive/readme-history.md)。通常の再開では全文を読み直さない。
-
-現在地は追記で積み重ねず、該当する行を更新する。履歴の許可待ち/未実施は当時の状態であり、現在の判断に使わない。GitのHEADや差分は必要時に実Gitで確認する。
+- 仕様: [構成と受け入れ条件](architecture-proposal.md)、[実行時方針](runtime-policy.md)、各機能の文書（[索引](README.md)）
+- 設定・操作: [運用手順](operations.md)、[公開プリセットとbuild境界](公開プリセットとbuild境界.md)
+- 失敗時: [診断と次の確認](diagnostics.md)
+- 履歴: [archive](archive/README.md)。通常の再開では全文を読み直さない

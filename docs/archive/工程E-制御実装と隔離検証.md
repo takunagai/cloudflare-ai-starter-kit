@@ -2,7 +2,6 @@
 
 2026-10-06・新隔離実接続の終了操作完了/M-0未達: 採用済み09:30〜10:00 JSTに1要求だけ送信し、上流completed/回収stored、本人の画像品質・作成時ACL/匿名拒否pass。300秒token/3600秒自然期限の各1回の実観測はunknownで再試験しない。本人の管理API報告は課金GET200/一致1/$1以内/available_now、上流DELETE200/1試行/CDN結果0/unknown。消去完了/最終請求/Cloudflare増分費用は未確定。D1は上限2/消費1/停止1/閉鎖1/attempt1/未終端0/本文0/出力参照0/active asset0/容量held0・released1、専用R2 root0。新Access Allow0/Block1、当該token取消は監査成功、旧タブはログイン画面。OFF配備5回目と本人Secret除去の即時6回目後、実WorkerはFAL_KEY不在・probe/通常生成/画像・AI/Jev OFF・通常gate空・新D1/R2一致・workers.dev/preview無効。一時falキー失効は本人報告、既存ADMINキーは対象外。旧run/旧資源を保持し、新OFF Worker/D1/private R2と本文なし台帳を残す。
 
-
 ## 2026-10-19 工程Eの資源を削除
 
 本人の判断で、下のTODOにあった「終端後90日・D1復元履歴・費用を確認してから退役を判断する」を待たず、工程Eの新旧2セットをすべて削除した。D1の最小台帳（fal側の要求IDを含む）も失われ、上流削除unknownと最終請求の照合は、今後fal側の管理画面・請求明細だけで行うことになる。本人はこの影響を了承したうえで削除を選んだ（比較した案: 外部に出る部分だけ削除してD1/R2を期限まで保持、何も削除しない）。
@@ -19,7 +18,7 @@
 
 ## 終了後の確認TODO（2026-10-06）
 
-- [x] 300秒tokenと3600秒自然期限の各unknownを、公式仕様と診断実装（`src/server/media/probe-diagnostics.ts`、撤去済み）からローカルで切り分けた。両観測とも予定した取得呼出しまで進んだが、個別HTTP状態は残らず今回の原因枝は特定不能。次回用の固定分類を[0014](../migrations/0014_media_probe_observation_reason.sql)と通常コードに追加し、関連workerd/fakeで検証した。token・URL・ID・本文・個別HTTP値を残さず、合格条件は維持する。コード/0014は未配備。
+- [x] 300秒tokenと3600秒自然期限の各unknownを、公式仕様と診断実装（`src/server/media/probe-diagnostics.ts`、撤去済み）からローカルで切り分けた。両観測とも予定した取得呼出しまで進んだが、個別HTTP状態は残らず今回の原因枝は特定不能。次回用の固定分類を[0014](../../migrations/0014_media_probe_observation_reason.sql)と通常コードに追加し、関連workerd/fakeで検証した。token・URL・ID・本文・個別HTTP値を残さず、合格条件は維持する。コード/0014は未配備。
 - [ ] M-0の実受入はtoken/自然期限unknownのため未達。今回の閉鎖済み要求に追加取得や再生成をせず、次の実確認が必要なら新対象・回数・費用・固定窓・終了方法をレビュー可能にして別承認を得る。
 - [ ] 2026-10-05の回収invalidは、実レスポンス本文がないため具体的拒否項目を確定できない。nullable metadataへの修正と10月6日の回収storedを候補を支える別要求の証拠として扱い、前回の原因確定と書かない。
 - [ ] 上流DELETE200/CDN結果0の本人報告は消去unknownのまま残す。個別消去の証拠が得られなければunknownを維持し、今回の許可で再DELETEしない。CloudflareのR2物理不在とは分ける。
@@ -27,7 +26,6 @@
 - [x] OFFの新旧Worker/D1/private R2と本文なし台帳は保持する。終端後90日の条件、D1復元履歴、費用を確認してから退役対象と影響を別に判断する。（2026-10-19、本人の判断で期限を待たずに全削除。上の節を参照）
 
 工程Eの終了操作自体は完了した。M-0の実受入は未達で、次の有料実接続・再配備・鍵再発行・資源削除は今回の許可に含めない。
-
 
 2026-10-06・本人承認後の終了: 自然期限unknownのまま当該1要求を削除する本人判断を受領。本人の既存ADMINキーによる上流DELETEはHTTP200/1試行/CDN結果0/unknownで、消去完了を証明しない。アプリへ本人報告unknownを記録し、専用R2画像1件を物理削除。R2 root一覧0、D1 active asset0/容量held0・released1/本文0/出力参照0/未終端0を確認し、アプリ内閉鎖1・消費1/停止1。Accessは本人Allow0/Block1、当該token取消の監査成功、旧タブはAccessログイン画面。本人照合済みOFF版を5回目として配備し、実Workerのprobe/通常メディア・AI/Jev OFF、通常gate空、新D1/R2一致を確認。FAL_KEY除去の本人操作と6回目即時配備、一時falキー失効は結果待ち。
 
@@ -39,7 +37,7 @@
 
 2026-10-06・09:30〜10:00 JSTの新隔離実接続: 本人の追加許可でAccess AUDだけを管理外設定で修正し、修正版ONの4回目配備を行った。実Workerと新AccessアプリのAUD一致、FAL_KEY存在、新D1/R2一致を値非表示で照合した。固定run/slot 1・消費0の本人画面を開始前に確認し、開始後に採用済みの1要求だけ送信。消費1・受付自動停止、上流completed、回収stored、private画像表示、ACL/匿名拒否passを確認した。本人は品質合格と報告した。前回の回収invalidは再現しなかったが、前回の実レスポンス本文がないため拒否項目を確定しない。短期token/自然期限、課金/上流削除、消去/閉鎖/OFF/Secret除去は進行中であり、完了扱いしない。旧run/旧資源は変更していない。
 
-2026-10-06・回収invalidの継続調査: [公開OpenAPIと現行driverの照合](../references/e-preflight-fal-20261005.md#回収invalidの公開仕様照合2026-10-06)で、ImageFileの任意nullable metadataを旧driverが必須としていた不整合を確認。欠落/`null`のみを受け入れ、実byte・固定1024角・PNG・容量・private URL検査を維持するローカル修正を行った。さらに、次回の同じ結果取得で拒否した場合に限り、固定5分類を[0012](../migrations/0012_media_probe_invalid_reason.sql)の本文なし台帳へ一度だけ記録し、本人の状態APIへ分類名だけ返す。生の結果本文・URL・ID・tokenは診断へ保存しない。関連試験/型/buildの最終結果は[進捗](plan.md)を参照。今回の実レスポンス本文がないため拒否項目は未特定。新コード/0012は未配備で、既存OFF/閉鎖台帳・消費1・最終請求/上流消去unknown・M-0未達を維持する。次の実確認は新しい対象・要求/費用・固定窓・終了手順の別承認を要し、旧runの再回収/2回目送信/再登録・枠復活はしない。
+2026-10-06・回収invalidの継続調査: [公開OpenAPIと現行driverの照合](../../references/e-preflight-fal-20261005.md#回収invalidの公開仕様照合2026-10-06)で、ImageFileの任意nullable metadataを旧driverが必須としていた不整合を確認。欠落/`null`のみを受け入れ、実byte・固定1024角・PNG・容量・private URL検査を維持するローカル修正を行った。さらに、次回の同じ結果取得で拒否した場合に限り、固定5分類を[0012](../../migrations/0012_media_probe_invalid_reason.sql)の本文なし台帳へ一度だけ記録し、本人の状態APIへ分類名だけ返す。生の結果本文・URL・ID・tokenは診断へ保存しない。関連試験/型/buildの最終結果は[進捗](plan.md)を参照。今回の実レスポンス本文がないため拒否項目は未特定。新コード/0012は未配備で、既存OFF/閉鎖台帳・消費1・最終請求/上流消去unknown・M-0未達を維持する。次の実確認は新しい対象・要求/費用・固定窓・終了手順の別承認を要し、旧runの再回収/2回目送信/再登録・枠復活はしない。
 
 ## 次の実確認の実行条件（10月6日の指定窓は開始条件未達）
 
@@ -47,9 +45,9 @@
 
 その後、本人は現在Chromeでの準備を明示し、窓を**同日07:45〜08:15 JST**へ変更した。ログイン済みの同じChromeで新しい専用D1とStandard/private R2を各1件作成した。R2は公開開発URL無効・カスタムドメイン0を画面確認。Accessの新アプリ/本人メール完全一致Allow/各6時間は保存前まで設定し、本人によるメール欄入力とポリシー保存待ち。07:34時点でWorker・Access保存、remote migration、本人Secret投入、OFF/ON成果物の照合が未了なので、07:45窓もrun登録/実fal送信に使わない。新D1/R2は準備用に保持し、旧run/旧資源は変更しない。新窓は準備が揃ってから決める。
 
-本人はさらに**同日08:00〜08:30 JST**を指定した。本人がChromeでメール欄を入力して新Allowポリシーを保存し、新Accessアプリの作成ボタンも押した。エージェントはアプリ一覧/設定画面で専用ホスト・本人用ポリシー・アプリ6時間の反映を確認した。R2の非公開設定も維持。新Worker/remote migration/Secret/run登録/実fal送信はまだ0。旧run/旧資源は変更していない。新しい管理外設定は旧設定を上書きせず、[本人用helper](../scripts/archive/e/工程E-新隔離設定準備.py)で別ファイルへ作る。本人の`source_prepared`結果待ちで、送信窓は準備が揃うまで登録しない。
+本人はさらに**同日08:00〜08:30 JST**を指定した。本人がChromeでメール欄を入力して新Allowポリシーを保存し、新Accessアプリの作成ボタンも押した。エージェントはアプリ一覧/設定画面で専用ホスト・本人用ポリシー・アプリ6時間の反映を確認した。R2の非公開設定も維持。新Worker/remote migration/Secret/run登録/実fal送信はまだ0。旧run/旧資源は変更していない。新しい管理外設定は旧設定を上書きせず、[本人用helper](../../scripts/archive/e/工程E-新隔離設定準備.py)で別ファイルへ作る。本人の`source_prepared`結果待ちで、送信窓は準備が揃うまで登録しない。
 
-08:00時点で新Worker/remote migration/Secret/OFF・ON照合は未了なので、この窓もrun登録/実fal送信には使わない。本人から設定値の探索が分かりにくいとの指摘を受け、[設定準備helper](../scripts/archive/e/工程E-新隔離設定準備.py)を修正した。本人の別ターミナルで既存管理外設定の非Secret項目を読み、新D1/R2をWranglerの一覧で照合する。旧設定を変更せず、新AccessアプリのAUDだけを非表示入力して新ファイルを0600で作る。Agentは実値を受け取らない。dummy3件/構文を検証し、本人の`source_prepared`結果待ち。
+08:00時点で新Worker/remote migration/Secret/OFF・ON照合は未了なので、この窓もrun登録/実fal送信には使わない。本人から設定値の探索が分かりにくいとの指摘を受け、[設定準備helper](../../scripts/archive/e/工程E-新隔離設定準備.py)を修正した。本人の別ターミナルで既存管理外設定の非Secret項目を読み、新D1/R2をWranglerの一覧で照合する。旧設定を変更せず、新AccessアプリのAUDだけを非表示入力して新ファイルを0600で作る。Agentは実値を受け取らない。dummy3件/構文を検証し、本人の`source_prepared`結果待ち。
 
 本人から`source_prepared: true`と`migration_transport_ready: true`を受領した。Agentは公開SQL12本の実行用コピーを新隔離ディレクトリへ作り、固定Wranglerで新D1へ12本を適用した。D1の名前限定/読み取り専用確認で履歴12・run/job/attempt/asset各0。新管理外設定を選ぶ`e-probe-20261006-local`で初期OFF build成功、生成成果物のdry-runもexit0。このCLI操作では設定本文を表示していない。本人による生成設定の全項目照合待ちで、実Worker配備・実Secret・実fal・run登録はまだ0。
 
@@ -61,13 +59,13 @@ Chrome操作ツールの画面状態の自動出力にCloudflareの実ID/AUDが�
 
 本人のAccess認証成功申告後、現在Chromeで新専用入口の`/media-probe`を開き、「限定接続はOFF」の表示と送信不可を確認した。メール/OTP/Cookie/JWT値は取得せず、認証回数の実数は未確認で上限3を維持する。FAL_KEY存在と新Workerの配備2回を保ち、通常gate空/全生成OFF、run未登録/実fal0。次は新管理外設定のprobeだけをONへ切り替え、ON build/dry-runと本人照合を行う。実配備/新窓登録はその後。
 
-本人のON source準備成功を受領し、同じ新隔離設定でclient/Worker buildとdry-runがexit0。本人のON成果物全項目照合もtrue。実WorkerはまだOFF・配備2回。[新隔離のfal終了helper](../scripts/archive/e/工程E-新隔離fal終了操作.py)は旧要求の日時/対象を使わず、私有の1要求JSONを検査してから、本人の既存ADMINキーを非表示入力で受ける。早期失敗には不適合証拠、自然期限後削除には期限観測証拠を要求し、削除前の時刻と最大3試行を維持する。対象ID・URL・鍵・本文は出力しない。私有対象の一度きり準備を含むdummy4件と構文を検証したが、実管理API/新requestは未実行。終了対象JSONは新要求の結果が判明してから作り、旧helper/旧私有領域は変更しない。新run登録/実fal送信0、次の固定窓は未定。
+本人のON source準備成功を受領し、同じ新隔離設定でclient/Worker buildとdry-runがexit0。本人のON成果物全項目照合もtrue。実WorkerはまだOFF・配備2回。[新隔離のfal終了helper](../../scripts/archive/e/工程E-新隔離fal終了操作.py)は旧要求の日時/対象を使わず、私有の1要求JSONを検査してから、本人の既存ADMINキーを非表示入力で受ける。早期失敗には不適合証拠、自然期限後削除には期限観測証拠を要求し、削除前の時刻と最大3試行を維持する。対象ID・URL・鍵・本文は出力しない。私有対象の一度きり準備を含むdummy4件と構文を検証したが、実管理API/新requestは未実行。終了対象JSONは新要求の結果が判明してから作り、旧helper/旧私有領域は変更しない。新run登録/実fal送信0、次の固定窓は未定。
 
 新Accessアプリに限定して認証ログの`app_uid,allowed,action,created_at,user_id`だけを読み、許可1件/本人1名を確認した。Zero Trust組織のteam domainとuser IDからownerを構成する要素はツール内だけに保持し、Cookie/JWT・メール/IP/実IDを公開文書へ出さない。新run登録準備script（`scripts/prepare-e-registration.mjs`、撤去済み）は固定prompt/入力を本体の正規化/入力hash関数で処理し、本人が次の絶対窓を指定した後だけ、私有manifestと追加SQL migration1本を0600で作る。D1のmigration適用はatomic/失敗rollbackを使い、既存run/slotへのUPDATE/UPSERT/リセットはしない。dummy入力のverify-only、Biome/構文確認済み。新run登録SQLはまだ生成/適用していない。
 
 本人からON成果物の`all_passed: true`を受領した。ON build/dry-runを通した同じ成果物を維持し、実配備はまだ初期OFF＋Secret投入の2回だけ。新run/slot登録・実fal送信0。新しい絶対30分窓を本人が採用するまでは私有登録SQLの生成/適用・ON配備を行わない。旧run/旧資源は維持。
 
-新隔離用のbuild mode `e-probe-20261006-local`は旧管理外設定と別の`.wrangler.e-probe-20261006.local.jsonc`だけを選び、Gitから除外する。本人が[設定準備helper](../scripts/archive/e/工程E-新隔離設定準備.py)を別ターミナルで実行し、値を表示せず0600で作る。公開SQL12本から実行形式を作るscript（`scripts/prepare-e-wire.mjs`、撤去済み）と、新設定のmigration場所を値なしで照合/切替する[helper](../scripts/archive/e/工程E-新隔離SQL切替.py)、probeだけをON/OFFする[helper](../scripts/archive/e/工程E-新隔離切替.py)を用意した。公開sourceの検査はbuild-policy34 workerd、設定helperのdummy2件、SQL12本の変換確認、Python構文を通過。実設定の内容・生成成果物・remote適用・配備は未検証。旧管理外設定/SQLコピーは読取・変更していない。
+新隔離用のbuild mode `e-probe-20261006-local`は旧管理外設定と別の`.wrangler.e-probe-20261006.local.jsonc`だけを選び、Gitから除外する。本人が[設定準備helper](../../scripts/archive/e/工程E-新隔離設定準備.py)を別ターミナルで実行し、値を表示せず0600で作る。公開SQL12本から実行形式を作るscript（`scripts/prepare-e-wire.mjs`、撤去済み）と、新設定のmigration場所を値なしで照合/切替する[helper](../../scripts/archive/e/工程E-新隔離SQL切替.py)、probeだけをON/OFFする[helper](../../scripts/archive/e/工程E-新隔離切替.py)を用意した。公開sourceの検査はbuild-policy34 workerd、設定helperのdummy2件、SQL12本の変換確認、Python構文を通過。実設定の内容・生成成果物・remote適用・配備は未検証。旧管理外設定/SQLコピーは読取・変更していない。
 
 | 項目 | 新runだけの承認対象と上限 |
 | --- | --- |
@@ -91,11 +89,13 @@ Chrome操作ツールの画面状態の自動出力にCloudflareの実ID/AUDが�
 
 D1の出力object0、容量reservation released/held0、本文1を確認。専用R2のroot一覧API200/0件を確認し、物理画像がないこととアプリ保存0を区別して記録する。画像品質/ACL/匿名/短期token/3600秒自然期限は未確認。自然期限の必須条件は未達で、生成品質・通常gateの成功扱いにはしない。
 
-本人限定/Git管理外の終了対象ファイルを作成し、実request IDはチャット/公開文書へ出さず本人へ案内する。本人担当の課金/上流削除用[終了操作helper](../scripts/archive/e/工程E-fal終了操作.py)を準備した。agentはhelperを実行しない。管理者キーをgetpassで本人が会話外入力し、会話/環境/argv/ログ/ファイルへ保存しない。TLS検証・リダイレクト拒否、当該request ID限定、課金は当日/limit20・共有残高の差から算出しない。削除は20:20 JST以降、永続したIdempotency-Keyと最大3試行で自動retryなし。200/空CDN結果はunknown、対象別exceptionなしの結果をreported_deletedとして本人申告と実測を分ける。キー権限/新規発行は変更しない。構文確認済み、実管理API/本人入力は未検証。
+本人限定/Git管理外の終了対象ファイルを作成し、実request IDはチャット/公開文書へ出さず本人へ案内する。本人担当の課金/上流削除用[終了操作helper](../../scripts/archive/e/工程E-fal終了操作.py)を準備した。agentはhelperを実行しない。管理者キーをgetpassで本人が会話外入力し、会話/環境/argv/ログ/ファイルへ保存しない。TLS検証・リダイレクト拒否、当該request ID限定、課金は当日/limit20・共有残高の差から算出しない。削除は20:20 JST以降、永続したIdempotency-Keyと最大3試行で自動retryなし。200/空CDN結果はunknown、対象別exceptionなしの結果をreported_deletedとして本人申告と実測を分ける。キー権限/新規発行は変更しない。構文確認済み、実管理API/本人入力は未検証。
 
 ```sh
 python3 scripts/archive/e/工程E-fal終了操作.py billing
 # 20:20 JST以降
+
+> 履歴記録。当時の状態と判断を残したもので、現在の仕様・許可ではない。現在の状態は[current-state.md](../current-state.md)、現行の文書は[文書の索引](../README.md)から辿る。
 python3 scripts/archive/e/工程E-fal終了操作.py finish
 ```
 
@@ -139,7 +139,7 @@ private設定のoriginを読むCLI境界確認はsensitive-path拒否で中止�
 
 ### 次の限定ON準備
 
-[本人用の限定配備切替](../scripts/archive/e/工程E-限定配備切替.py)は、既存の管理外設定だけを対象に、APP_ORIGINの専用Custom Domainをsourceへ反映し、probeだけをON/OFFへ切り替える。通常gate/生成・upload・DB/R2/認証・時刻/台帳は変更しない。Secretを投入せず、配備/送信を実行しない。確認日2026-10-05。エージェントによるprivate設定更新と生成設定読取の既存sensitive-path拒否を迂回しないため、本人が別ターミナルで実行する。今回のhelperは構文確認済み。本人から`on`実行の`source_prepared: true`・`deploy_performed: false`を受領した。新しい限定ONのstaging build/dry-runは各exit0。本人からON成果物の全10項目true・all_passed trueを受領し、同じ照合は取り直さない。現在Chromeで専用入口を復旧するとAccessメール入力画面で、本人到達は未確認。slot 1の固定入力に基づくrequest key/input hashをツール内だけで準備したが、DB登録/開始時刻設定/実fal送信はまだ行っていない。
+[本人用の限定配備切替](../../scripts/archive/e/工程E-限定配備切替.py)は、既存の管理外設定だけを対象に、APP_ORIGINの専用Custom Domainをsourceへ反映し、probeだけをON/OFFへ切り替える。通常gate/生成・upload・DB/R2/認証・時刻/台帳は変更しない。Secretを投入せず、配備/送信を実行しない。確認日2026-10-05。エージェントによるprivate設定更新と生成設定読取の既存sensitive-path拒否を迂回しないため、本人が別ターミナルで実行する。今回のhelperは構文確認済み。本人から`on`実行の`source_prepared: true`・`deploy_performed: false`を受領した。新しい限定ONのstaging build/dry-runは各exit0。本人からON成果物の全10項目true・all_passed trueを受領し、同じ照合は取り直さない。現在Chromeで専用入口を復旧するとAccessメール入力画面で、本人到達は未確認。slot 1の固定入力に基づくrequest key/input hashをツール内だけで準備したが、DB登録/開始時刻設定/実fal送信はまだ行っていない。
 
 ```sh
 python3 scripts/archive/e/工程E-限定配備切替.py on
@@ -151,11 +151,11 @@ source切替は本人報告で完了し、ON build/dry-runも成功した。本�
 
 新しい管理外設定を実対象で作成し、0600/本人所有/symlinkなし/Git除外を確認。実ID/名前/URL/AUDを公開文書へ写していない。初期OFFのstaging buildはexit0、`dist`は本人限定0700。Wrangler認証と対象アカウント一致、Worker/D1書込みscopeを値非表示で確認し、account overrideの名指し2変数はunset。環境操作付き補助処理とステータス変数出力はフック拒否で中止し、それらの操作を除いた認証照会/直接buildは成功した。
 
-remote migrationの初回は0001〜0007成功/0008 `incomplete input: SQLITE_ERROR`で停止。0008のDDLはrollbackされ、名前限定履歴7件/旧境界あり/メディアruntime・probe表なしを確認。D1のread-only `EXPLAIN`で括弧なしCASEのtriggerは失敗、括弧付き同内容は成功し、検査triggerの作成0を確認した。[公開一次資料の分割問題](../references/e-preflight-fal-20261005.md#d1-migrationの実クラウド分割問題同日)と今回の実測を分ける。
+remote migrationの初回は0001〜0007成功/0008 `incomplete input: SQLITE_ERROR`で停止。0008のDDLはrollbackされ、名前限定履歴7件/旧境界あり/メディアruntime・probe表なしを確認。D1のread-only `EXPLAIN`で括弧なしCASEのtriggerは失敗、括弧付き同内容は成功し、検査triggerの作成0を確認した。[公開一次資料の分割問題](../../references/e-preflight-fal-20261005.md#d1-migrationの実クラウド分割問題同日)と今回の実測を分ける。
 
-[SQL実行形式の変換](../scripts/d1-wire.ts)は引用文字列/識別子/数値/演算子を保持し、CASE式だけを括弧で囲み、コメント/式外の改行を整理する。数値/複合演算子の初期変換不備を隔離試験で修正した。新3 workerd試験はschema・回復停止・旧unknown同時枠・probe消費単調性・失敗DDL rollback/既存7本保持を確認し全成功。元SQL11本は内容識別で不変、別の`.wrangler/e-live/migrations`へ0600・同名の実行用コピー11本を作成した。未適用0008〜0011だけを同じ新D1へ続行する案で、履歴/台帳をリセットしない。
+[SQL実行形式の変換](../../scripts/d1-wire.ts)は引用文字列/識別子/数値/演算子を保持し、CASE式だけを括弧で囲み、コメント/式外の改行を整理する。数値/複合演算子の初期変換不備を隔離試験で修正した。新3 workerd試験はschema・回復停止・旧unknown同時枠・probe消費単調性・失敗DDL rollback/既存7本保持を確認し全成功。元SQL11本は内容識別で不変、別の`.wrangler/e-live/migrations`へ0600・同名の実行用コピー11本を作成した。未適用0008〜0011だけを同じ新D1へ続行する案で、履歴/台帳をリセットしない。
 
-生成済み設定読取と、管理外設定の`migrations_dir`だけの切替はsensitive-path拒否で中止。別ツール/別名設定で迂回せず、[本人用のSQL実行形式切替](../scripts/archive/e/工程E-SQL実行形式切替.py)と[配備前照合](../scripts/archive/e/工程E-配備前照合.py)を用意した。エージェントは両helperを実行しない。本人は次の2コマンドを別ターミナルで実行し、true/false・失敗項目名だけ報告する。既に配備前照合を完了していれば同じ確認を取り直さず、切替だけ行う。
+生成済み設定読取と、管理外設定の`migrations_dir`だけの切替はsensitive-path拒否で中止。別ツール/別名設定で迂回せず、[本人用のSQL実行形式切替](../../scripts/archive/e/工程E-SQL実行形式切替.py)と[配備前照合](../../scripts/archive/e/工程E-配備前照合.py)を用意した。エージェントは両helperを実行しない。本人は次の2コマンドを別ターミナルで実行し、true/false・失敗項目名だけ報告する。既に配備前照合を完了していれば同じ確認を取り直さず、切替だけ行う。
 
 ```sh
 python3 scripts/archive/e/工程E-SQL実行形式切替.py
@@ -169,7 +169,7 @@ python3 scripts/archive/e/工程E-配備前照合.py
 
 2026-10-05・最新の認証方針: 本人の「短いと不便だから、6hours・認証最大3回」を採用し、application/適用policy session各6時間、本人認証/必要OTP最大3回へ変更して続行する。30分への変更案は採用せず退役。以前の1時間/最大2回は当時の条件を保存する履歴。送信窓30分/総上限2/slot 1だけ/今回は1要求・自然3600秒・$1目安/購入なし・早期消去/Access閉鎖/OFF/台帳保持は変更しない。6時間sessionでも新規送信の窓/枠は増えない。
 
-専用ON時の署名付きAccess JWT寿命上限だけを6時間へ変更した。定数（`src/server/media/probe-permit.ts`、撤去済み）と[HTTP認証の呼出し](../src/server/app-api.ts)へ限定し、署名/issuer/AUD/owner/expiryと既存5秒許容、通常環境は維持する。SQL/依存/lock・枠/時刻/秘密/保護フックは変更しない。境界試験（`tests/media-probe.test.ts`、撤去済み）は1時間/6時間/6時間＋5秒受理、6時間＋6秒/24時間拒否、probe OFFで通常24時間session維持を確認する。関連2ファイル53 workerd試験・3ファイルBiomeは成功。初回typecheckで試験fixtureの余剰プロパティ指定1件を検出し、同じ値の設定に`MediaEnv`型を付けて修正。型/route生成は成功済み、修正後`tsc --noEmit`はexit0。既存895＋7/HTTP/Chrome合成を再実行せず、新しい差分だけを検証した。実CloudflareのJWT寿命/配備はまだ未検証。
+専用ON時の署名付きAccess JWT寿命上限だけを6時間へ変更した。定数（`src/server/media/probe-permit.ts`、撤去済み）と[HTTP認証の呼出し](../../src/server/app-api.ts)へ限定し、署名/issuer/AUD/owner/expiryと既存5秒許容、通常環境は維持する。SQL/依存/lock・枠/時刻/秘密/保護フックは変更しない。境界試験（`tests/media-probe.test.ts`、撤去済み）は1時間/6時間/6時間＋5秒受理、6時間＋6秒/24時間拒否、probe OFFで通常24時間session維持を確認する。関連2ファイル53 workerd試験・3ファイルBiomeは成功。初回typecheckで試験fixtureの余剰プロパティ指定1件を検出し、同じ値の設定に`MediaEnv`型を付けて修正。型/route生成は成功済み、修正後`tsc --noEmit`はexit0。既存895＋7/HTTP/Chrome合成を再実行せず、新しい差分だけを検証した。実CloudflareのJWT寿命/配備はまだ未検証。
 
 現在Chromeの未保存フォームでapplicationと新しい本人Allow policyのsessionを各`6 hours`に設定し、専用hostname/名前・全pathとメール完全一致selectorを準備した。本人の実メールは取得せず、該当入力欄へカーソルを置いて本人に入力/「ポリシーを保存」を案内した。本人は値を返さず「保存した」だけ回答する。受領後、エージェントは当該policyの反映/6時間を値不要で確認し、新applicationの保存・配備準備を続ける。Accessの保存/実効値をフォーム表示だけで成功扱いにしない。
 
@@ -196,14 +196,14 @@ remote migration0、Worker配備0/5、Secret0、実fal0、OTP0。新DB/bucketは
 | 対象 | 動作・理由・変更時の影響 |
 | --- | --- |
 | 専用policy/台帳（`src/server/media/probe-permit.ts`、撤去済み） | `ENABLE_MEDIA_PROBE`は省略/OFFで404。固定承認版`e-sunburst-20261005-v1`、staging/standard/Access、AI/Jev/全通常拡張OFF、通常確認一覧空、別private R2、旧検証台帳空と復旧gateを要求。設定不備・未登録・DB不在/照会失敗は閉じる |
-| 専用API（`src/server/media/probe-routes.ts`、撤去済み） / [入口](../src/server/api.ts) | `/api/media-probe`と配下。同一origin・署名/issuer/AUD/expiry・本人owner・固定slotを照合。新規POSTはslot 1/request IDだけ、本文/モデル/URL/owner/driver/clockをHTTPから受けない。通常APIの生成/uploadはOFFのまま |
+| 専用API（`src/server/media/probe-routes.ts`、撤去済み） / [入口](../../src/server/api.ts) | `/api/media-probe`と配下。同一origin・署名/issuer/AUD/expiry・本人owner・固定slotを照合。新規POSTはslot 1/request IDだけ、本文/モデル/URL/owner/driver/clockをHTTPから受けない。通常APIの生成/uploadはOFFのまま |
 | 固定prompt/入力（`src/server/media/probe-permit.ts`、撤去済み） | Sunburst text-to-image、1024角/medium/PNG/opaque/1枚/sync=falseと採用済み本文。normalize/hash/既存の容量・新旧合算・所有権/冪等性を使う。内部WeakSetで発行した承認だけをimage driverへ渡し、verified一覧へ追加しない |
-| [0011](../migrations/0011_media_probe.sql) | run/slot/attempt/管理呼出し/判定/私有出力参照の追加だけ。共通予約とprobe消費を同一batch、dispatch claimと既存jobのlease/attemptを同一SQL+triggerで確定。総上限2に加えslotは1だけ、固定30分/末尾15秒拒否、失敗/unknown/取消で消費を戻さない。起動/HTTP/migrationでrunをseedしない |
+| [0011](../../migrations/0011_media_probe.sql) | run/slot/attempt/管理呼出し/判定/私有出力参照の追加だけ。共通予約とprobe消費を同一batch、dispatch claimと既存jobのlease/attemptを同一SQL+triggerで確定。総上限2に加えslotは1だけ、固定30分/末尾15秒拒否、失敗/unknown/取消で消費を戻さない。起動/HTTP/migrationでrunをseedしない |
 | 送信直前 | 固定DB時刻・状態/停止・復旧、job/owner/leaseとdispatch claim一致を検査し、直前のサーバー時刻でも締切を照合。D1と外部fetchは原子的にできないため、既にclaimされた要求の停止競合はunknownとして保持。固定No-Retry/No-Fallback/Store-IO=0/3600秒/初期private ACLを維持 |
-| [操作別の共通処理](../src/server/media/service.ts) / [image driver](../src/server/media/image-driver.ts) | 専用承認で既存jobのstatus/result/cancel/回収だけを扱い、受付停止後も継続。通常経路は確認一覧を増やしてもprobe jobのrefresh/retry/new POSTを拒否。nullable metadataは従来どおり不適合、別CDN/公開保存/再生成へ切り替えない。再回収で出力URLが変われば拒否 |
-| [Access認証](../src/server/auth/access.ts) | probe ONの環境だけ、署名検証後のAccess JWT寿命を最大1時間＋既存5秒許容に制限。通常環境の認証契約は変えない。実Access application/policy/sessionを設定済みとする証拠ではない |
-| [所有者配信](../src/server/media/assets.ts) | 閉鎖/24時間照合窓後のprobe job/素材は通常GET・一覧からも拒否。未知/別ownerへサイズ/validator/取得先を返さない。R2の書込み・物理削除・容量解放は既存receipt/CASを使う |
-| [保持/復旧](../src/server/media/retention.ts) | private出力参照は本文早期消去/終端30日で消去。本文なしrun/消費/管理枠/判定は閉鎖かつ全job終端90日後だけ退役、unknownは日数で解放しない。witnessに最小probe記録と最初の出力観測時刻を加え、URL/tokenは含めない。不一致なら復旧gateを閉じたまま |
+| [操作別の共通処理](../../src/server/media/service.ts) / [image driver](../../src/server/media/image-driver.ts) | 専用承認で既存jobのstatus/result/cancel/回収だけを扱い、受付停止後も継続。通常経路は確認一覧を増やしてもprobe jobのrefresh/retry/new POSTを拒否。nullable metadataは従来どおり不適合、別CDN/公開保存/再生成へ切り替えない。再回収で出力URLが変われば拒否 |
+| [Access認証](../../src/server/auth/access.ts) | probe ONの環境だけ、署名検証後のAccess JWT寿命を最大1時間＋既存5秒許容に制限。通常環境の認証契約は変えない。実Access application/policy/sessionを設定済みとする証拠ではない |
+| [所有者配信](../../src/server/media/assets.ts) | 閉鎖/24時間照合窓後のprobe job/素材は通常GET・一覧からも拒否。未知/別ownerへサイズ/validator/取得先を返さない。R2の書込み・物理削除・容量解放は既存receipt/CASを使う |
+| [保持/復旧](../../src/server/media/retention.ts) | private出力参照は本文早期消去/終端30日で消去。本文なしrun/消費/管理枠/判定は閉鎖かつ全job終端90日後だけ退役、unknownは日数で解放しない。witnessに最小probe記録と最初の出力観測時刻を加え、URL/tokenは含めない。不一致なら復旧gateを閉じたまま |
 | 画面（`src/components/media-probe.tsx`、撤去済み） | `/media-probe`。固定内容/1要求、JSTの固定窓/消費、状態・回収/診断・本文/出力消去・アプリ内閉鎖を表示。品質/課金/上流削除は本人報告と明記し、自動判定へ格上げしない。Access閉鎖・token失効/logoutは外部の別操作 |
 
 既存0001〜0010、依存/lockfile・Node26.10.0/pnpm12.6.0・公開wrangler/5例・元DB/実設定・既存M-5/D-2隔離先・保護フック/例外は変更しない。新しい実リソース、Cron/Workflow/automation、admin鍵のアプリ追加、汎用CLIはない。
@@ -224,7 +224,7 @@ workerdの実HTTPでfixtureの新Requestへredirect=errorを指定すると失�
 - 公開テンプレートからのfixture設定作成（`scripts/media-probe-local-config.mjs`、撤去済み）は既存フォルダがあれば停止し、状態をリセットしない。追加の実リソース/実Secretはない。
 - 合成Worker（`tests/media-probe-preview-worker.ts`、撤去済み）はlocal/loopbackのみ、実FAL_KEYがあれば拒否。固定fake/JWKS以外の外部fetchを拒否し、署名付き合成Accessを実検証する。通常gate/生成/uploadはOFF。初回setupもTEST_ONLYの明示POSTだけで、既存runを作り直さない。
 - 専用Vite設定（`tests/media-probe-preview.config.ts`、撤去済み）とOFF設定（`tests/media-probe-off-preview.config.ts`、撤去済み）はremoteBindings=false、persist先を明示、envDir=false。Viteの[公開仕様](https://vite.dev/config/shared-options#envdir)でdotenv読込無効化を確認した。ブラウザは現在のChrome/既存profileを使用。
-- 境界/診断試験（`tests/media-probe.test.ts`、撤去済み）と[空/upgrade/再適用/失敗DDL試験](../tests/media-probe-migration.test.ts)をworkerd/D1/R2で実行。競合・同ID/不適合入力・未登録・時間境界・3xx・通常経路/他モデル拒否・1時間超JWT・停止/unknown/容量保持・閉鎖/復旧・90日/早期消去を対象にする。
+- 境界/診断試験（`tests/media-probe.test.ts`、撤去済み）と[空/upgrade/再適用/失敗DDL試験](../../tests/media-probe-migration.test.ts)をworkerd/D1/R2で実行。競合・同ID/不適合入力・未登録・時間境界・3xx・通常経路/他モデル拒否・1時間超JWT・停止/unknown/容量保持・閉鎖/復旧・90日/早期消去を対象にする。
 
 ChromeのON合成画面で固定内容/1要求・締切不変・1要求消費/再送不可、回収/owner画像表示、ACL/匿名拒否、token期限/自然期限、出力削除・本文/出力参照消去・アプリ内閉鎖を確認した。token/自然期限は合成の時間短縮であり実期限の証拠ではない。合成画像の表示は実生成品質の証拠ではなく、品質/課金/上流admin削除の実確認は行わない。
 
@@ -274,7 +274,7 @@ ChromeのON合成画面で固定内容/1要求・締切不変・1要求消費/�
 | 4 | 終了OFF deploy 1回 | 同じ要求の必要な回収/診断/自然期限確認/消去/閉鎖後。異常時は新規受付を直ちに止め、回収不能ならこのOFFを前倒し。bindingと台帳は保持 |
 | 5 | 本人の`secret delete FAL_KEY` 1回 | 必要な照合が済んだ終了OFF版から除去。**即時deploy 1回を数える**。unknownで鍵がまだ必要なら保留し、未完了と記録 |
 
-通常は計5回の配備操作（通常deploy 3回＋Secret操作2回）。成功/失敗/中断を個別に数え、再試行や追加の配備を自動で行わない。異常時OFFは予定の1回を前倒しする。Access/Custom Domainの設定操作はこの5回と別に数える。手動追加と管理外設定のrouteを一致させてから後続buildし、再配備で専用入口を消失/置換させない。[Secret削除も即時deploy](../references/e-preflight-fal-20261005.md#新規staging案の追加仕様確認同日)であるため、従来の4回候補から終了の1回を追加した。
+通常は計5回の配備操作（通常deploy 3回＋Secret操作2回）。成功/失敗/中断を個別に数え、再試行や追加の配備を自動で行わない。異常時OFFは予定の1回を前倒しする。Access/Custom Domainの設定操作はこの5回と別に数える。手動追加と管理外設定のrouteを一致させてから後続buildし、再配備で専用入口を消失/置換させない。[Secret削除も即時deploy](../../references/e-preflight-fal-20261005.md#新規staging案の追加仕様確認同日)であるため、従来の4回候補から終了の1回を追加した。
 
 本人の別ターミナル用のコマンド形（対象照合・承認後に1操作ずつ案内する。今は実行しない）:
 
@@ -326,7 +326,7 @@ pnpm exec wrangler secret delete FAL_KEY --config dist/server/wrangler.json
 
 ### 本人管理の初期準備
 
-上記の作成・配備案は本人の「それで進めて」で許可済み。同じ承認を取り直さない。[初期OFF設定例](../scripts/archive/e/工程E-初期OFF設定例.jsonc)を用意した。公開5プリセット/元wranglerは変更せず、新しい公開の本人記入用テンプレートだけを追加した。これは実設定/配備成果物ではない。`REPLACE_WITH_`と`.invalid`/ゼロDB IDを全て承認済みの新対象へ本人が置換する。値はチャットや公開テンプレートへ保存しない。
+上記の作成・配備案は本人の「それで進めて」で許可済み。同じ承認を取り直さない。[初期OFF設定例](../../scripts/archive/e/工程E-初期OFF設定例.jsonc)を用意した。公開5プリセット/元wranglerは変更せず、新しい公開の本人記入用テンプレートだけを追加した。これは実設定/配備成果物ではない。`REPLACE_WITH_`と`.invalid`/ゼロDB IDを全て承認済みの新対象へ本人が置換する。値はチャットや公開テンプレートへ保存しない。
 
 1. 本人が現在のChromeで、既存stagingと同じ利用アカウント/zoneを確認し、新しい未使用hostname・新Worker名・新D1名・新private R2名を選ぶ。既存と同名/既存レコードありなら別の未使用対象にする。本人限定の対応表を承認済み保管先へ残し、実対象を固定する。
 2. 同アカウントのD1から新しい空DBを1つ、R2からStandardのprivate bucketを1つ作成する。R2のpublic development URL/custom domain配信は有効にしない。新Workerは初期OFF deployで作るため、DashboardのサンプルWorkerを先に配備しない。
@@ -334,6 +334,6 @@ pnpm exec wrangler secret delete FAL_KEY --config dist/server/wrangler.json
 4. 本人が公開テンプレートを内容の参考として、新しい管理外設定をリポジトリ直下へ所有者限定で保存する。account、Worker名、origin、Access team domain/AUD、DB名/ID、bucket名だけを新対象へ置換する。`routes=[]`、通常gate空、全生成/upload/probe/他拡張OFFを保持。Secretはまだ投入しない。既存設定があれば上書きせず停止する。
 5. 返答は「新DB・private R2・Access・OFF設定を用意した」または未完了の項目名だけ。実ID/hostname/メール/設定全文/端末出力は返さない。受領後、対象一致を前提に空DBへのremote migration、初期OFFのbuild/dry-run/配備を1操作ずつ案内する。これらが未実施の間、生成窓を開始しない。
 
-固定Wranglerのinstalled schemaを読む1操作はSecret safety guardのsensitive-path拒否で中止した。変更/例外追加/別ツールでの同schema再読取は行わない。公開wrangler/既存internal-staging断片・[公式設定/Access本文](../references/e-preflight-fal-20261005.md#初期off設定例の準備同日)を根拠にした。テンプレートの限定整合確認と、本人が実値を記入した配備設定の実build/dry-run検証を区別する。
+固定Wranglerのinstalled schemaを読む1操作はSecret safety guardのsensitive-path拒否で中止した。変更/例外追加/別ツールでの同schema再読取は行わない。公開wrangler/既存internal-staging断片・[公式設定/Access本文](../../references/e-preflight-fal-20261005.md#初期off設定例の準備同日)を根拠にした。テンプレートの限定整合確認と、本人が実値を記入した配備設定の実build/dry-run検証を区別する。
 
 初期OFF公開例のBiome検査は1ファイル・修正なしでexit0、差分空白も問題なし。OFF条件の追加プログラム照合と新規参照点検をまとめた後続1操作もsensitive-pathで拒否されたため中止し、別経路/言換えで再実行していない。この追加照合は未検証、実設定のbuild/dry-runも未実施。拒否はクラウド権限/認証エラーとは区別する。フック/例外・実設定/キーは未変更。

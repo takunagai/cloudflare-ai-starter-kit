@@ -10,4 +10,4 @@
 | [Cloudflare Vite API](https://developers.cloudflare.com/workers/vite-plugin/reference/api/) | 固定plugin1.60.2の既存configに合わせて`remoteBindings: false`・専用persistState・configPathを使用。最新beta/cfへの移行や依存更新は採用しない |
 | Wrangler4.141.0の`d1 migrations apply --help` | `--local`/`--persist-to`/`--config`を実helpで照合。非対話の確認省略と失敗migration rollbackの説明を確認。成功は実migration/check/HTTP結果で別に判定 |
 
-M-0〜M-4のendpoint調査を実上流確認へ読み替えない。新しい価格・利用権限・データ保持・Gemini tokenizer/wrapperの条件を採用した記録ではない。[M-5検証メモ](../docs/M5-メディア統合と隔離複製検証.md)と[進捗](../docs/plan.md)に実行範囲を残す。
+M-0〜M-4のendpoint調査を実上流確認へ読み替えない。新しい価格・利用権限・データ保持・Gemini tokenizer/wrapperの条件を採用した記録ではない。[M-5検証メモ](../docs/M5-メディア統合と隔離複製検証.md)と[進捗](../docs/archive/plan.md)に実行範囲を残す。

@@ -1,6 +1,6 @@
 # undiciの限定したセキュリティ更新
 
-確認日: 2026-09-29（JST）。実AI検証を終了した後の文書commit `060bb0c8df7238b86e207ae918de64879bdec038`で、[push CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36498237549)と[pull_request CI](https://github.com/takunagai/cloudflare-ai-starter-kit/actions/runs/36498237762)がauditで失敗した。push側のcheck・local migration・HTTP smokeは成功しており、監査ではGHSA-3wwx-pv8p-q78vの1件が報告された。実AI結果の失敗ではない。
+確認日: 2026-09-29（JST）。実AI検証を終了した後の文書commit `060bb0c8df7238b86e207ae918de64879bdec038`で、[push CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36498237549)と[pull_request CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36498237762)がauditで失敗した。push側のcheck・local migration・HTTP smokeは成功しており、監査ではGHSA-3wwx-pv8p-q78vの1件が報告された。実AI結果の失敗ではない。
 
 ## 公式根拠と採用判断
 

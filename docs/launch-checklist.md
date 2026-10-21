@@ -31,12 +31,12 @@
 
 ### 配備前
 
-- [ ] 専用のD1・R2（公開アクセス無効）・Access app/policyを新規作成した。旧検証環境や他用途のリソースを流用していない
+- [ ] 専用のD1・R2（公開アクセス無効）・Access app/policyを新規作成した。他用途のリソースを流用していない
 - [ ] 複製直後に固定Node/pnpm、frozen install、全migration、`pnpm check`、preview smokeを複製先自身で通した
 - [ ] 実値入りの設定はGit管理外に置き、本人が非表示入力で作成した。build後の生成設定と照合した（値を表示しない）
 - [ ] 対象のアカウントとD1を、管理画面と保存済み設定で独立に照合した
 - [ ] 実D1の適用状況を読み取り専用SELECTで照合した（`migrations list`は使わない）。想定外の履歴・部分schemaなら止める
-- [ ] 複数文triggerを含むmigrationは送信用SQL（`scripts/d1-wire.ts`）で適用する。1本ずつ、失敗・不明時は再送しない
+- [ ] 複数文triggerを含むmigrationは`scripts/d1-wire.ts`の`renderD1Wire`で生成した送信用SQLで適用する。1本ずつ、失敗・不明時は再送しない
 - [ ] 配備はbuild → 生成設定一致 → dry-runの順に通し、失敗したら配備しない。各段階に時間上限を設けた
 - [ ] deployでは既存Worker名を明示し、`CLOUDFLARE_ENV`や`--env`を重ねていない
 - [ ] 使うモデル・サービスの単価と制限を一次資料で確認し、回数・期間・費用目安・停止条件を本人が承認した。目安は硬い上限ではない

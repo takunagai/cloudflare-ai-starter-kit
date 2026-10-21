@@ -22,9 +22,9 @@
 
 通常コードはmetadataの欠落/`null`だけを受け入れ、存在する値は実取得したPNGのMIME・寸法・byte数と照合する。固定URL、実byteのdecode/形式・20 MiB上限、要求した1024角、private R2保存の検査は維持する。値や本文、URL、IDをログ・応答へ追加出力しない。新しいworkerd/fake試験はnullable/欠落の双方でtoken・PNGを経て保存し、既存の不正URL・MIME・寸法・破損画像の拒否も確認した。これは実falの原因確定や実接続成功の証拠ではない。旧runは閉鎖済みで、再回収・再生成・枠復活を行わない。
 
-2026-10-05・実装/本人照合の追記: [制御実装と隔離検証](../docs/工程E-制御実装と隔離検証.md)はローカル/fakeの証拠。実fal接続許可・一時Key発行済みと、契約/権限/保持・費用/購入不要・削除担当の3項目の本人照合済み申告を受領した。直接の実アカウント/実挙動の確認ではない。専用stagingの状態/実対象は質問への回答待ち、実fal/課金/配備/実Secretは未実施。
+2026-10-05・実装/本人照合の追記: [制御実装と隔離検証](../docs/archive/工程E-制御実装と隔離検証.md)はローカル/fakeの証拠。実fal接続許可・一時Key発行済みと、契約/権限/保持・費用/購入不要・削除担当の3項目の本人照合済み申告を受領した。直接の実アカウント/実挙動の確認ではない。専用stagingの状態/実対象は質問への回答待ち、実fal/課金/配備/実Secretは未実施。
 
-確認日: 2026-10-05 JST。公開一次資料の本文だけを確認。fal/Cloudflareアカウント照会、価格APIの認証呼出し、実生成/課金/設定変更なし。用途・素材・予算の推奨は[事前整理](../docs/工程E-用途と限定接続の事前整理.md)で扱い、2026-10-05に3問は計画として採用されたが、実条件の照合/実行許可とは区別する。
+確認日: 2026-10-05 JST。公開一次資料の本文だけを確認。fal/Cloudflareアカウント照会、価格APIの認証呼出し、実生成/課金/設定変更なし。用途・素材・予算の推奨は[事前整理](../docs/archive/工程E-用途と限定接続の事前整理.md)で扱い、2026-10-05に3問は計画として採用されたが、実条件の照合/実行許可とは区別する。
 
 | 一次資料 | 確認した説明 | 採否・制約 |
 | --- | --- | --- |
@@ -43,7 +43,7 @@
 
 ## 限定確認の設計具体化での追加照合（同日）
 
-公開資料だけを追加確認。実契約・料金・残高・権限・生成/削除APIは照会/実行していない。[実行案](../docs/工程E-用途と限定接続の事前整理.md#レビュー用の実行案と終了手順)の詳細3件は同日設計採用済み。制御差分は未実装・未検証で、実操作は別承認。
+公開資料だけを追加確認。実契約・料金・残高・権限・生成/削除APIは照会/実行していない。[実行案](../docs/archive/工程E-用途と限定接続の事前整理.md#レビュー用の実行案と終了手順)の詳細3件は同日設計採用済み。制御差分は未実装・未検証で、実操作は別承認。
 
 | 一次資料 | 今回確認した本文/公開schema | 採否・未確認条件 |
 | --- | --- | --- |
@@ -79,7 +79,7 @@ ACLのWeb取得はInternal Errorで本文を返さなかった。公開Markdown�
 | [Secrets](https://developers.cloudflare.com/workers/configuration/secrets/) / [Workers commands](https://developers.cloudflare.com/workers/wrangler/commands/workers/) | `secret put`と`secret delete`は新version作成＋即時deploy。初期OFF/限定ON/終了OFFの3配備と人間の投入/除去2操作で通常計5回。versions secretは別方式だが今回は新しい配備方式を追加しない。固定helpで両Secret操作の`--config`を確認 |
 | [Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/) | 所有zoneとWorkerが必要、Custom Domain追加でDNS/証明書が作られる。既存CNAMEがあるhostnameへ追加できない。新未使用hostname1つ、Access保護を先に確認し、既存レコードの削除/移行を含めない |
 
-[新規作成・配備案](../docs/工程E-制御実装と隔離検証.md#未作成からの新規作成配備案)は未実施・未承認。secret deleteで稼働bindingを除去しても旧version/上流キーの失効を証明しないため、本人による必要照合後の作業用キー失効を別に含める。
+[新規作成・配備案](../docs/archive/工程E-制御実装と隔離検証.md#未作成からの新規作成配備案)は未実施・未承認。secret deleteで稼働bindingを除去しても旧version/上流キーの失効を証明しないため、本人による必要照合後の作業用キー失効を別に含める。
 
 ## 初期OFF設定例の準備（同日）
 
@@ -94,7 +94,7 @@ installed Wrangler schema読取は既存Secret safety guardのsensitive-path拒�
 
 ## Accessの1時間設定のAPI照合（同日）
 
-Cloudflare API MCPの公開OpenAPIで、[Access application作成](https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/methods/create/)とpolicyの`session_duration`は`2h45m`等のduration文字列を受けると確認した。`1h`はこの形式に従う。採用済み設定を画面の6時間等へ置換しない。実画面で1時間が選択肢に見当たらず、同一新対象への作成3試行はErrorとなった。最後の名前限定lookupは200・0件。公開schemaの適合を実作成成功や実効JWT寿命へ広げず、HTTP status/原因が取得できないエラーを権限拒否と断定しない。[実行記録](../docs/工程E-制御実装と隔離検証.md)の本人画面確認待ちと分ける。
+Cloudflare API MCPの公開OpenAPIで、[Access application作成](https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/methods/create/)とpolicyの`session_duration`は`2h45m`等のduration文字列を受けると確認した。`1h`はこの形式に従う。採用済み設定を画面の6時間等へ置換しない。実画面で1時間が選択肢に見当たらず、同一新対象への作成3試行はErrorとなった。最後の名前限定lookupは200・0件。公開schemaの適合を実作成成功や実効JWT寿命へ広げず、HTTP status/原因が取得できないエラーを権限拒否と断定しない。[実行記録](../docs/archive/工程E-制御実装と隔離検証.md)の本人画面確認待ちと分ける。
 
 ## D1 migrationの実クラウド分割問題（同日）
 
@@ -106,16 +106,13 @@ Cloudflare API MCPの公開OpenAPIで、[Access application作成](https://devel
 
 実測: 固定Wrangler4.141.0のremote migrations applyは0001〜0007成功、0008が`incomplete input: SQLITE_ERROR`で停止。新D1に0008の表が残らずrollback、履歴7件を確認した。古い資料だけから原因を断定せず、同じ新D1へのread-only EXPLAINでCASE分割の差を確認した。元SQLの編集/履歴リセット/他DBの再試験はせず、同名のprivate実行用コピーでCASE括弧/式外改行を整理する案を準備。schema/停止/unknown/消費単調性/DDL rollbackは新3 workerd試験で成功。残4本の実適用は本人のprivate設定切替後で、未実施。
 
-
 ### 本人ownerを秘密値なしで特定する根拠（同日）
 
 [Cloudflare Application token](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/)の本文で、`sub`はaccount内の本人user IDであることを確認した。Cookie/JWT本体やメールを取得する手順は採用しない。Access認証ログAPIの`fields`指定を使い、専用applicationと当日へ限定して`app_uid,allowed,action,created_at,user_id`だけを取得した。未対応の`user_uid`を含む指定は失敗し、除いた指定は200/成功1/拒否0/本人1名。ownerはteam hostname＋同user IDのアプリ既存形式でツール内だけに保持する。これは管理側の認証ログに基づく特定で、配備後のWorker署名検証/owner一致の実測とは分ける。実ID/個別URL・メール/IP/nonce/鍵は文書へ記録しない。
 
-
 ### 登録用Wranglerの指定（同日）
 
 [公式D1 Wrangler commands](https://developers.cloudflare.com/d1/wrangler-commands/#d1-execute)の本文と固定CLIの`d1 execute --help`で、database名またはbindingを指定できること、`--remote --file --yes --config`を確認した。D1 APIコネクターの書込みはerror7500で拒否されたため、本人認証済みで同じ新D1のmigrationに使ったWranglerを採用する。既存のコネクター権限や保護フックを拡張せず、生成済みON設定のDB bindingを対象とし、`--env`を重ねない。登録SQLは管理外/本人限定領域でだけ扱い、実IDや出力全文を公開記録へ含めない。CLI登録は新開始時刻の採用待ちで未実施。
-
 
 ### Queue管理アプリルートの差分（同日・実接続後）
 

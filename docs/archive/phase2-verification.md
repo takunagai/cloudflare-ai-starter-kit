@@ -1,5 +1,7 @@
 # 第2段階の検証記録
 
+> 履歴記録。当時の状態と判断を残したもので、現在の仕様・許可ではない。現在の状態は[current-state.md](../current-state.md)、現行の文書は[文書の索引](../README.md)から辿る。 既知の警告は[診断手順](../diagnostics.md#既知の非致命的な警告)へ移した。
+
 **現在の検証範囲（2026-09-29）:** 実AI配備ソース`7abc1696`は指定FP8の2応答・SSE逐次表示・実履歴保存/復元/削除と終了処理を確認済み。後続依存修正版`f2f7847c`は固定install・201テスト/15ファイルを含むcheck・HTTP smoke・audit、同じheadのpush/PR CI成功を確認済みで、実配備していません。以下の157テスト・クリーン複製は当時の版の証拠です。最新HEADの名称変更を伴うクリーン複製は未実施。[最終レビューと複製への影響](main取り込み-最終レビューと次の用途.md)を参照してください。
 
 以下の「未実施」は各確認時点の履歴であり、現在の実接続結果を否定するものではありません。
@@ -64,9 +66,9 @@ Node.js 26.10.0、pnpm 12.6.0、workerd 1.20260925.1。グローバル環境は�
 
 ## GitHub CIの後続確認（2026-09-27）
 
-`takunagai/cloudflare-ai-starter-kit` を非公開で作成し、ローカル `main` をpushした。初回の[run 36314699076](https://github.com/example/cloudflare-ai-starter-kit) はpnpmのセットアップ前に `actions/setup-node` がpnpmを探して失敗した。セットアップ順を修正し、[run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が2分8秒で成功。GitHub上の実行結果を確認した。
+`OWNER/cloudflare-ai-starter-kit` を非公開で作成し、ローカル `main` をpushした。初回の[run 36314699076](https://github.com/example/cloudflare-ai-starter-kit) はpnpmのセットアップ前に `actions/setup-node` がpnpmを探して失敗した。セットアップ順を修正し、[run 36314778588](https://github.com/example/cloudflare-ai-starter-kit) の `verify` が2分8秒で成功。GitHub上の実行結果を確認した。
 
-同runに残ったpnpm ActionのNode.js 20非推奨と`ubuntu-latest`の将来移行のannotationへ対応。pnpm 12対応のAction v6.1.0に更新し、runnerを`ubuntu-24.04`へ固定した。[run 36315741871](https://github.com/example/cloudflare-ai-starter-kit)の全ステップが成功し、check runのannotation件数は0件。公式根拠と将来の26.04移行方針は[GitHub Actions調査](../references/github-actions.md)に記録。
+同runに残ったpnpm ActionのNode.js 20非推奨と`ubuntu-latest`の将来移行のannotationへ対応。pnpm 12対応のAction v6.1.0に更新し、runnerを`ubuntu-24.04`へ固定した。[run 36315741871](https://github.com/example/cloudflare-ai-starter-kit)の全ステップが成功し、check runのannotation件数は0件。公式根拠と将来の26.04移行方針は[GitHub Actions調査](../../references/github-actions.md)に記録。
 
 ## 既知の非致命的な警告
 

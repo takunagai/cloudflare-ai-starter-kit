@@ -47,11 +47,11 @@
 | [B-2のD1台帳存在検査](runtime-boundary-20261002.md) | 2026-10-02。firstのnull/例外の扱い、内容を読まない固定SQL、ローカル検証と別Worker/DB前提 |
 | [B-3の実行入口とWorkflow再開](runtime-entry-guards-20261002.md) | 2026-10-02。durable stepの所有者/状態、保存stepの再確認、AI SDK各step hook。直接adapter/署名webhookを含むローカル342テスト・最終build HTTP smoke |
 
-[構成と受け入れ条件](../docs/architecture-proposal.md)で統合する。第1段階の固定版・検証結果は [検証記録](../docs/phase1-verification.md)、正確な依存は `package.json` と `pnpm-lock.yaml` を参照。採用候補の実在、peer dependencies、実行結果は別々に記録し、ドキュメントの記載だけで互換性を確定しない。
+[構成と受け入れ条件](../docs/architecture-proposal.md)で統合する。第1段階の固定版・検証結果は [検証記録](../docs/archive/phase1-verification.md)、正確な依存は `package.json` と `pnpm-lock.yaml` を参照。採用候補の実在、peer dependencies、実行結果は別々に記録し、ドキュメントの記載だけで互換性を確定しない。
 
 ## 第2段階の実装へ反映した確認
 
-現在の固定版は`package.json`とlockfile、現在の実動結果は[第2段階の検証記録](../docs/phase2-verification.md)を正本にする。以下の機能別文書に、確認日・公式URL・制約・実装との対応を追記した。
+現在の固定版は`package.json`とlockfile、現在の実動結果は[第2段階の検証記録](../docs/archive/phase2-verification.md)を正本にする。以下の機能別文書に、確認日・公式URL・制約・実装との対応を追記した。
 
 | 分野 | 実装判断と根拠 |
 | --- | --- |
@@ -59,7 +59,7 @@
 | モデル | [provider接続](../docs/providers.md)。現行SDKのV4契約を実workerdで検証。Googleの利用可能性を踏まえたモデル選択、OpenRouterとLM Studio、Gateway例 |
 | 拡張 | [AI Search / R2 / Workflows / fal](../docs/extensions.md)。新instance binding、metadata分離、nativeローカルWorkflow、取消と不明結果の制約 |
 | 決済 | [Polar](../docs/billing.md)。2026-09の署名方式変更、新旧検証、単一商品、解約・再契約、署名状態による会員サンプルの認可 |
-| 更新 | [依存監査対応](../docs/operations.md#2026-09-27の依存監査対応)。未使用CLI経由の旧esbuildだけを修正版へ固定 |
+| 更新 | [依存監査対応](../docs/operations.md#pnpmのoverrides)。未使用CLI経由の旧esbuildだけを修正版へ固定 |
 | Claude Code | 2026-10-19確認。[公式agents-md mod](https://github.com/anthropics/claude-code/tree/main/mods/agents-md)（同梱`agents-md@builtin`）の既定`claude-md-or-agents-md`で、CLAUDE.md類が無い場合にAGENTS.mdを読む。CLAUDE.mdを廃止し、AGENTS.mdだけを置く。Claude Code 2.1.303の新セッションで読込を確認。制約: `/memory`と`#`はAGENTS.mdを扱わない。旧方式はCLAUDE.mdからの相対import |
 
 CVA / clsx / tailwind-mergeは今回の共有UIでは必要がなく未導入。React専用AI hookも、FetchのSSE consumerで足りるため依存に残さない。SQL migrationは明示的に管理し、Drizzleのschema自動pushや独自CLIを追加しない。

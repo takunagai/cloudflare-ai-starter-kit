@@ -2,7 +2,7 @@
 
 更新日: 2026-10-19。Polar SDK 1.0.2（API版`2026-10`、`@polar-sh/sdk/2026-10`の`createPolar`）、standardwebhooks 1.1.1を使用します。0.49.0からの更新内容は[記録](../references/polar-sdk1-20261019.md)を参照します。標準構成は `ENABLE_BILLING` がOFFで、Polarアカウント・キー・商品設定を要求しません。実決済・sandbox checkout・実webhook配達は未接続です。
 
-B-3で通常環境の設定・旧台帳guardをHTTPと直接SDK adapterへ統合しました。OFF/`STAGING_POLICY=standard`を指定しないstagingは404、通常の対話APIは認証・method/入力・所有権を先に確認し、実行/関連更新直前にもguardを再確認します。AI_MODEやJev設定の不備だけでは決済を停止しません。通常stagingの台帳不適合は503で、認証や履歴の回復導線は維持します。[設定メモと検証範囲](実AI検証制御-実装状況.md#2026-10-02-b-3のモデル選択と別入口統合)を参照してください。
+OFFのとき、および`STAGING_POLICY=standard`を指定しないstagingでは404。通常の対話APIは認証・method/入力・所有権を先に確認し、実行や関連更新の直前にも設定と台帳のガードを再確認します（[実行時方針](runtime-policy.md)）。AI_MODEやJev設定の不備だけでは決済を停止しません。台帳が不適合なら503で、認証や履歴の回復導線は維持します。
 
 このサンプルは固定した1つの継続課金商品を購入し、署名付き顧客状態から契約状態を保存して、Customer Portalで契約を管理する構成です。税・割引・従量課金・席数等を独自に実装するものではありません。チャット料金に直接連動した課金台帳は含めません。
 
@@ -50,7 +50,7 @@ webhookはmethod・本文・署名・入力schemaの確認後、既処理イベ�
 
 `tests/billing.test.ts` はworkerd＋D1でOFF・認証・入力/Origin・owner/product固定・二重checkout・timeout後retry抑止・署名復旧・Portal・新旧署名・改ざん・期限切れ・同時重複・順序逆転・同時刻矛盾・他ユーザー分離・保存失敗rollbackを検証します。再契約は古いinactive通知での拒否、完了時刻以降のinactive通知での受付、同時再受付の抑止、古いoperation通知による上書き防止も検証します。`tests/billing-sdk.test.ts` はインストール済みSDKを使い、fetchだけをfake化して接続先・送信フィールド・自動retryなしを確認します。
 
-B-3の`tests/extension-boundary.test.ts`は直接SDK呼出し、予約後/保存前の再確認、署名/schema不正優先、台帳不適合時の既処理イベント拒否と同じevent IDの再送を実workerd/D1とfake外部境界で検証します。342テストを含むcheckと最終buildのHTTP smokeは成功しています。Polarの実配達・課金やクラウド設定の証拠ではありません。
+`tests/extension-boundary.test.ts`は直接SDK呼出し、予約後/保存前の再確認、署名/schema不正優先、台帳不適合時の既処理イベント拒否と同じevent IDの再送を、実workerd/D1とfake外部境界で検証します。Polarの実配達・課金やクラウド設定の証拠ではありません。
 
 会員サンプルAPIはstatus表示と同じ所有者・環境・商品条件でD1を読み、サーバー側で契約状態と有効期限を検証します。署名済みactive/trialing、expired、inactive、別ユーザー・別商品・別環境をテストします。Checkout作成やブラウザーのURLパラメーターはアクセス権を与えません。標準チャットには課金制限を追加せず、固定サンプルで業務APIに適用する認可パターンを示します。
 
