@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import type { AppEnv } from "../src/server/env";
 import {
   ApiError,
   errorResponse,
+  guardRequestEnvironment,
   readJson,
   requireMethod,
   requireSameOrigin,
@@ -107,6 +109,54 @@ describe("requireMethod and requireSameOrigin", () => {
         }),
       ),
     ).not.toThrow();
+  });
+});
+
+describe("guardRequestEnvironment", () => {
+  const appEnv = (APP_ENV: string, APP_ORIGIN: string) =>
+    ({ APP_ENV, APP_ORIGIN }) as AppEnv;
+  const guard = (url: string, environment: AppEnv) => () =>
+    guardRequestEnvironment(new Request(url), environment);
+
+  it("allows local only on a loopback origin and loopback request host", () => {
+    const local = appEnv("local", "http://127.0.0.1:3000");
+    expect(guard("http://127.0.0.1:3000/api/session", local)).not.toThrow();
+    for (const [url, environment] of [
+      ["http://app.example.test/api/session", local],
+      [
+        "http://127.0.0.1:3000/api/session",
+        appEnv("local", "https://app.example.test"),
+      ],
+    ] as const) {
+      expect(guard(url, environment)).toThrow(
+        expect.objectContaining({
+          status: 503,
+          code: "unsafe_local_configuration",
+        }),
+      );
+    }
+  });
+  it("requires an exact https origin outside local", () => {
+    for (const name of ["staging", "production"]) {
+      expect(
+        guard(`${ORIGIN}/api/session`, appEnv(name, ORIGIN)),
+      ).not.toThrow();
+    }
+    for (const [url, environment] of [
+      ["https://other.example.test/api/session", appEnv("production", ORIGIN)],
+      [
+        "http://app.example.test/api/session",
+        appEnv("staging", "http://app.example.test"),
+      ],
+      [`${ORIGIN}/api/session`, appEnv("preview", ORIGIN)],
+    ] as const) {
+      expect(guard(url, environment)).toThrow(
+        expect.objectContaining({
+          status: 503,
+          code: "invalid_application_origin",
+        }),
+      );
+    }
   });
 });
 
