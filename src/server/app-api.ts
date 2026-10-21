@@ -124,6 +124,10 @@ export async function handleApp(
           workflows: chatAvailable && isEnabled(env.ENABLE_WORKFLOWS),
           images: featuresAvailable && isEnabled(env.ENABLE_IMAGES),
           media: featuresAvailable && isEnabled(env.ENABLE_MEDIA),
+          decisions:
+            featuresAvailable &&
+            policy.jev.ok &&
+            policy.jev.value.mode === "remote",
           billing: featuresAvailable && isEnabled(env.ENABLE_BILLING),
         },
       });

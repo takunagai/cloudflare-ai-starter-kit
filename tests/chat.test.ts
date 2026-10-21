@@ -4,6 +4,7 @@ import {
 } from "cloudflare:test";
 import { env } from "cloudflare:workers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Features } from "../src/components/api-client";
 import { decideNote } from "../src/server/agent-tools";
 import { createLocalDemoModel } from "../src/server/ai/local-demo";
 import * as providers from "../src/server/ai/providers";
@@ -448,6 +449,24 @@ describe("Chat admission and persistence on D1", () => {
 });
 
 describe("Authenticated app API", () => {
+  it("reports decisions as available only for a valid remote Jev setting", async () => {
+    const decisions = async (overrides: Record<string, string>) => {
+      const response = await handleApp(
+        req("/api/session"),
+        { ...local, ...overrides },
+        createExecutionContext(),
+      );
+      return ((await response.json()) as { features: Features }).features
+        .decisions;
+    };
+    expect(await decisions({})).toBe(false);
+    expect(
+      await decisions({ JEV_MODE: "remote", JEV_MODEL: "jev-1.13.0" }),
+    ).toBe(true);
+    expect(
+      await decisions({ JEV_MODE: "remote", JEV_MODEL: "jev-latest" }),
+    ).toBe(false);
+  });
   it("blocks anonymous and wrong-origin mutations", async () => {
     expect(
       (await handleApp(req("/api/models"), local, createExecutionContext()))

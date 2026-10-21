@@ -5,6 +5,7 @@ import {
   Outlet,
   Scripts,
 } from "@tanstack/react-router";
+import { SiteNav } from "../components/site-nav";
 import { THEME_INIT_SCRIPT, ThemeToggle } from "../components/theme-toggle";
 import stylesheet from "../styles.css?url";
 
@@ -55,12 +56,7 @@ function Root() {
               </span>
               Cloudflare AI Starter
             </Link>
-            <nav className="site-nav" aria-label="メインナビゲーション">
-              <Link to="/help">はじめに</Link>
-              <Link to="/app">AIチャット</Link>
-              <Link to="/decisions">依頼の分類</Link>
-              <Link to="/media">画像と素材</Link>
-            </nav>
+            <SiteNav />
             <ThemeToggle />
           </div>
         </header>

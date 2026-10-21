@@ -665,6 +665,9 @@ function BillingPanel() {
   );
 }
 
+// mediaとdecisionsは専用画面を持つため、このパネルのタブにしない。
+type PanelFeature = Exclude<keyof Features, "media" | "decisions">;
+
 export function ExtensionsPanel({
   features,
   models,
@@ -676,15 +679,15 @@ export function ExtensionsPanel({
   modelId: string;
   revision: number;
 }) {
-  const [active, setActive] = useState<keyof Features | null>(null);
-  const labels: Record<keyof Features, string> = {
+  const [active, setActive] = useState<PanelFeature | null>(null);
+  const labels: Record<PanelFeature, string> = {
     rag: "資料",
     agent: "承認とメモ",
     workflows: "長時間処理",
     images: "画像生成",
     billing: "プラン",
   };
-  const enabled = (Object.keys(labels) as (keyof Features)[]).filter(
+  const enabled = (Object.keys(labels) as PanelFeature[]).filter(
     (key) => features[key],
   );
   if (!enabled.length) return null;

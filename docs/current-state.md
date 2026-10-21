@@ -53,7 +53,7 @@
 	2. ~~`chat.ts`から`agent-tools`と`extensions/rag`の静的importを外す~~ 2026-10-21完了。`handleChat`は`ChatExtensions`（`retrieveSources`・`createTools`）を引数で受け、組み立ては`chat-extensions.ts`。flagがONでも処理を渡されなければ404 `feature_disabled`（試験を追加）
 	3. ~~AGENTS.mdのファイル配置表に、実在する場所を足す~~ 2026-10-21完了。`git ls-files`から導き直し、`env.ts`・`http.ts`・`ai/`・`decisions/`・`media/`・`src/lib/`・`src/components/`・smoke各種・`d1-wire.ts`・`build-policy.ts`・`examples/presets/`を追加
 	4. ~~小さな整理~~ 2026-10-21完了。`inputSchema`を`validateSchema`（`/api/validate`）と`decisionInputSchema`へ改名（`agent-tools.ts`の`inputSchema`はAI SDKの項目名なので残す）、`workersAiFp8ModelId`を`workersAiChatModelId`へ改名、`tests/http.test.ts`を追加（`guardRequestEnvironment`は既存のAPI試験で扱う）
-	5. 本人の判断待ち: media・decisions（Jev）を「標準同梱」と「任意拡張」のどちらとして扱うか。ナビの「依頼の分類」は常に表示されている。UIの大きいファイル（`src/routes/app.tsx`、`extensions-panel.tsx`）の分割はこの判断の後に行う
+	5. 2026-10-21に本人がmedia・decisions（Jev）を両方とも任意拡張と決めた。`/api/session`に`features.decisions`（`JEV_MODE=remote`で設定が正しいときだけtrue）を追加し、ナビを`site-nav.tsx`へ分けて、ONの拡張だけを表示する形にした（SSRと取得失敗時は隠す。画面のURLは直接開ける）。全OFFのpreviewで、ナビが2件だけになりコンソールのエラーが0件であることを確認した。ONのときの表示はブラウザで未確認（試験のみ）。残り: UIの大きいファイル（`src/routes/app.tsx` 807行、`extensions-panel.tsx` 720行、`media-panel.tsx` 817行）の分割
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める（2026-10-09登録）。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、工程E/F（公開向け）へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
 
 今回の改善結果と検証は[開発運用の改善記録](development-workflow.md)を参照する。次は実際の通常作業で、担当エージェントが確認範囲・所要時間・再質問・手戻りを点検する。今回の変更を記録する場合は、本人からコミットの依頼を受けて各リポジトリの対象差分だけを扱う。測定のためだけのコミットや実接続は行わない。

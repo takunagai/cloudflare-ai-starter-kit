@@ -51,6 +51,8 @@ export type Features = {
   agent: boolean;
   workflows: boolean;
   images: boolean;
+  media: boolean;
+  decisions: boolean;
   billing: boolean;
 };
 export type Model = {

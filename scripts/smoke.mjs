@@ -19,6 +19,9 @@ assert.match(html, /次のアプリを/);
 assert.match(html, /lang="ja"/);
 assert.match(html, /name="description"/);
 assert.match(html, /接続を確認する/);
+// 任意拡張のナビはSSRに含めず、/api/sessionでONと分かってから表示する。
+assert.doesNotMatch(html, /href="\/decisions"/);
+assert.doesNotMatch(html, /href="\/media"/);
 
 const help = await get("/help");
 assert.equal(help.status, 200);

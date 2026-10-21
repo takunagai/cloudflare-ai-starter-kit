@@ -9,7 +9,7 @@ Cloudflareを中心に、別プロジェクトへ複製して使えるAIアプ�
 - 再開時は本ファイルと[現在地と次の作業](docs/current-state.md)を読む。仕様変更時は[合意済み構成・受け入れ条件](docs/architecture-proposal.md)の該当節、過去の証拠が必要なときだけ[履歴](docs/plan.md)を読む。同じ会話で変更のない指示や全履歴を再読しない。
 - 実装済み・ローカル検証済み・実接続済み・未配備を区別する。構成を左右する未回答事項や、未承認のクラウド変更・有料接続を勝手に進めない。
 - 第2段階の標準機能はモデル切替・AIチャット・認証・履歴保存。認証は公開向けBetter Auth（メール＋パスワード標準、Google追加可能）、社内・個人向けCloudflare Accessを選べる構成。
-- RAG、エージェント、Workflows、Polar決済、fal.ai画像生成は任意拡張としてコード・テスト・導入手順まで用意する。全OFFで標準機能が動き、不要なアカウント・Secrets・リソースを要求しない。LM Studioはローカル開発用。詳細は構成資料に従う。
+- RAG、エージェント、Workflows、Polar決済、fal.ai画像生成（media）、Jevの依頼分類（decisions）は任意拡張としてコード・テスト・導入手順まで用意する。任意拡張のナビ・タブは`/api/session`の`features`でONのときだけ出す（2026-10-21本人決定）。全OFFで標準機能が動き、不要なアカウント・Secrets・リソースを要求しない。LM Studioはローカル開発用。詳細は構成資料に従う。
 - 当初のモデル名OpenCodeはOpenRouterへの訂正済み。OpenCode連携を追加しない。
 
 ## 構成と変更方針
