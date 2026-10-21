@@ -34,7 +34,7 @@
 - [ ] GitHub CIのHTTP smokeで`/api/media/*`（OFF時は認証前に404）が500を返した原因を特定する。CIで1度（docsだけの`204c6ba`のrun 1回目、再実行で成功）、ローカルのpreviewで1度（2026-10-21、`GET /api/media/models`が500）発生した。ローカルの500は本文が`internal_error`ではなく、Cloudflare Vite pluginのHTMLエラーページ（`TypeError: fetch failed`、miniflareの`dispatchFetch`）で、workerd側のログは空だった。直後の再要求5回とsmoke再実行3回は成功し、アプリ内の例外ではなくpreviewからworkerdへの接続断とみられる。`423c166`から、smoke失敗時にpreviewログの末尾と応答本文がCIログに出る。2026-10-21にローカルで頻度を測ったが再現しなかった。常駐previewでsmoke 50回と`GET /api/media/models`の直叩き300回、previewを毎回起動し直すsmoke 25回、アイドル間隔0〜8秒を挟む72回で、media系の計522要求はすべて404、500は0件、workerdのPIDは常駐中に変わらず、previewログのエラーも0件だった。ローカルの発生頻度は1/500未満とみられ、ローカルの反復では原因に届かない。次はCIで再発したときに、出力される応答本文とpreviewログで層（アプリか、previewとworkerdの接続か）を判定する。それまで実装は変えない。なお、smokeを短時間に繰り返すと`/api/auth/sign-up/email`がBetter Authの既定制限（10秒に3回、D1保存）で429になっていた件は、`9185d04`でsmoke側が`X-Retry-After`だけ待って1回再試行するよう直した（連続10回で全通過）
 - [ ] 公開向け（Better Auth＋実メール）の最初の用途を決める。個人・社内向けは複製先で実配備まで済んだが、公開向けは実績がない。決まったら用途・provider・予算・送信ドメインを具体化し、公開向けの準備へ進む。入口は[公開サービス向けに準備する](presets/public.md)と[公開前チェック](launch-checklist.md)
 - [x] リポジトリの公開。2026-10-21に本人の判断で、今のアカウントの下・履歴を書き換えずにpublicへ切り替え、MIT LICENSEを置いた。切替直前に全127コミット・作業ツリー・PR・CIログを監査し、検出0。設定と、承知のうえで公開したもの（アカウント名・noreplyコミットの作者名）は[公開範囲と関連設定](リポジトリ-公開情報と履歴管理.md#公開範囲と関連設定)
-- [ ] Secret scanning・push protection・Dependabot security updates・mainのbranch保護を有効にするか決める。公開切替の時点ではすべて無効（[公開範囲と関連設定](リポジトリ-公開情報と履歴管理.md#公開範囲と関連設定)）
+- [x] Secret scanning・push protection・Dependabot alerts/security updates・mainのbranch保護（force-push・削除の禁止。PR必須・CI必須なし）を2026-10-21に有効化。未解決アラートは0件（[公開範囲と関連設定](リポジトリ-公開情報と履歴管理.md#公開範囲と関連設定)）
 
 ## 必要なときだけ読む資料
 
