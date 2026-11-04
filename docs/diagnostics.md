@@ -28,11 +28,12 @@
 
 ## 既知の非致命的な警告
 
-build・テストの出力に次の警告が出ても、失敗の原因とは限らない。出たときは、失敗したassertionやエラーと分けて扱う。警告を一律に抑制しない。
+install・build・テストの出力に次の警告が出ても、失敗の原因とは限らない。出たときは、失敗したassertionやエラーと分けて扱う。警告を一律に抑制しない。
 
 - TanStack route生成（`tsr generate`）で、依存内の循環参照に関する`replaceRouteChunk`警告が出る。生成・型検査・build・ブラウザ動作は成功する。依存更新時に再確認する。
 - 環境別buildのprerender時に、展開済み設定に`staging`/`production`の節がない旨の警告が出る。Worker名が意図した環境のものか、dry-runが成功するかで確認する。生成設定を手編集して警告を隠さない。
 - 一部のSDK配布物でsourcemapの元ファイルが同梱されていない旨の警告が出る（OpenRouterなど）。テストの失敗ではない。
+- `pnpm install`で`deprecated workers-ai-provider@4.0.0`と、下位依存`@esbuild-kit/core-utils`・`@esbuild-kit/esm-loader`のdeprecated警告が出る。前者は配布元がパッケージ全体を非推奨にしたもので、動作とauditには影響しない。移行は[現在地](current-state.md#次に進めること)の残件。後者はBetter Authの任意peerとして解決されるDrizzle CLIの下位依存で、アプリは使わない（[pnpmのoverrides](operations.md#pnpmのoverrides)）。
 - Workflowsの失敗系テストでは、ローカルruntimeが`WorkflowTimeoutError`、固定のtest failure、`SUMMARY_WORKFLOW_FAILED`のstackを出す。期待どおりの失敗経路で、実入力や秘密は使わない。
 
 ## 次に診断を実装するときの条件
