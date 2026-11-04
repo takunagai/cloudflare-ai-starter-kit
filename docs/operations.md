@@ -73,13 +73,14 @@ Cloudflareの `compatibility_date` は日付だけ先に更新せず、対応wor
 
 ### pnpmのoverrides
 
-`pnpm-workspace.yaml`の`overrides`は、監査で検出された脆弱性に対応する限定固定で、現在は3件。Better Authの更新、Drizzle CLIの導入、miniflareやTailwindの更新のときは、各overrideの要否を再評価する。
+`pnpm-workspace.yaml`の`overrides`は、監査で検出された脆弱性に対応する限定固定で、現在は2件。Better Authの更新、Drizzle CLIの導入、miniflareやTailwindの更新のときは、各overrideの要否を再評価する。
 
 | 対象 | 固定先 | 理由 |
 | --- | --- | --- |
 | `@esbuild-kit/core-utils>esbuild` | 0.28.1 | Better Authの任意peerとして解決されるDrizzle CLIの下位依存に、`esbuild <=0.24.2`の開発server CORS脆弱性（[GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99)）。アプリは`better-auth/minimal`とD1 adapterを使い、このCLIのserve機能は使わないが、監査を無視せず対象経路だけを固定した。drizzle-kitは直接依存に入れない |
-| `@ai-sdk/provider-utils@5.0.49>undici` | 7.29.1 | [GHSA-3wwx-pv8p-q78v](https://github.com/advisories/GHSA-3wwx-pv8p-q78v)。残る1つの依存元だけを修正版7.xに固定する。miniflareは自身でundici 7.29.1を固定している。根拠と解除条件は[undiciの記録](../references/undici-security-20260929.md) |
 | `@tailwindcss/node@4.3.3>source-map-js` | 1.2.2 | [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)。修正版の実装を、その依存元のスコープに限って使う |
+
+undiciのoverride（`@ai-sdk/provider-utils@5.0.49>undici`）は2026-11-04に削除した。lockfileのprovider-utilsが5.0.62になり一致しなくなっていたため。undiciは親パッケージの更新と範囲内の再解決で7.30.1になった。経緯は[2026-11-04の依存監査対応](../references/dependency-audit-20261104.md)。
 
 `minimumReleaseAgeExclude`は置いていない（2026-10-21に削除）。導入時の例外はAI SDKの旧い特定版2件だけで、lockfileの版とは一致せず、現在のlockfileは例外なしで供給網ポリシーの検査（`pnpm install --frozen-lockfile`）を通る。公開直後の版を使う必要が生じたら、版を指定した例外を一時的に追加し、待機期間を満たしたら削除する。広いパターンや全体無効化は使わない。設定構文の根拠: [pnpmの依存解決](https://pnpm.io/settings/dependency-resolution)。
 
