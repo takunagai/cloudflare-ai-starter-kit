@@ -40,7 +40,7 @@
 | [staging配備](staging-deployment.md) | 環境別build、Custom Domain、D1復旧、費用、GitHubのprivate repo保護条件 |
 | [GitHubメール設定とPR参照](github-email-and-pr-safety.md) | 2026-09-28確認。Webメール非公開、CLI push防止、ローカル作者設定、GitHub仮マージの検査範囲 |
 | [Workers AI最小検証](workers-ai-minimal-verification.md) | 2026-09-28再確認。既存モデルの廃止、候補の提供状況、無料枠なしの料金見積りと制約 |
-| [undici限定更新](undici-security-20260929.md) | 2026-09-29。2つの依存元だけ7.29.1へoverrideした根拠・検証範囲・解除条件 |
+| [undici限定更新](undici-security-20260929.md) | 2026-09-29。2つの依存元だけ7.29.1へoverrideした根拠・検証範囲・解除条件。2026-11-04に解除済み（後継は[依存監査対応](dependency-audit-20261104.md)） |
 | [TypeSafe AI Jev](typesafe-jev-20261002.md) | 2026-10-02。共通標準判断基盤。B-1固定版設定とB-3J固定fetch/3型service/API/0007を実装しworkerd/D1＋fakeで検証。SDK/依存追加・実接続なし |
 | [B-3JのJev APIと実装根拠](jev-service-contract-20261002.md) | 2026-10-02。API/3型を実装時再照合。固定版/料金/Legal・Confidence/既知の限界・Telemetry/backup/自動補充の調査履歴を保持。独自枠/本文なし台帳/90日/unknown停止は採用どおりローカル実装。上流実保持/unknown修復・料金・権限/品質は工程E前の未確認 |
 | [fal画像・動画・音声の複数モデル対応](fal-multimodel-feasibility-20261002.md) | 2026-10-02。対象12 endpointの公式仕様、参照画像アップロードを含む初版設計へのリンクとモデル選定前の概算。追加機能は未実装・実接続なし |

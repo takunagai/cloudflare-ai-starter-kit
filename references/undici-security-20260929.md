@@ -1,5 +1,7 @@
 # undiciの限定したセキュリティ更新
 
+> 2026-11-04に解除済み。この文書のoverride（`@ai-sdk/provider-utils@5.0.49>undici`）は、provider-utilsが5.0.62になって一致しなくなっていたため削除した。undiciは親パッケージの更新と範囲内の再解決で7.30.1になった。後継の記録は[2026-11-04の依存監査対応](dependency-audit-20261104.md)。以下は当時の記録。
+
 確認日: 2026-09-29（JST）。実AI検証を終了した後の文書commit `060bb0c8df7238b86e207ae918de64879bdec038`で、[push CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36498237549)と[pull_request CI](https://github.com/OWNER/cloudflare-ai-starter-kit/actions/runs/36498237762)がauditで失敗した。push側のcheck・local migration・HTTP smokeは成功しており、監査ではGHSA-3wwx-pv8p-q78vの1件が報告された。実AI結果の失敗ではない。
 
 ## 公式根拠と採用判断
