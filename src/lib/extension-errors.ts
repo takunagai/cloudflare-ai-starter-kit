@@ -32,7 +32,10 @@ export const EXTENSION_FAILURE_MESSAGES: Record<string, string> = {
 
 export function extensionFailureMessage(code: string) {
   const safe = /^[A-Za-z0-9_]{1,100}$/.test(code) ? code : "request_failed";
-  const message = EXTENSION_FAILURE_MESSAGES[safe];
+  // オブジェクト標準のプロパティ（constructor等）を説明文として返さないよう、自前のキーだけを引く。
+  const message = Object.hasOwn(EXTENSION_FAILURE_MESSAGES, safe)
+    ? EXTENSION_FAILURE_MESSAGES[safe]
+    : undefined;
   return message
     ? `${message}（${safe}）`
     : `処理できませんでした（${safe}）。`;

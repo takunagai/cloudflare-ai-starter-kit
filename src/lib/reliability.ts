@@ -30,11 +30,10 @@ export const FAILURE_MESSAGES: Record<string, string> = {
   local_recovery_unavailable:
     "ブラウザに要求IDを記録できないため送信を止めました。",
 };
+// constructor・toString・__proto__などオブジェクト標準のプロパティを説明文として返さないよう、自前のキーだけを引く。
 export function failureMessage(code: string) {
-  return (
-    FAILURE_MESSAGES[code] ??
-    `処理を確認できませんでした（${/^[A-Za-z0-9_]{1,100}$/.test(code) ? code : "request_failed"}）。`
-  );
+  if (Object.hasOwn(FAILURE_MESSAGES, code)) return FAILURE_MESSAGES[code];
+  return `処理を確認できませんでした（${/^[A-Za-z0-9_]{1,100}$/.test(code) ? code : "request_failed"}）。`;
 }
 export type RequestReceipt = {
   requestId: string;

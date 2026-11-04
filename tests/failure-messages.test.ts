@@ -18,6 +18,18 @@ const UNSAFE_CODES = [
   "a".repeat(101),
 ];
 
+// コードの形式を満たすが、表の自前キーではないオブジェクト標準のプロパティ名。
+const PROTOTYPE_KEYS = [
+  "constructor",
+  "toString",
+  "__proto__",
+  "hasOwnProperty",
+  "valueOf",
+  "isPrototypeOf",
+  "propertyIsEnumerable",
+  "toLocaleString",
+];
+
 describe("応答本文からのエラーコード抽出", () => {
   it("英数字と_の1〜100文字だけをコードとして通す", () => {
     expect(safeCode("rate_limited")).toBe("rate_limited");
@@ -94,5 +106,23 @@ describe("チャットの失敗分類の表示文", () => {
       expect(failureMessage(code)).toBe(
         "処理を確認できませんでした（request_failed）。",
       );
+  });
+});
+
+describe("オブジェクト標準のプロパティ名を既知のコードとして扱わない", () => {
+  it.each(PROTOTYPE_KEYS)("チャットの失敗分類: %s", (code) => {
+    expect(failureMessage(code)).toBe(
+      `処理を確認できませんでした（${code}）。`,
+    );
+  });
+
+  it.each(PROTOTYPE_KEYS)("認証画面: %s", (code) => {
+    expect(authFailureMessage(code)).toBe(`処理できませんでした（${code}）。`);
+  });
+
+  it.each(PROTOTYPE_KEYS)("任意拡張・media: %s", (code) => {
+    expect(extensionFailureMessage(code)).toBe(
+      `処理できませんでした（${code}）。`,
+    );
   });
 });
